@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js" lang="en">
+<head>
+  <title>SmashCrowd</title>
+  <link rel="stylesheet" href="css/app.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700,800|Work+Sans:400,600,800" rel="stylesheet">
+</head>
+<body>
+
+<div class="grid-container">
+  <div class="grid-x grid-margin-x">
+    <div class="cell medium-6 large-4">
+      <h1>SmashCrowd</h1>
+      <p>Draft your next online Smashdown!</p>
+      {{ message }}
+    </div>
+
+  </div>
+
+  <div class="grid-x grid-margin-x">
+    <div class="medium-6 cell">
+      <label>Add a new player
+        <input type="text" placeholder="Player Name">
+      </label>
+    </div>
+  </div>
+
+  <div class="grid-x grid-margin-x">
+    <div class="cell">
+      <div class="character-grid">
+        {% for character in characters %}
+          {% include 'character.twig' %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/libs/jquery.js"></script>
+<script src="js/libs/what-input.js"></script>
+<script src="js/libs/foundation.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
