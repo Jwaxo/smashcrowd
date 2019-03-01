@@ -1,0 +1,11 @@
+
+<div class="cell">
+  <div class="card">
+    <div class="card-section">
+      <h4>{{ player.name }}</h4>
+      {% for character in player.characters %}
+        {% include 'character.twig' %}
+      {% endfor %}
+    </div>
+  </div>
+</div>

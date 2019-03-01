@@ -25,6 +25,7 @@ const sassPaths = [
 const port = 8080;
 const chatHistory = [];
 const clients = [];
+const players = [];
 const console_colors = [ 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'gray', 'bgRed', 'bgGreen', 'bgYellow', 'bgBlue', 'bgMagenta', 'bgCyan', 'bgWhite'];
 const characters = require('./lib/chars.json');
 
@@ -40,6 +41,7 @@ app.set("twig options", {
 app.get('/', function(req, res) {
   res.render('index.twig', {
     characters: characters.chars,
+    players: players,
   });
 });
 
@@ -64,6 +66,15 @@ io.on('connection', socket => {
 
   serverLog(`${clientLabel} assigned to socket ${socket.id}`);
 
+  socket.on('add-player', (name) => {
+    serverLog(`${clientLabel} adding player ${name}`);
+    const player = playerFactory.createPlayer(name);
+    players.push(player);
+
+    regeneratePlayers();
+  });
+
+  // Be sure to remove the client from the list of clients when they disconnect.
   socket.on('disconnect', () => {
     serverLog(`${clientLabel} disconnected.`);
     clients.splice(clientId - 1, 1);
@@ -79,6 +90,12 @@ function serverLog(message) {
   const date = new Date();
   const timestamp = date.toLocaleString("en-US");
   console.log(`${timestamp}: ${message}`);
+}
+
+function regeneratePlayers() {
+  Twig.renderFile('./views/players-container.twig', {players}, (error, html) => {
+    io.sockets.emit('rebuild-players', html);
+  });
 }
 
 /**

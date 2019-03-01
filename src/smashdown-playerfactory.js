@@ -4,7 +4,8 @@
 class Player {
   constructor(name) {
     this.name = name;
-    this.color = color; // Setting to Red by default for now.
+    this.characters = [];
+    this.client = 0;
 
     return this;
   }
