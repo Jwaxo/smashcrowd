@@ -10,7 +10,7 @@ class Player {
     return this;
   }
 
-  setClient(clientID) {
+  setClient(clientId) {
     this.client = clientId;
   }
   getClient() {

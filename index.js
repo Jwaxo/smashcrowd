@@ -53,7 +53,7 @@ server.listen(port, () => {
   console.log(`Listening on ${port}`);
 });
 
-// What to do when there's a new connection.
+// Handling of individual sockets as they remain connected.
 io.on('connection', socket => {
   serverLog(`New connection established with hash ${socket.id}`);
 
@@ -61,7 +61,7 @@ io.on('connection', socket => {
 
   const clientInfo = clientFactory.createClient(socket, console_colors[randomColor]);
   const clientId = clients.push(clientInfo);
-  const clientColor = colors[clientInfo.color];
+  const clientColor = colors[clientInfo.getColor()];
   const clientLabel = clientColor(`Client ${clientId}`);
 
   serverLog(`${clientLabel} assigned to socket ${socket.id}`);
@@ -69,14 +69,22 @@ io.on('connection', socket => {
   socket.on('add-player', (name) => {
     serverLog(`${clientLabel} adding player ${name}`);
     const player = playerFactory.createPlayer(name);
+
     players.push(player);
 
-    regeneratePlayers();
+    // @todo This is currently a placeholder. We need to set dynamic player
+    // @todo ownership.
+    players[0].setClient(clientId);
+
+    regeneratePlayers(clientId);
   });
 
   // Be sure to remove the client from the list of clients when they disconnect.
   socket.on('disconnect', () => {
     serverLog(`${clientLabel} disconnected.`);
+    if (clientInfo.getPlayer()) {
+      players[clientInfo.player].setClient();
+    }
     clients.splice(clientId - 1, 1);
   });
 });
@@ -92,8 +100,8 @@ function serverLog(message) {
   console.log(`${timestamp}: ${message}`);
 }
 
-function regeneratePlayers() {
-  Twig.renderFile('./views/players-container.twig', {players}, (error, html) => {
+function regeneratePlayers(clientId) {
+  Twig.renderFile('./views/players-container.twig', {players, clientId}, (error, html) => {
     io.sockets.emit('rebuild-players', html);
   });
 }

@@ -4,7 +4,8 @@ $(function() {
   const socket = io();
 
   socket.on('rebuild-players', html => {
-    $('#players_container').html(html);
+    const playerContainer = $('#players_container');
+    playerContainer.html(html);
   });
 
   $('#add_player_form').submit(() => {

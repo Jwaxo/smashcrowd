@@ -9,6 +9,19 @@ class Client {
     return this;
   }
 
+  // There shouldn't be a way to set the socket, since clients and sockets have
+  // a 1:1 relationship.
+  getSocket() {
+    return this.socket;
+  }
+
+  setColor(color) {
+    this.color = color;
+  }
+  getColor() {
+    return this.color;
+  }
+
   setPlayer(playerId) {
     this.player = playerId;
   }

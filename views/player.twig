@@ -1,11 +1,24 @@
 
+{% set playerClasses = [
+  'card',
+  'player',
+  (player.client == clientId ? 'player--current'),
+]|join(' ')|trim %}
+
+{% set playerRosterClasses = [
+  'player-roster',
+  (not player.characters ? 'player-roster--empty'),
+]|join(' ')|trim %}
+
 <div class="cell">
-  <div class="card">
+  <div class="{{ playerClasses }}">
     <div class="card-section">
       <h4>{{ player.name }}</h4>
-      {% for character in player.characters %}
-        {% include 'character.twig' %}
-      {% endfor %}
+      <div class="{{ playerRosterClasses }}">
+        {% for character in player.characters %}
+          {% include 'character.twig' %}
+        {% endfor %}
+      </div>
     </div>
   </div>
 </div>

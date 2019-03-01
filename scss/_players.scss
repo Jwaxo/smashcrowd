@@ -1,0 +1,33 @@
+/**
+ * Styles defining how player columns appear.
+ */
+
+.player {
+
+  &.player--current {
+    border-color: map-get($foundation-palette, primary);
+    border-width: rem-calc(4px);
+
+    h4:after {
+      content: '(This is you)';
+      color: $light-gray;
+      font-size: 75%;
+      margin-left: rem-calc(5px);
+    }
+  }
+}
+
+.player-roster {
+
+  &.player-roster--empty {
+    border: rem-calc(3px) dashed $medium-gray;
+    &:after {
+      color: $dark-gray;
+      content: '+';
+      display: block;
+      font-weight: bold;
+      margin: rem-calc(15px 0);
+      text-align: center;
+    }
+  }
+}
