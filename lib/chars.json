@@ -1,0 +1,12 @@
+{
+  "chars": [
+    {
+      "name": "Mario",
+      "image": "https://ssbworld.com/images/chart/su/mario.png"
+    },
+    {
+      "name": "Donkey Kong",
+      "image": "https://ssbworld.com/images/chart/su/donkey_kong.png"
+    }
+  ]
+}

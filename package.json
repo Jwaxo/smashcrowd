@@ -1,0 +1,29 @@
+{
+  "name": "smashcrowd",
+  "version": "1.0.0",
+  "description": "A drafting tool for Smash Bros.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jwaxo/smashcrowd.git"
+  },
+  "keywords": [
+    "smash",
+    "bros",
+    "tournament",
+    "draft"
+  ],
+  "author": "Jeff Wax <jeff@jeffwax.com> (http://jeffwax.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Jwaxo/smashcrowd/issues"
+  },
+  "homepage": "https://github.com/Jwaxo/smashcrowd#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "socket.io": "^2.2.0"
+  }
+}
