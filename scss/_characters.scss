@@ -1,0 +1,42 @@
+/**
+ * Styles defining how character portraits render in the mockup character selection.
+ */
+
+.character-grid {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+}
+
+.character {
+  background-size: cover;
+  cursor: pointer;
+  flex: 0 0 auto;
+  height: 50px;
+  position: relative;
+  width: 90px;
+  &:nth-child(3n+1) {
+    background-color: red;
+  }
+  &:nth-child(3n+2) {
+    background-color: blue;
+  }
+  &:nth-child(3n+3) {
+    background-color: green;
+  }
+}
+
+.character-name {
+  bottom: 2px;
+  color: white;
+  cursor: pointer;
+  font-family: 'Open Sans', 'Work Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 12px;
+  position: absolute;
+  text-align: center;
+  text-shadow: 0 0 2px black, 2px 2px 3px black;
+  text-transform: uppercase;
+  width: 100%;
+}

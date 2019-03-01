@@ -4,7 +4,7 @@
   <title>SmashCrowd</title>
   <link rel="stylesheet" href="css/app.css">
   <script src="/socket.io/socket.io.js"></script>
-
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700,800|Work+Sans:400,600,800" rel="stylesheet">
 </head>
 <body>
 
@@ -23,6 +23,16 @@
       <label>Add a new player
         <input type="text" placeholder="Player Name">
       </label>
+    </div>
+  </div>
+
+  <div class="grid-x grid-margin-x">
+    <div class="cell">
+      <div class="character-grid">
+        {% for character in characters %}
+          {% include 'character.twig' %}
+        {% endfor %}
+      </div>
     </div>
   </div>
 </div>

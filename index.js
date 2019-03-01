@@ -37,7 +37,7 @@ app.set("twig options", {
 
 app.get('/', function(req, res) {
   res.render('index.twig', {
-    characters: characters,
+    characters: characters.chars,
   });
 });
 
