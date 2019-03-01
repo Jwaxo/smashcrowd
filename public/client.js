@@ -1,4 +1,0 @@
-
-$(function() {
-  const socket = io();
-});

@@ -2,6 +2,7 @@
 const socketio = require('socket.io');
 const http = require('http');
 const express = require('express');
+const Twig = require('twig');
 
 const gulp = require('gulp');
 const $ = require('gulp-load-plugins')();
@@ -23,10 +24,22 @@ const port = 8080;
 const chatHistory = [];
 const clients = [];
 const colors = [ 'red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange', ];
+const characters = require('./lib/chars.json');
 
 // Do basic server setup stuff.
 
 app.use(express.static(__dirname + '/public'));
+
+app.set("twig options", {
+  allow_async: true,
+  strict_variables: false
+});
+
+app.get('/', function(req, res) {
+  res.render('index.twig', {
+    characters: characters,
+  });
+});
 
 // Build the sass.
 sass();
