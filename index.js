@@ -7,11 +7,13 @@ const Twig = require('twig');
 const gulp = require('gulp');
 const $ = require('gulp-load-plugins')();
 const autoprefixer = require('autoprefixer');
+const colors = require('colors/safe');
 
 const app = express();
 const server = http.Server(app);
 
 const clientFactory = require('./src/smashdown-clientfactory.js');
+const playerFactory = require('./src/smashdown-playerfactory.js');
 
 const io = socketio(server);
 
@@ -23,7 +25,7 @@ const sassPaths = [
 const port = 8080;
 const chatHistory = [];
 const clients = [];
-const colors = [ 'red', 'green', 'blue', 'magenta', 'purple', 'plum', 'orange', ];
+const console_colors = [ 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'gray', 'bgRed', 'bgGreen', 'bgYellow', 'bgBlue', 'bgMagenta', 'bgCyan', 'bgWhite'];
 const characters = require('./lib/chars.json');
 
 // Do basic server setup stuff.
@@ -51,10 +53,21 @@ server.listen(port, () => {
 
 // What to do when there's a new connection.
 io.on('connection', socket => {
-  serverLog(`New connection established with ID ${socket.id}`);
-  const clientInfo = clientFactory.createClient(socket, colors[0]);
+  serverLog(`New connection established with hash ${socket.id}`);
+
+  const randomColor = Math.floor(Math.random() * (console_colors.length));
+
+  const clientInfo = clientFactory.createClient(socket, console_colors[randomColor]);
   const clientId = clients.push(clientInfo);
-  serverLog(`Client ${clientId} assigned color ${clientInfo.color}`);
+  const clientColor = colors[clientInfo.color];
+  const clientLabel = clientColor(`Client ${clientId}`);
+
+  serverLog(`${clientLabel} assigned to socket ${socket.id}`);
+
+  socket.on('disconnect', () => {
+    serverLog(`${clientLabel} disconnected.`);
+    clients.splice(clientId - 1, 1);
+  });
 });
 
 /**

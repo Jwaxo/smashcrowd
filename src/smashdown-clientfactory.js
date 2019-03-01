@@ -8,6 +8,14 @@ class Client {
 
     return this;
   }
+
+  setPlayer(playerId) {
+    this.player = playerId;
+  }
+  getPlayer() {
+    return this.player;
+  }
+
 }
 
 module.exports = {
