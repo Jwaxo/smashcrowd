@@ -1,14 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>WebSocket Example</title>
+    <title>SmashCrowd</title>
+    <link rel="stylesheet" href="css/app.css">
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script src="/client.js"></script>
 
 </head>
 <body>
-<h1>WebSocket Example</h1>
-<p>Open your browser's developer tools to see client/server activity.</p>
+
+<div class="grid-container">
+    <div class="grid-x grid-margin-x">
+        <div class="cell medium-6 large-4">
+            <h1>SmashCrowd</h1>
+            <p>Draft your next online Smashdown!</p>
+        </div>
+
+    </div>
+
+    <div class="grid-x grid-margin-x">
+        <div class="medium-6 cell">
+            <label>Add a new player
+                <input type="text" placeholder="Player Name">
+            </label>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

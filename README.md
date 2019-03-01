@@ -34,6 +34,23 @@ you should see the SmashCrowd main page.
 
 *To be filled in.*
 
+### How do I work on it?
+
+**Node.JS (server)**:
+Currently all of the main JS is stored in index.js; this will probably be spread
+out a bit as new features get expanded upon.
+
+**Frontend JS (client)**:
+Located under public/client.js, this is what the browser runs. Ideally this will
+be where we detect changes to form items, moved characters, etc, then send that
+info back to the server.
+
+**Styles**:
+We use Foundation for some slightly pretty styles to be slapped on everything else,
+compiled from SCSS to public/css/app.css. To modify it, look in scss/app/scss.
+This could be updated to use Gulp in order to watch the files, but until then,
+the SCSS only gets recompiled when the server is started.
+
 ### Planned features
 
 * Dynamic player creation.
