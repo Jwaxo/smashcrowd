@@ -9,6 +9,9 @@ const autoprefixer = require('autoprefixer');
 
 const app = express();
 const server = http.Server(app);
+
+const clientFactory = require('./src/smashdown-clientfactory.js');
+
 const io = socketio(server);
 
 const sassPaths = [
@@ -36,7 +39,7 @@ server.listen(port, () => {
 // What to do when there's a new connection.
 io.on('connection', socket => {
   serverLog(`New connection established with ID ${socket.id}`);
-  const clientInfo = new Client(socket);
+  const clientInfo = clientFactory.createClient(socket, colors[0]);
   const clientId = clients.push(clientInfo);
   serverLog(`Client ${clientId} assigned color ${clientInfo.color}`);
 });
@@ -75,16 +78,4 @@ function sass() {
       autoprefixer({ browsers: ['last 2 versions', 'ie >= 9'] })
     ]))
     .pipe(gulp.dest('public/css'))
-}
-
-/**
- * Information and methods used for an individual user connection.
- */
-class Client {
-  constructor(socket) {
-    this.socket = socket;
-    this.color = colors[0];// Setting to Red by default for now.
-
-    return this;
-  }
 }
