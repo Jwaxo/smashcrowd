@@ -7,7 +7,6 @@ const app = express();
 const server = http.Server(app);
 const io = socketio(server);
 
-const hostname = '127.0.0.1';
 const port = 8080;
 const chatHistory = [];
 const clients = [];
