@@ -17,13 +17,6 @@ $(function() {
     characterSetup();
   });
 
-  $('#add_player_form').submit(() => {
-    event.preventDefault();
-    const field = $(this).find('#add_player');
-    socket.emit('add-player', field.val());
-    field.val('');
-  });
-
   /**
    * Needs to be run any time the character grid gets created, so the jQuery
    * events properly attach.
@@ -39,6 +32,13 @@ $(function() {
     $('.player-picker').click(element => {
       const playerId = $(element.currentTarget).data('player-id');
       socket.emit('pick-player', playerId);
-    })
+    });
+
+    $('.player-add-form').submit(() => {
+      event.preventDefault();
+      const field = $('.player-add');
+      socket.emit('add-player', field.val());
+      field.val('');
+    });
   }
 });
