@@ -1,3 +1,11 @@
-{% for player in players %}
-  {% include 'player.twig' %}
-{% endfor %}
+<div class="grid-x grid-margin-x">
+  <div class="cell header auto">
+    <h4>Current Round: {{ currentRound }}</h4>
+  </div>
+</div>
+
+<div class="grid-x grid-margin-x small-up-2 medium-up-4">
+  {% for player in players_pick_order %}
+    {% include 'player.twig' %}
+  {% endfor %}
+</div>

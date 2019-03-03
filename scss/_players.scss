@@ -5,7 +5,6 @@
 .player {
 
   &.player--current {
-    border-color: map-get($foundation-palette, primary);
     border-width: rem-calc(4px);
 
     .player-picker {
@@ -22,6 +21,9 @@
       font-size: 75%;
       margin-left: rem-calc(5px);
     }
+  }
+  &.player--active {
+    border-color: map-get($foundation-palette, alert);
   }
 
   h4 {
