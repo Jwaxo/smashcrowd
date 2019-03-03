@@ -1,21 +1,26 @@
+{#
+  Player containers and rosters.
+#}
 
 {% set playerClasses = [
   'card',
   'player',
-  (player.client == clientId ? 'player--current'),
+  (player.getClient() == clientId ? 'player--current'),
+  (player.isActive ? 'player--active'),
 ]|join(' ')|trim %}
 
 {% set playerRosterClasses = [
   'player-roster',
-  (not player.characters ? 'player-roster--empty'),
 ]|join(' ')|trim %}
+{#   (not player.getCharacters() ? 'player-roster--empty'), #}
+{# The above doesn't work, for some reason. Ignoring and moving on for now. #}
 
 <div class="cell">
   <div class="{{ playerClasses }}">
     <div class="card-section">
-      <h4>{{ player.name }}</h4>
+      <h4>{{ player.getName() }}</h4>
       <div class="{{ playerRosterClasses }}">
-        {% for character in player.characters %}
+        {% for character in player.getCharacters() %}
           {% include 'character.twig' %}
         {% endfor %}
       </div>

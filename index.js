@@ -14,6 +14,7 @@ const server = http.Server(app);
 
 const clientFactory = require('./src/smashdown-clientfactory.js');
 const playerFactory = require('./src/smashdown-playerfactory.js');
+const characterFactory = require('./src/smashdown-characterfactory.js');
 
 const io = socketio(server);
 
@@ -27,10 +28,16 @@ const chatHistory = [];
 const clients = [];
 const players = [];
 const console_colors = [ 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'gray', 'bgRed', 'bgGreen', 'bgYellow', 'bgBlue', 'bgMagenta', 'bgCyan', 'bgWhite'];
-const characters = require('./lib/chars.json');
+const charData = require('./lib/chars.json');
+
+// Process characters.
+const characters = [];
+
+for (let i = 0; i < charData.chars.length; i++) {
+  characters[i] = characterFactory.createCharacter(i, charData.chars[i]);
+}
 
 // Do basic server setup stuff.
-
 app.use(express.static(__dirname + '/public'));
 
 app.set("twig options", {
@@ -40,7 +47,7 @@ app.set("twig options", {
 
 app.get('/', function(req, res) {
   res.render('index.twig', {
-    characters: characters.chars,
+    characters: characters,
     players: players,
   });
 });
@@ -59,14 +66,14 @@ io.on('connection', socket => {
 
   const randomColor = Math.floor(Math.random() * (console_colors.length));
 
-  const clientInfo = clientFactory.createClient(socket, console_colors[randomColor]);
-  const clientId = clients.push(clientInfo);
-  const clientColor = colors[clientInfo.getColor()];
+  const client = clientFactory.createClient(socket, console_colors[randomColor]);
+  const clientId = clients.push(client);
+  const clientColor = colors[client.getColor()];
   const clientLabel = clientColor(`Client ${clientId}`);
 
   serverLog(`${clientLabel} assigned to socket ${socket.id}`);
 
-  socket.on('add-player', (name) => {
+  socket.on('add-player', name => {
     serverLog(`${clientLabel} adding player ${name}`);
     const player = playerFactory.createPlayer(name);
 
@@ -75,15 +82,32 @@ io.on('connection', socket => {
     // @todo This is currently a placeholder. We need to set dynamic player
     // @todo ownership.
     players[0].setClient(clientId);
+    players[0].isActive = true;
+    client.setPlayer(0);
 
     regeneratePlayers(clientId);
+  });
+
+  socket.on('add-character', charId => {
+    const playerId = client.getPlayer();
+    if (playerId === null) {
+      serverLog(`${clientLabel} tried to add character ${charId} but does not have a player selected!`);
+    }
+    else {
+      serverLog(`${clientLabel} adding character ${charId} to player ${playerId}`);
+      characters[charId].setPlayer(playerId);
+      players[playerId].addCharacter(characters[charId]);
+
+      regeneratePlayers(clientId);
+      regenerateCharacters();
+    }
   });
 
   // Be sure to remove the client from the list of clients when they disconnect.
   socket.on('disconnect', () => {
     serverLog(`${clientLabel} disconnected.`);
-    if (clientInfo.getPlayer()) {
-      players[clientInfo.player].setClient();
+    if (player = client.getPlayer()) {
+      players[player].setClient();
     }
     clients.splice(clientId - 1, 1);
   });
@@ -101,8 +125,15 @@ function serverLog(message) {
 }
 
 function regeneratePlayers(clientId) {
+  console.log(players);
   Twig.renderFile('./views/players-container.twig', {players, clientId}, (error, html) => {
     io.sockets.emit('rebuild-players', html);
+  });
+}
+
+function regenerateCharacters() {
+  Twig.renderFile('./views/characters-container.twig', {characters}, (error, html) => {
+    io.sockets.emit('rebuild-characters', html);
   });
 }
 

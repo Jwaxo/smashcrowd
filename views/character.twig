@@ -1,4 +1,8 @@
+{#
+  Individual character portraits. These are rendered both in a roster or in the
+  main character container.
+#}
 
-<div class="character" style="background-image: url('{{ character.image }}')">
-  <span class="character-name">{{ character.name }}</span>
+<div class="character" data-character-id="{{ character.getCharId() }}" style="background-image: url('{{ character.getImage() }}')">
+  <span class="character-name">{{ character.getName() }}</span>
 </div>

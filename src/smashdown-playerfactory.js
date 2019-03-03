@@ -5,7 +5,8 @@ class Player {
   constructor(name) {
     this.name = name;
     this.characters = [];
-    this.client = 0;
+    this.client = null;
+    this.isActive = false;
 
     return this;
   }
@@ -15,6 +16,24 @@ class Player {
   }
   getClient() {
     return this.client;
+  }
+
+  setName(name) {
+    this.name = name;
+  }
+  getName() {
+    return this.name;
+  }
+
+  addCharacter(character) {
+    this.characters.push(character);
+    return this.characters;
+  }
+  setCharacters(characters) {
+    this.characters = characters;
+  }
+  getCharacters() {
+    return this.characters;
   }
 
 }

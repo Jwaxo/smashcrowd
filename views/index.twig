@@ -29,14 +29,8 @@
     {% include 'players-container.twig' %}
   </div>
 
-  <div class="grid-x grid-margin-x">
-    <div class="cell">
-      <div class="character-grid">
-        {% for character in characters %}
-          {% include 'character.twig' %}
-        {% endfor %}
-      </div>
-    </div>
+  <div id="characters_container" class="grid-x grid-margin-x">
+    {% include 'characters-container.twig' %}
   </div>
 </div>
 
