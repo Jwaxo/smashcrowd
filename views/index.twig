@@ -13,27 +13,24 @@
     <div class="cell medium-6 large-4">
       <h1>SmashCrowd</h1>
       <p>Draft your next online Smashdown!</p>
-      {{ message }}
     </div>
 
   </div>
 
   <div class="grid-x grid-margin-x">
     <div class="medium-6 cell">
-      <label>Add a new player
-        <input type="text" placeholder="Player Name">
-      </label>
+      <form id="add_player_form">
+        <input id="add_player" type="text" placeholder="Add a new player">
+      </form>
     </div>
   </div>
 
-  <div class="grid-x grid-margin-x">
-    <div class="cell">
-      <div class="character-grid">
-        {% for character in characters %}
-          {% include 'character.twig' %}
-        {% endfor %}
-      </div>
-    </div>
+  <div id="players_container" class="grid-x grid-margin-x small-up-2 medium-up-3">
+    {% include 'players-container.twig' %}
+  </div>
+
+  <div id="characters_container" class="grid-x grid-margin-x">
+    {% include 'characters-container.twig' %}
   </div>
 </div>
 

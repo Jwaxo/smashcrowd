@@ -1,0 +1,14 @@
+{#
+  The main character container and select screen. This is passed dynamically to
+  clients when they connect or when a character is moved.
+#}
+
+<div class="cell">
+  <div class="character-grid">
+    {% for character in characters %}
+      {% if character.getPlayer() is null %}
+        {% include 'character.twig' %}
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>

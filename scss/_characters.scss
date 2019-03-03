@@ -12,9 +12,9 @@
   background-size: cover;
   cursor: pointer;
   flex: 0 0 auto;
-  height: 50px;
+  height: rem-calc(50px);
   position: relative;
-  width: 90px;
+  width: rem-calc(90px);
   &:nth-child(3n+1) {
     background-color: red;
   }
@@ -27,16 +27,16 @@
 }
 
 .character-name {
-  bottom: 2px;
+  bottom: rem-calc(2px);
   color: white;
   cursor: pointer;
   font-family: 'Open Sans', 'Work Sans', sans-serif;
-  font-size: 14px;
+  font-size: rem-calc(14px);
   font-weight: 800;
-  line-height: 12px;
+  line-height: rem-calc(12px);
   position: absolute;
   text-align: center;
-  text-shadow: 0 0 2px black, 2px 2px 3px black;
+  text-shadow: rem-calc(0 0 2px) black, rem-calc(2px 2px 3px) black;
   text-transform: uppercase;
   width: 100%;
 }
