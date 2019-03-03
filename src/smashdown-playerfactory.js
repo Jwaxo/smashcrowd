@@ -5,10 +5,18 @@ class Player {
   constructor(name) {
     this.name = name;
     this.characters = [];
-    this.client = null;
+    this.client = 0;
     this.isActive = false;
+    this.playerId = null;
 
     return this;
+  }
+
+  setId(id) {
+    this.playerId = id;
+  }
+  getId() {
+    return this.playerId;
   }
 
   setClient(clientId) {

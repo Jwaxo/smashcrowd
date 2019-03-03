@@ -77,26 +77,37 @@ io.on('connection', socket => {
     serverLog(`${clientLabel} adding player ${name}`);
     const player = playerFactory.createPlayer(name);
 
-    players.push(player);
+    const playerId = players.push(player) - 1;
+    player.setId(playerId);
 
-    // @todo This is currently a placeholder. We need to set dynamic player
-    // @todo ownership.
-    players[0].setClient(clientId);
-    players[0].isActive = true;
-    client.setPlayer(0);
+    regeneratePlayers(clientId);
+  });
+
+  socket.on('pick-player', playerId => {
+    const player = players[playerId];
+
+    // First remove the current client's player so it's empty again.
+    if (client.getPlayer()) {
+      players[client.getPlayer()].setClient(0);
+    }
+    serverLog(`${clientLabel} taking control of player ${player.getName()}`);
+    player.setClient(clientId);
+    client.setPlayer(playerId);
 
     regeneratePlayers(clientId);
   });
 
   socket.on('add-character', charId => {
     const playerId = client.getPlayer();
+    const character = characters[charId];
     if (playerId === null) {
       serverLog(`${clientLabel} tried to add character ${charId} but does not have a player selected!`);
     }
     else {
-      serverLog(`${clientLabel} adding character ${charId} to player ${playerId}`);
-      characters[charId].setPlayer(playerId);
-      players[playerId].addCharacter(characters[charId]);
+      const player = players[playerId];
+      serverLog(`${clientLabel} adding character ${character.getName()} to player ${player.getName()}`);
+      character.setPlayer(playerId);
+      player.addCharacter(character);
 
       regeneratePlayers(clientId);
       regenerateCharacters();

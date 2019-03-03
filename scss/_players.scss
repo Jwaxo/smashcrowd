@@ -8,6 +8,10 @@
     border-color: map-get($foundation-palette, primary);
     border-width: rem-calc(4px);
 
+    .player-picker {
+      display: none;
+    }
+
     h4:after {
       content: '(This is you)';
       color: $light-gray;
@@ -19,7 +23,7 @@
 
 .player-roster {
 
-  &.player-roster--0 {
+  &.player-roster--empty {
     border: rem-calc(3px) dashed $medium-gray;
     &:after {
       color: $dark-gray;
@@ -30,4 +34,8 @@
       text-align: center;
     }
   }
+}
+
+.player-picker {
+
 }

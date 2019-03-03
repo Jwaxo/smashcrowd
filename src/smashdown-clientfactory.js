@@ -4,7 +4,8 @@
 class Client {
   constructor(socket, color) {
     this.socket = socket;
-    this.color = color;// Setting to Red by default for now.
+    this.color = color;
+    this.player = null;
 
     return this;
   }

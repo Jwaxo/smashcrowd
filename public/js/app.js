@@ -3,10 +3,12 @@ $(document).foundation();
 $(function() {
   const socket = io();
   characterSetup();
+  playerSetup();
 
   socket.on('rebuild-players', html => {
     const playerContainer = $('#players_container');
     playerContainer.html(html);
+    playerSetup();
   });
 
   socket.on('rebuild-characters', html => {
@@ -31,5 +33,12 @@ $(function() {
       const charId = $(element.currentTarget).data('character-id');
       socket.emit('add-character', charId);
     });
+  }
+
+  function playerSetup() {
+    $('.player-picker').click(element => {
+      const playerId = $(element.currentTarget).data('player-id');
+      socket.emit('pick-player', playerId);
+    })
   }
 });
