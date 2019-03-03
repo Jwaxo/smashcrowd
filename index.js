@@ -27,7 +27,10 @@ const port = 8080;
 const chatHistory = [];
 const clients = [];
 const players = [];
+let currentPick = 0;
 const console_colors = [ 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'gray', 'bgRed', 'bgGreen', 'bgYellow', 'bgBlue', 'bgMagenta', 'bgCyan', 'bgWhite'];
+
+// Load characters from the character data file.
 const charData = require('./lib/chars.json');
 
 // Process characters.
@@ -60,7 +63,10 @@ server.listen(port, () => {
   console.log(`Listening on ${port}`);
 });
 
-// Handling of individual sockets as they remain connected.
+/** Handling of individual sockets as they remain connected.
+ * Creates a Client to track the user at the socket, which is then used for all
+ * received commands.
+ */
 io.on('connection', socket => {
   serverLog(`New connection established with hash ${socket.id}`);
 
@@ -73,6 +79,12 @@ io.on('connection', socket => {
 
   serverLog(`${clientLabel} assigned to socket ${socket.id}`);
 
+  /**
+   * The client has created a player for the roster.
+   *
+   * Adds the player name to the list, assigns it an ID, and then sends the
+   * command to all sockets to regenerate the player area.
+   */
   socket.on('add-player', name => {
     serverLog(`${clientLabel} adding player ${name}`);
     const player = playerFactory.createPlayer(name);
@@ -83,12 +95,20 @@ io.on('connection', socket => {
     regeneratePlayers(clientId);
   });
 
+  /**
+   * The client user picks which player they are currently representing.
+   *
+   * Adds the player to the client, the client to the player, and clears the info
+   * from a prior player (if there was one), before regenerating player area.
+   */
   socket.on('pick-player', playerId => {
     const player = players[playerId];
 
     // First remove the current client's player so it's empty again.
-    if (client.getPlayer()) {
-      players[client.getPlayer()].setClient(0);
+    if (client.getPlayer() !== null) {
+      const prevPlayer = players[client.getPlayer()];
+      serverLog(`Removing ${clientLabel} from player ${prevPlayer.getName()}`);
+      prevPlayer.setClient(0);
     }
     serverLog(`${clientLabel} taking control of player ${player.getName()}`);
     player.setClient(clientId);
@@ -97,6 +117,12 @@ io.on('connection', socket => {
     regeneratePlayers(clientId);
   });
 
+  /**
+   * The client picks a character to add to their player's roster.
+   *
+   * Adds the character to the roster, removes the character from the total
+   * character list, and advances the pick order.
+   */
   socket.on('add-character', charId => {
     const playerId = client.getPlayer();
     const character = characters[charId];
@@ -109,6 +135,8 @@ io.on('connection', socket => {
       character.setPlayer(playerId);
       player.addCharacter(character);
 
+      advanceDraft();
+
       regeneratePlayers(clientId);
       regenerateCharacters();
     }
@@ -117,8 +145,9 @@ io.on('connection', socket => {
   // Be sure to remove the client from the list of clients when they disconnect.
   socket.on('disconnect', () => {
     serverLog(`${clientLabel} disconnected.`);
-    if (player = client.getPlayer()) {
-      players[player].setClient();
+    const playerId = client.getPlayer();
+    if (playerId !== null) {
+      players[playerId].setClient(0);
     }
     clients.splice(clientId - 1, 1);
   });
@@ -133,6 +162,10 @@ function serverLog(message) {
   const date = new Date();
   const timestamp = date.toLocaleString("en-US");
   console.log(`${timestamp}: ${message}`);
+}
+
+function advanceDraft() {
+  currentPick++;
 }
 
 function regeneratePlayers(clientId) {

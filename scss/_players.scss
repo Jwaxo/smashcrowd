@@ -11,13 +11,21 @@
     .player-picker {
       display: none;
     }
+    h4 {
+      display: block;
+    }
 
     h4:after {
       content: '(This is you)';
       color: $light-gray;
+      float: right;
       font-size: 75%;
       margin-left: rem-calc(5px);
     }
+  }
+
+  h4 {
+    display: inline-block;
   }
 }
 
@@ -37,5 +45,9 @@
 }
 
 .player-picker {
-
+  border: rem-calc(1px) solid $black;
+  cursor: pointer;
+  display: inline-block;
+  float: right;
+  padding: rem-calc(3px);
 }
