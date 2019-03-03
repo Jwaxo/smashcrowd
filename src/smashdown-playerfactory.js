@@ -35,6 +35,9 @@ class Player {
   getCharacters() {
     return this.characters;
   }
+  getCharacterCount() {
+    return this.characters.length;
+  }
 
 }
 

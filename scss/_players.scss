@@ -19,7 +19,7 @@
 
 .player-roster {
 
-  &.player-roster--empty {
+  &.player-roster--0 {
     border: rem-calc(3px) dashed $medium-gray;
     &:after {
       color: $dark-gray;

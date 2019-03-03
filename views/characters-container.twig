@@ -6,7 +6,7 @@
 <div class="cell">
   <div class="character-grid">
     {% for character in characters %}
-      {% if character.getPlayer() not null %}
+      {% if character.getPlayer() is null %}
         {% include 'character.twig' %}
       {% endif %}
     {% endfor %}

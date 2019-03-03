@@ -125,7 +125,6 @@ function serverLog(message) {
 }
 
 function regeneratePlayers(clientId) {
-  console.log(players);
   Twig.renderFile('./views/players-container.twig', {players, clientId}, (error, html) => {
     io.sockets.emit('rebuild-players', html);
   });

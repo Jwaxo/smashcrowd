@@ -11,9 +11,8 @@
 
 {% set playerRosterClasses = [
   'player-roster',
+  'player-roster--' ~ player.getCharacterCount(),
 ]|join(' ')|trim %}
-{#   (not player.getCharacters() ? 'player-roster--empty'), #}
-{# The above doesn't work, for some reason. Ignoring and moving on for now. #}
 
 <div class="cell">
   <div class="{{ playerClasses }}">
