@@ -26,8 +26,8 @@ const sassPaths = [
 const port = 8080;
 const chatHistory = [];
 const clients = [];
-const players = [];
-const players_pick_order = [];
+let players = [];
+let players_pick_order = [];
 let currentPick = 0;
 let currentRound = 1;
 const console_colors = [ 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'gray', 'bgRed', 'bgGreen', 'bgYellow', 'bgBlue', 'bgMagenta', 'bgCyan', 'bgWhite'];
@@ -153,6 +153,12 @@ io.on('connection', socket => {
     }
   });
 
+  // Reset the entire game board, players, characters, and all.
+  socket.on('reset', () => {
+    serverLog(`${clientLabel} requested a server reset.`);
+    resetAll(clientId);
+  });
+
   // Be sure to remove the client from the list of clients when they disconnect.
   socket.on('disconnect', () => {
     serverLog(`${clientLabel} disconnected.`);
@@ -219,6 +225,29 @@ function getActivePlayer() {
     }
   }
   return activePlayer;
+}
+
+/**
+ * Set all options back to defaults.
+ *
+ * @param clientId
+ *   The ID of the client that initiated the request.
+ */
+function resetAll(clientId) {
+
+  players = [];
+  players_pick_order = [];
+  currentRound = 1;
+  currentPick = 0;
+  for (let i; i < characters.length; i++) {
+    characters[i].setPlayer(null);
+  }
+  for (let i; i < clients.length; i++) {
+    clients[i].setPlayer(null);
+  }
+
+  regeneratePlayers(clientId);
+  regenerateCharacters();
 }
 
 function regeneratePlayers(clientId) {

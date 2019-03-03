@@ -18,7 +18,7 @@
   <div class="{{ playerClasses }}">
     <div class="card-section">
       <h4>{{ player.getName() }}</h4>
-      <div class="player-picker" data-player-id="{{ player.getId() }}">Be This Player</div>
+      <div class="player-picker button" data-player-id="{{ player.getId() }}">Be This Player</div>
       <div class="{{ playerRosterClasses }}">
         {% for character in player.getCharacters() %}
           {% include 'character.twig' %}

@@ -17,6 +17,10 @@ $(function() {
     characterSetup();
   });
 
+  $('#reset').click(() => {
+    socket.emit('reset');
+  });
+
   /**
    * Needs to be run any time the character grid gets created, so the jQuery
    * events properly attach.
