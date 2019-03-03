@@ -14,18 +14,12 @@
       <h1>SmashCrowd</h1>
       <p>Draft your next online Smashdown!</p>
     </div>
-
-  </div>
-
-  <div class="grid-x grid-margin-x">
-    <div class="medium-6 cell">
-      <form id="add_player_form">
-        <input id="add_player" type="text" placeholder="Add a new player">
-      </form>
+    <div class="cell small-1">
+      <div id="reset" class="reset button">Reset All</div>
     </div>
   </div>
 
-  <div id="players_container" class="grid-x grid-margin-x small-up-2 medium-up-3">
+  <div id="players_container"">
     {% include 'players-container.twig' %}
   </div>
 

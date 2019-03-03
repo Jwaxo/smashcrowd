@@ -26,8 +26,10 @@ const sassPaths = [
 const port = 8080;
 const chatHistory = [];
 const clients = [];
-const players = [];
+let players = [];
+let players_pick_order = [];
 let currentPick = 0;
+let currentRound = 1;
 const console_colors = [ 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'gray', 'bgRed', 'bgGreen', 'bgYellow', 'bgBlue', 'bgMagenta', 'bgCyan', 'bgWhite'];
 
 // Load characters from the character data file.
@@ -50,8 +52,9 @@ app.set("twig options", {
 
 app.get('/', function(req, res) {
   res.render('index.twig', {
-    characters: characters,
-    players: players,
+    characters,
+    players_pick_order,
+    currentRound,
   });
 });
 
@@ -90,7 +93,12 @@ io.on('connection', socket => {
     const player = playerFactory.createPlayer(name);
 
     const playerId = players.push(player) - 1;
+    players_pick_order.push(player);
     player.setId(playerId);
+
+    if (playerId === 0) {
+      player.setActive(true);
+    }
 
     regeneratePlayers(clientId);
   });
@@ -129,6 +137,9 @@ io.on('connection', socket => {
     if (playerId === null) {
       serverLog(`${clientLabel} tried to add character ${charId} but does not have a player selected!`);
     }
+    else if (getActivePlayer().getId() !== playerId) {
+      serverLog(`${clientLabel} tried to add character ${charId} but it is not their turn.`);
+    }
     else {
       const player = players[playerId];
       serverLog(`${clientLabel} adding character ${character.getName()} to player ${player.getName()}`);
@@ -140,6 +151,12 @@ io.on('connection', socket => {
       regeneratePlayers(clientId);
       regenerateCharacters();
     }
+  });
+
+  // Reset the entire game board, players, characters, and all.
+  socket.on('reset', () => {
+    serverLog(`${clientLabel} requested a server reset.`);
+    resetAll(clientId);
   });
 
   // Be sure to remove the client from the list of clients when they disconnect.
@@ -164,12 +181,77 @@ function serverLog(message) {
   console.log(`${timestamp}: ${message}`);
 }
 
+/**
+ * Move to the next active player and do any additional processing.
+ */
 function advanceDraft() {
+
+  const prevPlayer = getActivePlayer();
+
   currentPick++;
+
+  // If players count goes evenly into current pick, we have reached a new round.
+  if (currentPick % players.length === 0) {
+    serverLog(`Round ${currentRound} reached.`);
+    currentRound++;
+    players_pick_order.reverse();
+    currentPick = 0;
+  }
+
+  const currentPlayer = players_pick_order[currentPick];
+
+  // We only need to change active state if the player changes.
+  if (prevPlayer !== currentPlayer) {
+    prevPlayer.setActive(false);
+    currentPlayer.setActive(true);
+  }
+}
+
+/**
+ * Figure out which player's turn it is to pick a character.
+ *
+ * Currently this is locked to "Snake" draft, where the turn order flips every
+ * round.
+ *
+ * @returns Player
+ *   The player that should pick their character next.
+ */
+function getActivePlayer() {
+  let activePlayer = players[0];
+  for (let i = 0; i < players.length; i++) {
+    if (players[i].isActive) {
+      activePlayer = players[i];
+      break;
+    }
+  }
+  return activePlayer;
+}
+
+/**
+ * Set all options back to defaults.
+ *
+ * @param clientId
+ *   The ID of the client that initiated the request.
+ */
+function resetAll(clientId) {
+
+  players = [];
+  players_pick_order = [];
+  currentRound = 1;
+  currentPick = 0;
+  for (let i; i < characters.length; i++) {
+    characters[i].setPlayer(null);
+  }
+  for (let i; i < clients.length; i++) {
+    clients[i].setPlayer(null);
+  }
+
+  regeneratePlayers(clientId);
+  regenerateCharacters();
 }
 
 function regeneratePlayers(clientId) {
-  Twig.renderFile('./views/players-container.twig', {players, clientId}, (error, html) => {
+  Twig.renderFile('./views/players-container.twig', {players_pick_order, clientId, currentRound}, (error, html) => {
     io.sockets.emit('rebuild-players', html);
   });
 }

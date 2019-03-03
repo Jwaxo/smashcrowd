@@ -17,11 +17,8 @@ $(function() {
     characterSetup();
   });
 
-  $('#add_player_form').submit(() => {
-    event.preventDefault();
-    const field = $(this).find('#add_player');
-    socket.emit('add-player', field.val());
-    field.val('');
+  $('#reset').click(() => {
+    socket.emit('reset');
   });
 
   /**
@@ -39,6 +36,13 @@ $(function() {
     $('.player-picker').click(element => {
       const playerId = $(element.currentTarget).data('player-id');
       socket.emit('pick-player', playerId);
-    })
+    });
+
+    $('.player-add-form').submit(() => {
+      event.preventDefault();
+      const field = $('.player-add');
+      socket.emit('add-player', field.val());
+      field.val('');
+    });
   }
 });

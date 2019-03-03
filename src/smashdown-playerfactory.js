@@ -47,6 +47,10 @@ class Player {
     return this.characters.length;
   }
 
+  setActive(state) {
+    this.isActive = state;
+  }
+
 }
 
 module.exports = {

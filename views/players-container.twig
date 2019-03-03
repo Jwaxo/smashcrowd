@@ -1,3 +1,19 @@
-{% for player in players %}
-  {% include 'player.twig' %}
-{% endfor %}
+<div class="grid-x grid-margin-x">
+  <div class="medium-6 cell">
+    <form class="player-add-form">
+      <input class="player-add" type="text" {% if currentRound > 1 %}placeholder="Drafting has begun! Adding players now disabled." disabled="disabled"{% else %}placeholder="Add a new player"{% endif %}>
+    </form>
+  </div>
+</div>
+
+<div class="grid-x grid-margin-x">
+  <div class="cell header auto">
+    <h4>Current Round: {{ currentRound }}</h4>
+  </div>
+</div>
+
+<div class="grid-x grid-margin-x small-up-2 medium-up-4">
+  {% for player in players_pick_order %}
+    {% include 'player.twig' %}
+  {% endfor %}
+</div>
