@@ -17,6 +17,17 @@ $(function() {
     characterSetup();
   });
 
+  socket.on('update-characters', characters => {
+    for (let i = 0; i < characters.length; i++) {
+      const charId = characters[i].charId;
+      const disabled = characters[i].disabled;
+
+      if (disabled) {
+        $('.character-grid .character[data-character-id="' + charId + '"]').addClass('character--disabled');
+      }
+    }
+  });
+
   $('#reset').click(() => {
     socket.emit('reset');
   });

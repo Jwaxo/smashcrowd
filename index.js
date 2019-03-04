@@ -146,10 +146,17 @@ io.on('connection', socket => {
       character.setPlayer(playerId);
       player.addCharacter(character);
 
+      const characterUpdateData = [
+        {
+          'charId' : charId,
+          'disabled': true,
+        }
+      ];
+
       advanceDraft();
 
       regeneratePlayers(clientId);
-      regenerateCharacters();
+      updateCharacters(characterUpdateData);
     }
   });
 
@@ -260,6 +267,10 @@ function regenerateCharacters() {
   Twig.renderFile('./views/characters-container.twig', {characters}, (error, html) => {
     io.sockets.emit('rebuild-characters', html);
   });
+}
+
+function updateCharacters(data) {
+  io.sockets.emit('update-characters', data);
 }
 
 /**
