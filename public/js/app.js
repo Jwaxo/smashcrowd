@@ -93,12 +93,15 @@ $(function() {
       const charId = $(element.currentTarget).data('character-id');
       socket.emit('add-character', charId);
     });
+
+    $(document).foundation();
   }
 
   function playerSetup() {
     if (client.playerId !== null) {
       $('.player[data-player-id="' + client.playerId + '"]').addClass('player--current');
     }
+
 
     $('.player-picker').click(element => {
       const playerId = $(element.currentTarget).data('player-pick-id');
@@ -111,5 +114,7 @@ $(function() {
       socket.emit('add-player', field.val());
       field.val('');
     });
+
+    $(document).foundation();
   }
 });
