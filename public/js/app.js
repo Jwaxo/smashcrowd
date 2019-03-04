@@ -99,7 +99,7 @@ $(function() {
       socket.emit('pick-player', playerId);
     });
 
-    $('.player-add-form').submit(() => {
+    $('.player-add-form').submit((event) => {
       event.preventDefault();
       const field = $('.player-add');
       socket.emit('add-player', field.val());
