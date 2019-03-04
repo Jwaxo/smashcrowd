@@ -28,6 +28,12 @@ $(function() {
     chatContainer.html(html);
   });
 
+  socket.on('set-status', html => {
+    const statusContainer = $('#status_container');
+    statusContainer.append(html);
+    $('.status').delay(5000).fadeOut(300);
+  });
+
   socket.on('update-players', players => {
     for (let i = 0; i < players.length; i++) {
       const player = players[i];

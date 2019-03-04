@@ -91,6 +91,15 @@ io.on('connection', socket => {
   regenerateCharacters();
   regenerateChatSingle(socket);
 
+  // Set a default status for a connection if there are no players.
+  if (!client.getPlayerId()) {
+    if (players.length === 0) {
+      setStatusSingle(client, 'Add a player in order to start drafting!');
+    }
+    else {
+      setStatusSingle(client, 'Pick a player to draft.')
+    }
+  }
 
   /**
    * The client has created a player for the roster.
@@ -108,6 +117,12 @@ io.on('connection', socket => {
 
     if (playerId === 0) {
       player.setActive(true);
+    }
+
+    for (let i = 0; i < clients.length; i++) {
+      if (!clients[i].getPlayerId()) {
+        setStatusSingle(clients[i], 'Pick a player to draft.')
+      }
     }
 
     regeneratePlayers();
@@ -158,9 +173,11 @@ io.on('connection', socket => {
     const character = characters[charId];
     if (playerId === null) {
       serverLog(`${client.getLabel()} tried to add character ${charId} but does not have a player selected!`);
+      setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
     }
     else if (getActivePlayer().getId() !== playerId) {
       serverLog(`${client.getLabel()} tried to add character ${charId} but it is not their turn.`);
+      setStatusSingle(client, 'It is not yet your turn! Please wait.', 'alert');
     }
     else {
       // We can add the character!
@@ -233,6 +250,7 @@ function advanceDraft() {
   }
 
   const currentPlayer = players_pick_order[currentPick];
+  const currentClient = clients[currentPlayer.getClientId() - 1];
 
   // We only need to change active state if the player changes.
   if (prevPlayer !== currentPlayer) {
@@ -243,6 +261,7 @@ function advanceDraft() {
       'playerId': currentPlayer.getId(),
       'isActive': true,
     });
+    setStatusSingle(currentClient, 'It is your turn! Please choose your next character.', 'primary');
   }
 
   updatedPlayers.push({
@@ -254,6 +273,7 @@ function advanceDraft() {
   // If we're at a new round we need to regenerate the player area entirely so
   // that they reorder. Otherwise just update stuff!
   if (newRound) {
+    setStatusSingle(currentClient, 'With the new round, it is once again your turn! Choose wisely.', 'primary');
     regeneratePlayers();
   }
   else {
@@ -363,6 +383,14 @@ function updatePlayersInfo(players) {
  */
 function updateCharacters(characters) {
   io.sockets.emit('update-characters', characters);
+}
+
+function setStatusSingle(client, status, type = 'secondary') {
+  if (client && client.socket) {
+    Twig.renderFile('./views/status-message.twig', {status, type}, (error, html) => {
+      client.socket.emit('set-status', html);
+    });
+  }
 }
 
 /**
