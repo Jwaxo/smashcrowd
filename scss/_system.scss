@@ -8,11 +8,12 @@
 
 .chat-box {
   background-color: $light-gray;
-  border: rem-calc(3px) solid $dark-gray;
+  border-top: rem-calc(3px) solid $dark-gray;
   bottom: 0;
   max-height: rem-calc(150px);
   overflow-x: hidden;
   overflow-y: scroll;
+  padding: rem-calc(0 10px);
   position: fixed;
   max-width: $global-width;
   width: 100%;
