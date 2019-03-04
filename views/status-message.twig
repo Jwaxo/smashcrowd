@@ -1,0 +1,11 @@
+{#
+  Message Display template.
+#}
+
+{% set statusClasses = [
+  'status',
+  'callout',
+  (type ? type : ''),
+]|join(' ')|trim %}
+
+<div class="{{ statusClasses }}">{{ status }}</div>

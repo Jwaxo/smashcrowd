@@ -28,6 +28,12 @@ $(function() {
     chatContainer.html(html);
   });
 
+  socket.on('set-status', html => {
+    const statusContainer = $('#status_container');
+    statusContainer.append(html);
+    $('.status').delay(5000).fadeOut(300);
+  });
+
   socket.on('update-players', players => {
     for (let i = 0; i < players.length; i++) {
       const player = players[i];
@@ -87,6 +93,8 @@ $(function() {
       const charId = $(element.currentTarget).data('character-id');
       socket.emit('add-character', charId);
     });
+
+    $(document).foundation();
   }
 
   function playerSetup() {
@@ -94,16 +102,19 @@ $(function() {
       $('.player[data-player-id="' + client.playerId + '"]').addClass('player--current');
     }
 
+
     $('.player-picker').click(element => {
       const playerId = $(element.currentTarget).data('player-pick-id');
       socket.emit('pick-player', playerId);
     });
 
-    $('.player-add-form').submit(() => {
+    $('.player-add-form').submit((event) => {
       event.preventDefault();
       const field = $('.player-add');
       socket.emit('add-player', field.val());
       field.val('');
     });
+
+    $(document).foundation();
   }
 });

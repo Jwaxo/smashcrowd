@@ -32,7 +32,28 @@ you should see the SmashCrowd main page.
 
 ### How do I use it?
 
-*To be filled in.*
+Although the features of SmashCrowd are sure to be changing in the near future,
+we are at Minimum Viable Product as of version 1.0.0, and the following features
+should remain standard throughout SmashCrowd's lifetime.
+
+1. The first thing you'll need to do is add a player (or several!) to the board.
+Do this by typing a name into the "Add a Player" box, then hitting Enter.
+1. Add as many players to the board as you will have competing in your Smash game.
+1. Click the blue "Be This Player" button next to the name you wish to represent.
+You can swap freely to any slot that is not currently occupied by another user.
+Use this method to test it out, or to fill in for players who can only act via
+proxy!
+1. Once all players are created, the **active** player, outlined in red, gets
+the first choice of characters to add to their roster. Clicking on a character in
+the big selection box adds them to your roster. *Currently, all choices are final,
+so be sure before you pick!*
+1. Once the currently active player has picked a character, the draft moves on to
+the next player in the list!
+1. Since SmashCrowd uses "[snake draft](https://www.dummies.com/sports/fantasy-sports/fantasy-football/understanding-fantasy-football-snake-and-auction-drafts/)"
+to pick characters, once the final player in the list has chosen a character,
+when the next round starts, all players reverse picking order.
+1. Once you're done with everything, or if anything gets borked, smack that "Reset
+All" button at the top. It should set it all back to zero.
 
 ### How do I work on it?
 
@@ -51,14 +72,24 @@ compiled from SCSS to public/css/app.css. To modify it, look in scss/app/scss.
 This could be updated to use Gulp in order to watch the files, but until then,
 the SCSS only gets recompiled when the server is started.
 
-### Planned features
+### Planned features/Todo
 
+* Persistent player assignment using cookies
+* Player boxes shake when they become active.
+* Randomizing of player order (prior to first pick)
+* "Done with Drafting" button which switches mode to Game Tracking
+* Game Tracking with scores for winners
+* Game options:
+  * Re-orderable roster
+  * Multiple styles of drafting:
+    * Linear
+    * Snake
+    * Auction?
+  * Game title
+* User Profiles
+* User and character stat-tracking
+* Trades
 * Dynamic player creation.
 * Player label customization.
-* Automatic designation of "whose pick" it is.
-* Multiple styles of drafting:
-  * Linear
-  * Snake
-  * Auction?
 * Drag-and-drop arrangement.
 * Multiple drafts per server.
