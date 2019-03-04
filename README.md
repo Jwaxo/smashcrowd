@@ -74,7 +74,6 @@ the SCSS only gets recompiled when the server is started.
 
 ### Planned features/Todo
 
-* Help and tooltips
 * Persistent player assignment using cookies
 * Player boxes shake when they become active.
 * Randomizing of player order (prior to first pick)
