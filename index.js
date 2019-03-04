@@ -68,7 +68,8 @@ server.listen(port, () => {
   console.log(`Listening on ${port}`);
 });
 
-/** Handling of individual sockets as they remain connected.
+/**
+ * Handling of individual sockets as they remain connected.
  * Creates a Client to track the user at the socket, which is then used for all
  * received commands.
  */
@@ -259,13 +260,13 @@ function resetAll() {
   players_pick_order = [];
   currentRound = 1;
   currentPick = 0;
-  for (let i; i < characters.length; i++) {
+  for (let i = 0 ; i < characters.length; i++) {
     characters[i].setPlayer(null);
   }
-  for (let i; i < clients.length; i++) {
+  for (let i = 0; i < clients.length; i++) {
     clients[i].setPlayer(null);
-    console.log('wiping player info for ' + i);
     setClientInfoSingle(clients[i].getSocket(), clients[i]);
+    serverLog(`Wiping player info for ${clients[i].getLabel()}`);
   }
 
   regeneratePlayers();
@@ -317,15 +318,6 @@ function updateChat(message) {
   Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
     io.sockets.emit('update-chat', html);
   });
-}
-
-/**
- * Helper function for escaping input strings
- */
-function htmlEntities(str) {
-  return String(str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 /**
