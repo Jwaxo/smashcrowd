@@ -80,6 +80,10 @@ io.on('connection', socket => {
   const clientColor = colors[client.getColor()];
   const clientLabel = clientColor(`Client ${clientId}`);
 
+  // Generate everything just in case the connections existed before the server.
+  regeneratePlayers(clientId);
+  regenerateCharacters();
+
   serverLog(`${clientLabel} assigned to socket ${socket.id}`);
 
   /**
@@ -146,12 +150,10 @@ io.on('connection', socket => {
       character.setPlayer(playerId);
       player.addCharacter(character);
 
-      const characterUpdateData = [
-        {
-          'charId' : charId,
-          'disabled': true,
-        }
-      ];
+      const characterUpdateData = [{
+        'charId' : charId,
+        'disabled': true,
+      }];
 
       advanceDraft();
 
@@ -174,6 +176,8 @@ io.on('connection', socket => {
       players[playerId].setClient(0);
     }
     clients.splice(clientId - 1, 1);
+
+    regeneratePlayers(clientId);
   });
 });
 

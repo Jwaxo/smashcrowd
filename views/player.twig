@@ -18,7 +18,9 @@
   <div class="{{ playerClasses }}">
     <div class="card-section">
       <h4>{{ player.getName() }}</h4>
-      <div class="player-picker button" data-player-id="{{ player.getId() }}">Be This Player</div>
+      {% if player.getClient() == 0 %}
+        <div class="player-picker button" data-player-id="{{ player.getId() }}">Be This Player</div>
+      {% endif %}
       <div class="{{ playerRosterClasses }}">
         {% for character in player.getCharacters() %}
           {% include 'character.twig' %}
