@@ -8,9 +8,6 @@
   &.player--current {
     border-width: rem-calc(4px);
 
-    .player-picker {
-      display: none;
-    }
     h4 {
       display: block;
     }
@@ -21,6 +18,11 @@
       float: right;
       font-size: 75%;
       margin-left: rem-calc(5px);
+    }
+  }
+  &.player--owned {
+    .player-picker {
+      display: none;
     }
   }
   &.player--active {

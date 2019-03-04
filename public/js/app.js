@@ -34,6 +34,7 @@ $(function() {
       const $player = $('.player[data-player-id="' + player.playerId + '"]');
 
       if (player.hasOwnProperty('clientId')) {
+        $player.addClass('player--owned');
         if (player.clientId === client.id) {
           $player.addClass('player--current');
         }

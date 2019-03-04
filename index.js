@@ -127,14 +127,14 @@ io.on('connection', socket => {
     if (client.getPlayerId() !== null) {
       const prevPlayer = players[client.getPlayerId()];
       serverLog(`Removing ${client.getLabel()} from player ${prevPlayer.getName()}`);
-      prevPlayer.setClient(0);
+      prevPlayer.setClientId(0);
       updatedPlayers.push({
         'playerId': prevPlayer.getId(),
         'clientId': 0,
       })
     }
     serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
-    player.setClient(clientId);
+    player.setClientId(clientId);
     client.setPlayer(player);
 
     updatedPlayers.push({
@@ -190,7 +190,7 @@ io.on('connection', socket => {
     serverLog(`${client.getLabel()} disconnected.`);
     const playerId = client.getPlayerId();
     if (playerId !== null) {
-      players[playerId].setClient(0);
+      players[playerId].setClientId(0);
     }
     client.setPlayer(null);
 
@@ -222,12 +222,11 @@ function advanceDraft() {
 
   const prevPlayer = getActivePlayer();
   const updatedPlayers = [];
-
-  currentPick++;
+  const newRound = (++currentPick % players.length === 0);
 
   // If players count goes evenly into current pick, we have reached a new round.
-  if (currentPick % players.length === 0) {
-    serverLog(`Round ${currentRound} reached.`);
+  if (newRound) {
+    serverLog(`Round ${currentRound} completed.`);
     currentRound++;
     players_pick_order.reverse();
     currentPick = 0;
@@ -252,7 +251,14 @@ function advanceDraft() {
     'roster_html': renderPlayerRoster(prevPlayer),
   });
 
-  updatePlayersInfo(updatedPlayers);
+  // If we're at a new round we need to regenerate the player area entirely so
+  // that they reorder. Otherwise just update stuff!
+  if (newRound) {
+    regeneratePlayers();
+  }
+  else {
+    updatePlayersInfo(updatedPlayers);
+  }
 }
 
 /**
