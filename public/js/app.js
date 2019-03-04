@@ -28,6 +28,35 @@ $(function() {
     chatContainer.html(html);
   });
 
+  socket.on('update-players', players => {
+    for (let i = 0; i < players.length; i++) {
+      const player = players[i];
+      const $player = $('.player[data-player-id="' + player.playerId + '"]');
+
+      if (player.hasOwnProperty('clientId')) {
+        if (player.clientId === client.id) {
+          $player.addClass('player--current');
+        }
+        else {
+          $player.removeClass('player--current');
+        }
+      }
+
+      if (player.hasOwnProperty('isActive')) {
+        if (player.isActive) {
+          $player.addClass('player--active');
+        }
+        else {
+          $player.removeClass('player--active');
+        }
+      }
+
+      if (player.roster_html) {
+        $player.find('.player-roster-container').html(player.roster_html);
+      }
+    }
+  });
+
   socket.on('update-characters', characters => {
     for (let i = 0; i < characters.length; i++) {
       const charId = characters[i].charId;

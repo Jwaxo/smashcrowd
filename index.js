@@ -121,20 +121,30 @@ io.on('connection', socket => {
    */
   socket.on('pick-player', playerId => {
     const player = players[playerId];
+    const updatedPlayers = [];
 
     // First remove the current client's player so it's empty again.
     if (client.getPlayerId() !== null) {
       const prevPlayer = players[client.getPlayerId()];
       serverLog(`Removing ${client.getLabel()} from player ${prevPlayer.getName()}`);
       prevPlayer.setClient(0);
+      updatedPlayers.push({
+        'playerId': prevPlayer.getId(),
+        'clientId': 0,
+      })
     }
     serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
     player.setClient(clientId);
     client.setPlayer(player);
 
-    setClientInfoSingle(socket, client);
+    updatedPlayers.push({
+      'playerId': player.getId(),
+      'clientId': client.getId(),
+      'roster_html': renderPlayerRoster(player),
+    });
 
-    regeneratePlayers();
+    setClientInfoSingle(socket, client);
+    updatePlayersInfo(updatedPlayers);
   });
 
   /**
@@ -165,8 +175,6 @@ io.on('connection', socket => {
       }];
 
       advanceDraft();
-
-      regeneratePlayers();
       updateCharacters(characterUpdateData);
     }
   });
@@ -193,7 +201,9 @@ io.on('connection', socket => {
 /**
  * Creates a simple message for displaying to the server, with timestamp.
  *
- * @param message
+ * @param {string} message
+ *   The message to set. This can have chalk.js formatting, which will be stripped
+ *   prior to sending to clients.
  */
 function serverLog(message) {
   const date = new Date();
@@ -211,6 +221,7 @@ function serverLog(message) {
 function advanceDraft() {
 
   const prevPlayer = getActivePlayer();
+  const updatedPlayers = [];
 
   currentPick++;
 
@@ -228,7 +239,20 @@ function advanceDraft() {
   if (prevPlayer !== currentPlayer) {
     prevPlayer.setActive(false);
     currentPlayer.setActive(true);
+
+    updatedPlayers.push({
+      'playerId': currentPlayer.getId(),
+      'isActive': true,
+    });
   }
+
+  updatedPlayers.push({
+    'playerId': prevPlayer.getId(),
+    'isActive': prevPlayer.isActive,
+    'roster_html': renderPlayerRoster(prevPlayer),
+  });
+
+  updatePlayersInfo(updatedPlayers);
 }
 
 /**
@@ -273,6 +297,16 @@ function resetAll() {
   regenerateCharacters();
 }
 
+function renderPlayerRoster(player) {
+  let rendered = '';
+
+  Twig.renderFile('./views/player-roster.twig', {player}, (error, html) => {
+    rendered = html;
+  });
+
+  return rendered;
+}
+
 function regeneratePlayers() {
   Twig.renderFile('./views/players-container.twig', {players_pick_order, currentRound}, (error, html) => {
     io.sockets.emit('rebuild-players', html);
@@ -305,10 +339,33 @@ function setClientInfoSingle(socket, client) {
   socket.emit('set-client', safeClient);
 }
 
-function updateCharacters(data) {
-  io.sockets.emit('update-characters', data);
+/**
+ * Sends an array of players with changed data to inform clients without needing
+ * to completely rebuild the player area.
+ *
+ * @param {array} players
+ */
+function updatePlayersInfo(players) {
+  io.sockets.emit('update-players', players);
 }
 
+/**
+ * Sends an array of characters with changed data to inform clients without needing
+ * to completely rebuild the character area.
+ *
+ * @param {array} characters
+ */
+function updateCharacters(characters) {
+  io.sockets.emit('update-characters', characters);
+}
+
+/**
+ * Adds a new line item to the chat box.
+ *
+ * @param {string} message
+ *   The message to add. This is expected to be formatted using chalk.js for
+ *   console formatting; it will be stripped.
+ */
 function updateChat(message) {
   // Define how console colors look so we can remove them from the HTML.
   message = stripAnsi(message);

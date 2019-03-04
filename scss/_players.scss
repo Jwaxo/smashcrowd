@@ -45,6 +45,12 @@
       text-align: center;
     }
   }
+
+  .character {
+    height: rem-calc(100px);
+    margin: 0 auto;
+    width: rem-calc(180px);
+  }
 }
 
 .player-picker {

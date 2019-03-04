@@ -8,11 +8,6 @@
   (player.isActive ? 'player--active' : ''),
 ]|join(' ')|trim %}
 
-{% set playerRosterClasses = [
-  'player-roster',
-  (not player.getCharacterCount() ? 'player-roster--empty' : ''),
-]|join(' ')|trim %}
-
 <div class="cell medium-4">
   <div class="{{ playerClasses }}" data-player-id="{{ player.getId() }}">
     <div class="card-section">
@@ -20,10 +15,9 @@
       {% if player.getClient() == 0 %}
         <div class="player-picker button" data-player-pick-id="{{ player.getId() }}">Be This Player</div>
       {% endif %}
-      <div class="{{ playerRosterClasses }}">
-        {% for character in player.getCharacters() %}
-          {% include 'character.twig' %}
-        {% endfor %}
+
+      <div class="player-roster-container">
+        {% include 'player-roster.twig' %}
       </div>
     </div>
   </div>

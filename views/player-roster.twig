@@ -1,0 +1,11 @@
+
+{% set playerRosterClasses = [
+  'player-roster',
+  (not player.getCharacterCount() ? 'player-roster--empty' : ''),
+]|join(' ')|trim %}
+
+<div class="{{ playerRosterClasses }}">
+  {% for character in player.getCharacters() %}
+    {% include 'character.twig' %}
+  {% endfor %}
+</div>
