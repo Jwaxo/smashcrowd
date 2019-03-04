@@ -1,0 +1,12 @@
+/**
+ * Styles defining how various system parts display.
+ */
+
+.chat-box {
+  bottom: 0;
+  max-height: rem-calc(200px);
+  overflow-y: scroll;
+  position: fixed;
+  max-width: $global-width;
+  width: 100%;
+}

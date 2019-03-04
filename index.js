@@ -7,7 +7,7 @@ const Twig = require('twig');
 const gulp = require('gulp');
 const $ = require('gulp-load-plugins')();
 const autoprefixer = require('autoprefixer');
-const colors = require('colors/safe');
+const chalk = require('chalk');
 
 const app = express();
 const server = http.Server(app);
@@ -55,6 +55,7 @@ app.get('/', function(req, res) {
     characters,
     players_pick_order,
     currentRound,
+    chatHistory,
   });
 });
 
@@ -77,12 +78,13 @@ io.on('connection', socket => {
 
   const client = clientFactory.createClient(socket, console_colors[randomColor]);
   const clientId = clients.push(client);
-  const clientColor = colors[client.getColor()];
+  const clientColor = chalk[client.getColor()];
   const clientLabel = clientColor(`Client ${clientId}`);
 
   // Generate everything just in case the connections existed before the server.
   regeneratePlayers(clientId);
   regenerateCharacters();
+  regenerateChatSingle(socket);
 
   serverLog(`${clientLabel} assigned to socket ${socket.id}`);
 
@@ -189,7 +191,11 @@ io.on('connection', socket => {
 function serverLog(message) {
   const date = new Date();
   const timestamp = date.toLocaleString("en-US");
-  console.log(`${timestamp}: ${message}`);
+  const log = `${timestamp}: ${message}`;
+
+  updateChat(log);
+
+  console.log(log);
 }
 
 /**
@@ -273,8 +279,23 @@ function regenerateCharacters() {
   });
 }
 
+function regenerateChatSingle(socket) {
+  Twig.renderFile('./views/chat-container.twig', {chatHistory}, (error, html) => {
+    socket.emit('rebuild-chat', html);
+  });
+}
+
 function updateCharacters(data) {
   io.sockets.emit('update-characters', data);
+}
+
+function updateChat(message) {
+
+  chatHistory.unshift(chalk(message));
+
+  Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
+    io.sockets.emit('update-chat', html);
+  });
 }
 
 /**

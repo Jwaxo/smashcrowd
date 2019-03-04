@@ -17,6 +17,11 @@ $(function() {
     characterSetup();
   });
 
+  socket.on('rebuild-chat', html => {
+    const chatContainer = $('#chat_container');
+    chatContainer.html(html);
+  });
+
   socket.on('update-characters', characters => {
     for (let i = 0; i < characters.length; i++) {
       const charId = characters[i].charId;
@@ -26,6 +31,11 @@ $(function() {
         $('.character-grid .character[data-character-id="' + charId + '"]').addClass('character--disabled');
       }
     }
+  });
+
+  socket.on('update-chat', html => {
+    const chatContainer = $('.chat-box');
+    chatContainer.prepend(html);
   });
 
   $('#reset').click(() => {

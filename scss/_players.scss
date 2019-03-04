@@ -3,6 +3,7 @@
  */
 
 .player {
+  transition: border-width .25s, border-color .25s, height .25s;
 
   &.player--current {
     border-width: rem-calc(4px);

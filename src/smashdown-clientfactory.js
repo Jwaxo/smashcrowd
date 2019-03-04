@@ -3,6 +3,7 @@
  */
 class Client {
   constructor(socket, color) {
+    this.clientId = 0;
     this.socket = socket;
     this.color = color;
     this.player = null;
