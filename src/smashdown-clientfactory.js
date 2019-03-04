@@ -3,7 +3,7 @@
  */
 class Client {
   constructor(socket, color) {
-    this.clientId = 0;
+    this.id = 0;
     this.socket = socket;
     this.color = color;
     this.player = null;
@@ -15,6 +15,13 @@ class Client {
   // a 1:1 relationship.
   getSocket() {
     return this.socket;
+  }
+
+  setId(clientId) {
+    this.id = clientId;
+  }
+  getId() {
+    return this.id;
   }
 
   setColor(color) {

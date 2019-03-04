@@ -79,15 +79,18 @@ io.on('connection', socket => {
 
   const client = clientFactory.createClient(socket, console_colors[randomColor]);
   const clientId = clients.push(client);
+  client.setId(clientId);
+
   const clientColor = chalk[client.getColor()];
-  const clientLabel = clientColor(`Client ${clientId}`);
+  let clientLabel = clientColor(`Client ${clientId}`);
+
+  serverLog(`${clientLabel} assigned to socket ${socket.id}`);
 
   // Generate everything just in case the connections existed before the server.
   regeneratePlayers(clientId);
   regenerateCharacters();
   regenerateChatSingle(socket);
 
-  serverLog(`${clientLabel} assigned to socket ${socket.id}`);
 
   /**
    * The client has created a player for the roster.
@@ -126,6 +129,7 @@ io.on('connection', socket => {
       prevPlayer.setClient(0);
     }
     serverLog(`${clientLabel} taking control of player ${player.getName()}`);
+    clientLabel = clientColor(`${player.getName()}`);
     player.setClient(clientId);
     client.setPlayer(playerId);
 
@@ -148,8 +152,9 @@ io.on('connection', socket => {
       serverLog(`${clientLabel} tried to add character ${charId} but it is not their turn.`);
     }
     else {
+      // We can add the character!
       const player = players[playerId];
-      serverLog(`${clientLabel} adding character ${character.getName()} to player ${player.getName()}`);
+      serverLog(`${clientLabel} adding character ${character.getName()}.`);
       character.setPlayer(playerId);
       player.addCharacter(character);
 
@@ -178,7 +183,7 @@ io.on('connection', socket => {
     if (playerId !== null) {
       players[playerId].setClient(0);
     }
-    clients.splice(clientId - 1, 1);
+    client.setPlayer(null);
 
     regeneratePlayers(clientId);
   });
@@ -292,11 +297,11 @@ function updateCharacters(data) {
 
 function updateChat(message) {
   // Define how console colors look so we can remove them from the HTML.
-  const cleanMessage = stripAnsi(message);
+  message = stripAnsi(message);
 
-  chatHistory.unshift(cleanMessage);
+  chatHistory.unshift(message);
 
-  Twig.renderFile('./views/chat-item.twig', {cleanMessage}, (error, html) => {
+  Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
     io.sockets.emit('update-chat', html);
   });
 }
