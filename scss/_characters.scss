@@ -14,6 +14,7 @@
   flex: 0 0 auto;
   height: rem-calc(50px);
   position: relative;
+  transition: width .25s;
   width: rem-calc(90px);
   &:nth-child(3n+1) {
     background-color: red;
@@ -23,6 +24,10 @@
   }
   &:nth-child(3n+3) {
     background-color: green;
+  }
+
+  &.character--disabled {
+    width: 0;
   }
 }
 

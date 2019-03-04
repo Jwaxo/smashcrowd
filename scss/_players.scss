@@ -3,13 +3,11 @@
  */
 
 .player {
+  transition: border-width .25s, border-color .25s, height .25s;
 
   &.player--current {
     border-width: rem-calc(4px);
 
-    .player-picker {
-      display: none;
-    }
     h4 {
       display: block;
     }
@@ -20,6 +18,11 @@
       float: right;
       font-size: 75%;
       margin-left: rem-calc(5px);
+    }
+  }
+  &.player--owned {
+    .player-picker {
+      display: none;
     }
   }
   &.player--active {
@@ -43,6 +46,12 @@
       margin: rem-calc(15px 0);
       text-align: center;
     }
+  }
+
+  .character {
+    height: rem-calc(100px);
+    margin: 0 auto;
+    width: rem-calc(180px);
   }
 }
 

@@ -1,0 +1,19 @@
+/**
+ * Styles defining how various system parts display.
+ */
+
+.grid-container {
+  margin-bottom: rem-calc(170px);
+}
+
+.chat-box {
+  background-color: $light-gray;
+  border: rem-calc(3px) solid $dark-gray;
+  bottom: 0;
+  max-height: rem-calc(150px);
+  overflow-x: hidden;
+  overflow-y: scroll;
+  position: fixed;
+  max-width: $global-width;
+  width: 100%;
+}

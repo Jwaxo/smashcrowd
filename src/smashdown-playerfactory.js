@@ -5,7 +5,7 @@ class Player {
   constructor(name) {
     this.name = name;
     this.characters = [];
-    this.client = 0;
+    this.clientId = 0;
     this.isActive = false;
     this.playerId = null;
 
@@ -19,11 +19,11 @@ class Player {
     return this.playerId;
   }
 
-  setClient(clientId) {
-    this.client = clientId;
+  setClientId(clientId) {
+    this.clientId = clientId;
   }
-  getClient() {
-    return this.client;
+  getClientId() {
+    return this.clientId;
   }
 
   setName(name) {

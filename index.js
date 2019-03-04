@@ -7,7 +7,8 @@ const Twig = require('twig');
 const gulp = require('gulp');
 const $ = require('gulp-load-plugins')();
 const autoprefixer = require('autoprefixer');
-const colors = require('colors/safe');
+const chalk = require('chalk');
+const stripAnsi = require('strip-ansi');
 
 const app = express();
 const server = http.Server(app);
@@ -55,6 +56,7 @@ app.get('/', function(req, res) {
     characters,
     players_pick_order,
     currentRound,
+    chatHistory,
   });
 });
 
@@ -66,7 +68,8 @@ server.listen(port, () => {
   console.log(`Listening on ${port}`);
 });
 
-/** Handling of individual sockets as they remain connected.
+/**
+ * Handling of individual sockets as they remain connected.
  * Creates a Client to track the user at the socket, which is then used for all
  * received commands.
  */
@@ -75,12 +78,19 @@ io.on('connection', socket => {
 
   const randomColor = Math.floor(Math.random() * (console_colors.length));
 
-  const client = clientFactory.createClient(socket, console_colors[randomColor]);
+  const client = clientFactory.createClient(socket);
   const clientId = clients.push(client);
-  const clientColor = colors[client.getColor()];
-  const clientLabel = clientColor(`Client ${clientId}`);
+  client.setId(clientId);
+  client.setColor(chalk[console_colors[randomColor]]);
 
-  serverLog(`${clientLabel} assigned to socket ${socket.id}`);
+  serverLog(`${client.getLabel()} assigned to socket ${socket.id}`);
+
+  // Generate everything just in case the connections existed before the server.
+  setClientInfoSingle(socket, client);
+  regeneratePlayers();
+  regenerateCharacters();
+  regenerateChatSingle(socket);
+
 
   /**
    * The client has created a player for the roster.
@@ -89,7 +99,7 @@ io.on('connection', socket => {
    * command to all sockets to regenerate the player area.
    */
   socket.on('add-player', name => {
-    serverLog(`${clientLabel} adding player ${name}`);
+    serverLog(`${client.getLabel()} adding player ${name}`);
     const player = playerFactory.createPlayer(name);
 
     const playerId = players.push(player) - 1;
@@ -100,7 +110,7 @@ io.on('connection', socket => {
       player.setActive(true);
     }
 
-    regeneratePlayers(clientId);
+    regeneratePlayers();
   });
 
   /**
@@ -111,18 +121,30 @@ io.on('connection', socket => {
    */
   socket.on('pick-player', playerId => {
     const player = players[playerId];
+    const updatedPlayers = [];
 
     // First remove the current client's player so it's empty again.
-    if (client.getPlayer() !== null) {
-      const prevPlayer = players[client.getPlayer()];
-      serverLog(`Removing ${clientLabel} from player ${prevPlayer.getName()}`);
-      prevPlayer.setClient(0);
+    if (client.getPlayerId() !== null) {
+      const prevPlayer = players[client.getPlayerId()];
+      serverLog(`Removing ${client.getLabel()} from player ${prevPlayer.getName()}`);
+      prevPlayer.setClientId(0);
+      updatedPlayers.push({
+        'playerId': prevPlayer.getId(),
+        'clientId': 0,
+      })
     }
-    serverLog(`${clientLabel} taking control of player ${player.getName()}`);
-    player.setClient(clientId);
-    client.setPlayer(playerId);
+    serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
+    player.setClientId(clientId);
+    client.setPlayer(player);
 
-    regeneratePlayers(clientId);
+    updatedPlayers.push({
+      'playerId': player.getId(),
+      'clientId': client.getId(),
+      'roster_html': renderPlayerRoster(player),
+    });
+
+    setClientInfoSingle(socket, client);
+    updatePlayersInfo(updatedPlayers);
   });
 
   /**
@@ -132,53 +154,65 @@ io.on('connection', socket => {
    * character list, and advances the pick order.
    */
   socket.on('add-character', charId => {
-    const playerId = client.getPlayer();
+    const playerId = client.getPlayerId();
     const character = characters[charId];
     if (playerId === null) {
-      serverLog(`${clientLabel} tried to add character ${charId} but does not have a player selected!`);
+      serverLog(`${client.getLabel()} tried to add character ${charId} but does not have a player selected!`);
     }
     else if (getActivePlayer().getId() !== playerId) {
-      serverLog(`${clientLabel} tried to add character ${charId} but it is not their turn.`);
+      serverLog(`${client.getLabel()} tried to add character ${charId} but it is not their turn.`);
     }
     else {
+      // We can add the character!
       const player = players[playerId];
-      serverLog(`${clientLabel} adding character ${character.getName()} to player ${player.getName()}`);
+      serverLog(`${client.getLabel()} adding character ${character.getName()}.`);
       character.setPlayer(playerId);
       player.addCharacter(character);
 
-      advanceDraft();
+      const characterUpdateData = [{
+        'charId' : charId,
+        'disabled': true,
+      }];
 
-      regeneratePlayers(clientId);
-      regenerateCharacters();
+      advanceDraft();
+      updateCharacters(characterUpdateData);
     }
   });
 
   // Reset the entire game board, players, characters, and all.
   socket.on('reset', () => {
-    serverLog(`${clientLabel} requested a server reset.`);
-    resetAll(clientId);
+    serverLog(`${client.getLabel()} requested a server reset.`);
+    resetAll();
   });
 
   // Be sure to remove the client from the list of clients when they disconnect.
   socket.on('disconnect', () => {
-    serverLog(`${clientLabel} disconnected.`);
-    const playerId = client.getPlayer();
+    serverLog(`${client.getLabel()} disconnected.`);
+    const playerId = client.getPlayerId();
     if (playerId !== null) {
-      players[playerId].setClient(0);
+      players[playerId].setClientId(0);
     }
-    clients.splice(clientId - 1, 1);
+    client.setPlayer(null);
+
+    regeneratePlayers();
   });
 });
 
 /**
  * Creates a simple message for displaying to the server, with timestamp.
  *
- * @param message
+ * @param {string} message
+ *   The message to set. This can have chalk.js formatting, which will be stripped
+ *   prior to sending to clients.
  */
 function serverLog(message) {
   const date = new Date();
   const timestamp = date.toLocaleString("en-US");
-  console.log(`${timestamp}: ${message}`);
+  const log = `${timestamp}: ${message}`;
+
+  updateChat(log);
+
+  console.log(log);
 }
 
 /**
@@ -187,12 +221,12 @@ function serverLog(message) {
 function advanceDraft() {
 
   const prevPlayer = getActivePlayer();
-
-  currentPick++;
+  const updatedPlayers = [];
+  const newRound = (++currentPick % players.length === 0);
 
   // If players count goes evenly into current pick, we have reached a new round.
-  if (currentPick % players.length === 0) {
-    serverLog(`Round ${currentRound} reached.`);
+  if (newRound) {
+    serverLog(`Round ${currentRound} completed.`);
     currentRound++;
     players_pick_order.reverse();
     currentPick = 0;
@@ -204,6 +238,26 @@ function advanceDraft() {
   if (prevPlayer !== currentPlayer) {
     prevPlayer.setActive(false);
     currentPlayer.setActive(true);
+
+    updatedPlayers.push({
+      'playerId': currentPlayer.getId(),
+      'isActive': true,
+    });
+  }
+
+  updatedPlayers.push({
+    'playerId': prevPlayer.getId(),
+    'isActive': prevPlayer.isActive,
+    'roster_html': renderPlayerRoster(prevPlayer),
+  });
+
+  // If we're at a new round we need to regenerate the player area entirely so
+  // that they reorder. Otherwise just update stuff!
+  if (newRound) {
+    regeneratePlayers();
+  }
+  else {
+    updatePlayersInfo(updatedPlayers);
   }
 }
 
@@ -229,29 +283,38 @@ function getActivePlayer() {
 
 /**
  * Set all options back to defaults.
- *
- * @param clientId
- *   The ID of the client that initiated the request.
  */
-function resetAll(clientId) {
+function resetAll() {
 
   players = [];
   players_pick_order = [];
   currentRound = 1;
   currentPick = 0;
-  for (let i; i < characters.length; i++) {
+  for (let i = 0 ; i < characters.length; i++) {
     characters[i].setPlayer(null);
   }
-  for (let i; i < clients.length; i++) {
+  for (let i = 0; i < clients.length; i++) {
     clients[i].setPlayer(null);
+    setClientInfoSingle(clients[i].getSocket(), clients[i]);
+    serverLog(`Wiping player info for ${clients[i].getLabel()}`);
   }
 
-  regeneratePlayers(clientId);
+  regeneratePlayers();
   regenerateCharacters();
 }
 
-function regeneratePlayers(clientId) {
-  Twig.renderFile('./views/players-container.twig', {players_pick_order, clientId, currentRound}, (error, html) => {
+function renderPlayerRoster(player) {
+  let rendered = '';
+
+  Twig.renderFile('./views/player-roster.twig', {player}, (error, html) => {
+    rendered = html;
+  });
+
+  return rendered;
+}
+
+function regeneratePlayers() {
+  Twig.renderFile('./views/players-container.twig', {players_pick_order, currentRound}, (error, html) => {
     io.sockets.emit('rebuild-players', html);
   });
 }
@@ -262,13 +325,62 @@ function regenerateCharacters() {
   });
 }
 
+function regenerateChatSingle(socket) {
+  Twig.renderFile('./views/chat-container.twig', {chatHistory}, (error, html) => {
+    socket.emit('rebuild-chat', html);
+  });
+}
+
+function setClientInfoSingle(socket, client) {
+  // Socket connections can't hold themselves, so we need to remove the socket
+  // info from the client before sending it.
+
+  let safeClient = {};
+
+  // Note that the cloned client also has no functions, only properties. It is,
+  // essentially, static.
+  Object.assign(safeClient, client);
+  safeClient.socket = null;
+
+  socket.emit('set-client', safeClient);
+}
+
 /**
- * Helper function for escaping input strings
+ * Sends an array of players with changed data to inform clients without needing
+ * to completely rebuild the player area.
+ *
+ * @param {array} players
  */
-function htmlEntities(str) {
-  return String(str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function updatePlayersInfo(players) {
+  io.sockets.emit('update-players', players);
+}
+
+/**
+ * Sends an array of characters with changed data to inform clients without needing
+ * to completely rebuild the character area.
+ *
+ * @param {array} characters
+ */
+function updateCharacters(characters) {
+  io.sockets.emit('update-characters', characters);
+}
+
+/**
+ * Adds a new line item to the chat box.
+ *
+ * @param {string} message
+ *   The message to add. This is expected to be formatted using chalk.js for
+ *   console formatting; it will be stripped.
+ */
+function updateChat(message) {
+  // Define how console colors look so we can remove them from the HTML.
+  message = stripAnsi(message);
+
+  chatHistory.unshift(message);
+
+  Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
+    io.sockets.emit('update-chat', html);
+  });
 }
 
 /**
