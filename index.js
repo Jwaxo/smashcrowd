@@ -8,6 +8,7 @@ const gulp = require('gulp');
 const $ = require('gulp-load-plugins')();
 const autoprefixer = require('autoprefixer');
 const chalk = require('chalk');
+const stripAnsi = require('strip-ansi');
 
 const app = express();
 const server = http.Server(app);
@@ -290,10 +291,12 @@ function updateCharacters(data) {
 }
 
 function updateChat(message) {
+  // Define how console colors look so we can remove them from the HTML.
+  const cleanMessage = stripAnsi(message);
 
-  chatHistory.unshift(chalk(message));
+  chatHistory.unshift(cleanMessage);
 
-  Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
+  Twig.renderFile('./views/chat-item.twig', {cleanMessage}, (error, html) => {
     io.sockets.emit('update-chat', html);
   });
 }
