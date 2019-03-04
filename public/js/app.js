@@ -2,8 +2,14 @@ $(document).foundation();
 
 $(function() {
   const socket = io();
+  let client = {};
+
   characterSetup();
   playerSetup();
+
+  socket.on('set-client', newClient => {
+    client = newClient;
+  });
 
   socket.on('rebuild-players', html => {
     const playerContainer = $('#players_container');
@@ -54,8 +60,12 @@ $(function() {
   }
 
   function playerSetup() {
+    if (client.playerId !== null) {
+      $('.player[data-player-id="' + client.playerId + '"]').addClass('player--current');
+    }
+
     $('.player-picker').click(element => {
-      const playerId = $(element.currentTarget).data('player-id');
+      const playerId = $(element.currentTarget).data('player-pick-id');
       socket.emit('pick-player', playerId);
     });
 

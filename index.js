@@ -77,17 +77,16 @@ io.on('connection', socket => {
 
   const randomColor = Math.floor(Math.random() * (console_colors.length));
 
-  const client = clientFactory.createClient(socket, console_colors[randomColor]);
+  const client = clientFactory.createClient(socket);
   const clientId = clients.push(client);
   client.setId(clientId);
+  client.setColor(chalk[console_colors[randomColor]]);
 
-  const clientColor = chalk[client.getColor()];
-  let clientLabel = clientColor(`Client ${clientId}`);
-
-  serverLog(`${clientLabel} assigned to socket ${socket.id}`);
+  serverLog(`${client.getLabel()} assigned to socket ${socket.id}`);
 
   // Generate everything just in case the connections existed before the server.
-  regeneratePlayers(clientId);
+  setClientInfoSingle(socket, client);
+  regeneratePlayers();
   regenerateCharacters();
   regenerateChatSingle(socket);
 
@@ -99,7 +98,7 @@ io.on('connection', socket => {
    * command to all sockets to regenerate the player area.
    */
   socket.on('add-player', name => {
-    serverLog(`${clientLabel} adding player ${name}`);
+    serverLog(`${client.getLabel()} adding player ${name}`);
     const player = playerFactory.createPlayer(name);
 
     const playerId = players.push(player) - 1;
@@ -110,7 +109,7 @@ io.on('connection', socket => {
       player.setActive(true);
     }
 
-    regeneratePlayers(clientId);
+    regeneratePlayers();
   });
 
   /**
@@ -123,17 +122,18 @@ io.on('connection', socket => {
     const player = players[playerId];
 
     // First remove the current client's player so it's empty again.
-    if (client.getPlayer() !== null) {
-      const prevPlayer = players[client.getPlayer()];
-      serverLog(`Removing ${clientLabel} from player ${prevPlayer.getName()}`);
+    if (client.getPlayerId() !== null) {
+      const prevPlayer = players[client.getPlayerId()];
+      serverLog(`Removing ${client.getLabel()} from player ${prevPlayer.getName()}`);
       prevPlayer.setClient(0);
     }
-    serverLog(`${clientLabel} taking control of player ${player.getName()}`);
-    clientLabel = clientColor(`${player.getName()}`);
+    serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
     player.setClient(clientId);
-    client.setPlayer(playerId);
+    client.setPlayer(player);
 
-    regeneratePlayers(clientId);
+    setClientInfoSingle(socket, client);
+
+    regeneratePlayers();
   });
 
   /**
@@ -143,18 +143,18 @@ io.on('connection', socket => {
    * character list, and advances the pick order.
    */
   socket.on('add-character', charId => {
-    const playerId = client.getPlayer();
+    const playerId = client.getPlayerId();
     const character = characters[charId];
     if (playerId === null) {
-      serverLog(`${clientLabel} tried to add character ${charId} but does not have a player selected!`);
+      serverLog(`${client.getLabel()} tried to add character ${charId} but does not have a player selected!`);
     }
     else if (getActivePlayer().getId() !== playerId) {
-      serverLog(`${clientLabel} tried to add character ${charId} but it is not their turn.`);
+      serverLog(`${client.getLabel()} tried to add character ${charId} but it is not their turn.`);
     }
     else {
       // We can add the character!
       const player = players[playerId];
-      serverLog(`${clientLabel} adding character ${character.getName()}.`);
+      serverLog(`${client.getLabel()} adding character ${character.getName()}.`);
       character.setPlayer(playerId);
       player.addCharacter(character);
 
@@ -165,27 +165,27 @@ io.on('connection', socket => {
 
       advanceDraft();
 
-      regeneratePlayers(clientId);
+      regeneratePlayers();
       updateCharacters(characterUpdateData);
     }
   });
 
   // Reset the entire game board, players, characters, and all.
   socket.on('reset', () => {
-    serverLog(`${clientLabel} requested a server reset.`);
-    resetAll(clientId);
+    serverLog(`${client.getLabel()} requested a server reset.`);
+    resetAll();
   });
 
   // Be sure to remove the client from the list of clients when they disconnect.
   socket.on('disconnect', () => {
-    serverLog(`${clientLabel} disconnected.`);
-    const playerId = client.getPlayer();
+    serverLog(`${client.getLabel()} disconnected.`);
+    const playerId = client.getPlayerId();
     if (playerId !== null) {
       players[playerId].setClient(0);
     }
     client.setPlayer(null);
 
-    regeneratePlayers(clientId);
+    regeneratePlayers();
   });
 });
 
@@ -252,11 +252,8 @@ function getActivePlayer() {
 
 /**
  * Set all options back to defaults.
- *
- * @param clientId
- *   The ID of the client that initiated the request.
  */
-function resetAll(clientId) {
+function resetAll() {
 
   players = [];
   players_pick_order = [];
@@ -267,14 +264,16 @@ function resetAll(clientId) {
   }
   for (let i; i < clients.length; i++) {
     clients[i].setPlayer(null);
+    console.log('wiping player info for ' + i);
+    setClientInfoSingle(clients[i].getSocket(), clients[i]);
   }
 
-  regeneratePlayers(clientId);
+  regeneratePlayers();
   regenerateCharacters();
 }
 
-function regeneratePlayers(clientId) {
-  Twig.renderFile('./views/players-container.twig', {players_pick_order, clientId, currentRound}, (error, html) => {
+function regeneratePlayers() {
+  Twig.renderFile('./views/players-container.twig', {players_pick_order, currentRound}, (error, html) => {
     io.sockets.emit('rebuild-players', html);
   });
 }
@@ -289,6 +288,20 @@ function regenerateChatSingle(socket) {
   Twig.renderFile('./views/chat-container.twig', {chatHistory}, (error, html) => {
     socket.emit('rebuild-chat', html);
   });
+}
+
+function setClientInfoSingle(socket, client) {
+  // Socket connections can't hold themselves, so we need to remove the socket
+  // info from the client before sending it.
+
+  let safeClient = {};
+
+  // Note that the cloned client also has no functions, only properties. It is,
+  // essentially, static.
+  Object.assign(safeClient, client);
+  safeClient.socket = null;
+
+  socket.emit('set-client', safeClient);
 }
 
 function updateCharacters(data) {
