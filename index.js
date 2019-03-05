@@ -74,7 +74,7 @@ server.listen(port, () => {
  * received commands.
  */
 io.on('connection', socket => {
-  serverLog(`New connection established with hash ${socket.id}`);
+  serverLog(`New connection established with hash ${socket.id}`, true);
 
   const randomColor = Math.floor(Math.random() * (console_colors.length));
 
@@ -83,7 +83,7 @@ io.on('connection', socket => {
   client.setId(clientId);
   client.setColor(chalk[console_colors[randomColor]]);
 
-  serverLog(`${client.getLabel()} assigned to socket ${socket.id}`);
+  serverLog(`${client.getLabel()} assigned to socket ${socket.id}`, true);
 
   // Generate everything just in case the connections existed before the server.
   setClientInfoSingle(socket, client);
@@ -141,12 +141,14 @@ io.on('connection', socket => {
     // First remove the current client's player so it's empty again.
     if (client.getPlayerId() !== null) {
       const prevPlayer = players[client.getPlayerId()];
-      serverLog(`Removing ${client.getLabel()} from player ${prevPlayer.getName()}`);
+      serverLog(`Removing ${client.getColor()(`Client ${client.getId()}`)} from player ${prevPlayer.getName()}`, true);
       prevPlayer.setClientId(0);
+      client.setPlayer(null);
+
       updatedPlayers.push({
         'playerId': prevPlayer.getId(),
         'clientId': 0,
-      })
+      });
     }
     serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
     player.setClientId(clientId);
@@ -204,11 +206,16 @@ io.on('connection', socket => {
 
   // Be sure to remove the client from the list of clients when they disconnect.
   socket.on('disconnect', () => {
-    serverLog(`${client.getLabel()} disconnected.`);
     const playerId = client.getPlayerId();
+    let noPlayer = true;
     if (playerId !== null) {
+      noPlayer = false;
       players[playerId].setClientId(0);
     }
+
+    // If the client didn't have a player, don't bother announcing their
+    // departure.
+    serverLog(`${client.getLabel()} disconnected.`, noPlayer);
     client.setPlayer(null);
 
     regeneratePlayers();
@@ -221,13 +228,17 @@ io.on('connection', socket => {
  * @param {string} message
  *   The message to set. This can have chalk.js formatting, which will be stripped
  *   prior to sending to clients.
+ * @param {boolean} serverOnly
+ *   If the message should not be broadcast in the clientside chat.
  */
-function serverLog(message) {
+function serverLog(message, serverOnly = false) {
   const date = new Date();
   const timestamp = date.toLocaleString("en-US");
   const log = `${timestamp}: ${message}`;
 
-  updateChat(log);
+  if (!serverOnly) {
+    updateChat(log);
+  }
 
   console.log(log);
 }

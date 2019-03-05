@@ -40,7 +40,14 @@ $(function() {
       const $player = $('.player[data-player-id="' + player.playerId + '"]');
 
       if (player.hasOwnProperty('clientId')) {
-        $player.addClass('player--owned');
+        // Make sure unowned players don't have the owned tag.
+        if (player.clientId === 0) {
+          $player.removeClass('player--owned');
+        }
+        else {
+          $player.addClass('player--owned');
+        }
+
         if (player.clientId === client.id) {
           $player.addClass('player--current');
         }
