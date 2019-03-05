@@ -6,6 +6,7 @@ class Client {
     this.id = 0;
     this.socket = socket;
     this.color = null;
+    this.player = null;
     this.playerId = null;
 
     return this;
