@@ -78,10 +78,14 @@ the SCSS only gets recompiled when the server is started.
 * Player boxes shake when they become active.
 * Randomizing of player order (prior to first pick)
 * "Done with Drafting" button which switches mode to Game Tracking
+* Persistant storage via MySQL (or other DB)
 * Game Tracking with scores for winners
+* Removal/graying out of characters when they are not the "active" ones.
 * Game options:
   * Re-orderable roster
   * Multiple styles of drafting:
+    * No draft (free pick, characters do not remove after picking)
+    * Iron Man (where you can't advance to the next character until you "win" (with win being definable), but it gradually widens your character choices as you lose)
     * Linear
     * Snake
     * Auction?
