@@ -4,6 +4,8 @@ const http = require('http');
 const express = require('express');
 const Twig = require('twig');
 
+const config = require('./config.js');
+
 const gulp = require('gulp');
 const $ = require('gulp-load-plugins')();
 const autoprefixer = require('autoprefixer');
@@ -174,11 +176,11 @@ io.on('connection', socket => {
     const playerId = client.getPlayerId();
     const character = characters[charId];
     if (playerId === null) {
-      serverLog(`${client.getLabel()} tried to add character ${charId} but does not have a player selected!`);
+      serverLog(`${client.getLabel()} tried to add ${character.getName()} but does not have a player selected!`);
       setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
     }
     else if (getActivePlayer().getId() !== playerId) {
-      serverLog(`${client.getLabel()} tried to add character ${charId} but it is not their turn.`);
+      serverLog(`${client.getLabel()} tried to add ${character.getName()} but it is not their turn.`);
       setStatusSingle(client, 'It is not yet your turn! Please wait.', 'alert');
     }
     else {
