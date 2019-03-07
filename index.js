@@ -121,11 +121,11 @@ io.on('connection', socket => {
       player.setActive(true);
     }
 
-    for (let i = 0; i < clients.length; i++) {
-      if (!clients[i].getPlayerId()) {
-        setStatusSingle(clients[i], 'Pick a player to draft.')
+    clients.forEach(client => {
+      if (!client.getPlayerId()) {
+        setStatusSingle(client, 'Pick a player to draft.');
       }
-    }
+    });
 
     regeneratePlayers();
   });
@@ -137,12 +137,12 @@ io.on('connection', socket => {
    * from a prior player (if there was one), before regenerating player area.
    */
   socket.on('pick-player', playerId => {
-    const player = players[playerId];
+    const player = getPlayerById(playerId);
     const updatedPlayers = [];
 
     // First remove the current client's player so it's empty again.
     if (client.getPlayerId() !== null) {
-      const prevPlayer = players[client.getPlayerId()];
+      const prevPlayer = client.getPlayer();
       serverLog(`Removing ${client.getColor()(`Client ${client.getId()}`)} from player ${prevPlayer.getName()}`, true);
       prevPlayer.setClientId(0);
       client.setPlayer(null);
@@ -173,21 +173,20 @@ io.on('connection', socket => {
    * character list, and advances the pick order.
    */
   socket.on('add-character', charId => {
-    const playerId = client.getPlayerId();
+    const player = client.getPlayer();
     const character = characters[charId];
-    if (playerId === null) {
+    if (player === null) {
       serverLog(`${client.getLabel()} tried to add ${character.getName()} but does not have a player selected!`);
       setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
     }
-    else if (getActivePlayer().getId() !== playerId) {
+    else if (!player.isActive) {
       serverLog(`${client.getLabel()} tried to add ${character.getName()} but it is not their turn.`);
       setStatusSingle(client, 'It is not yet your turn! Please wait.', 'alert');
     }
     else {
       // We can add the character!
-      const player = players[playerId];
       serverLog(`${client.getLabel()} adding character ${character.getName()}.`);
-      character.setPlayer(playerId);
+      character.setPlayer(player.getId());
       player.addCharacter(character);
 
       const characterUpdateData = [{
@@ -206,13 +205,37 @@ io.on('connection', socket => {
     resetAll();
   });
 
+  // Shuffles the players to a random order.
+  socket.on('players-shuffle', () => {
+    serverLog(`${client.getLabel()} shuffled the players.`);
+    players.forEach(player => {
+      player.sortOrder = Math.random();
+      player.setActive(false);
+    });
+
+    // After assigning new sort order, sort both players and pick order.
+    players.sort((a, b) => {
+      return a.sortOrder - b.sortOrder;
+    });
+    players_pick_order.sort((a, b) => {
+      return a.sortOrder - b.sortOrder;
+    });
+
+    // Set the first player to be active again.
+    players[0].setActive(true);
+
+    setStatusSingle(client, 'Players shuffled!');
+
+    regeneratePlayers();
+  });
+
   // Be sure to remove the client from the list of clients when they disconnect.
   socket.on('disconnect', () => {
-    const playerId = client.getPlayerId();
+    const player = client.getPlayer();
     let noPlayer = true;
-    if (playerId !== null) {
+    if (player !== null) {
       noPlayer = false;
-      players[playerId].setClientId(0);
+      player.setClientId(0);
     }
 
     // If the client didn't have a player, don't bother announcing their
@@ -223,6 +246,23 @@ io.on('connection', socket => {
     regeneratePlayers();
   });
 });
+
+/**
+ * Searches the players array for the player with the matching ID.
+ *
+ * @param {integer|null} playerId
+ *    The ID to look for.
+ */
+function getPlayerById(playerId) {
+  let player = null;
+  for (let i = 0; i < players.length; i++) {
+    if (players[i].getId() === playerId) {
+      player = players[i];
+      break;
+    }
+  }
+  return player;
+}
 
 /**
  * Creates a simple message for displaying to the server, with timestamp.
@@ -323,14 +363,15 @@ function resetAll() {
   players_pick_order = [];
   currentRound = 1;
   currentPick = 0;
-  for (let i = 0 ; i < characters.length; i++) {
-    characters[i].setPlayer(null);
-  }
-  for (let i = 0; i < clients.length; i++) {
-    clients[i].setPlayer(null);
-    setClientInfoSingle(clients[i].getSocket(), clients[i]);
-    serverLog(`Wiping player info for ${clients[i].getLabel()}`);
-  }
+  characters.forEach(character => {
+    character.setPlayer(null);
+  });
+
+  clients.forEach(client => {
+    client.setPlayer(null);
+    setClientInfoSingle(client.getSocket(), client);
+    serverLog(`Wiping player info for ${client.getLabel()}`);
+  });
 
   regeneratePlayers();
   regenerateCharacters();
