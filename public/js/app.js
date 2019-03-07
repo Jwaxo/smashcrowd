@@ -28,12 +28,32 @@ $(function() {
     chatContainer.html(html);
   });
 
+  /**
+   * Adds a status message to the client's status box.
+   *
+   * @params {string} html
+   *   The HTML of the status message. This should contain everything: the
+   *   message, the container, etc.
+   */
   socket.on('set-status', html => {
     const statusContainer = $('#status_container');
     statusContainer.append(html);
     $('.status').delay(5000).fadeOut(300);
   });
 
+  /**
+   * Updates the player list based off of an array of players and the data to change.
+   *
+   * @params {array} players
+   *   An array of players to update. Note that a player missing from this array
+   *   doesn't mean the player will be deleted, merely that there is no necessary
+   *   change.
+   *   Possible parameters:
+   *   - {integer} clientId: the client that currently owns this player.
+   *   - {boolean} isActive: whether or not this player has pick.
+   *   - {string} rosterHTML: the rendered HTML for the given player's list of
+   *     characters.
+   */
   socket.on('update-players', players => {
     for (let i = 0; i < players.length; i++) {
       const player = players[i];
@@ -71,6 +91,16 @@ $(function() {
     }
   });
 
+  /**
+   * Updates the character select area based off of the characters in an array.
+   *
+   * @params {array} characters
+   *   An array of objects describing characters by their ID and how to update
+   *   them. Current allowed properties:
+   *   - {integer} charId: the ID of the character to update.
+   *   - {boolean} disabled: whether or not the character should be removed from
+   *     the list.
+   */
   socket.on('update-characters', characters => {
     for (let i = 0; i < characters.length; i++) {
       const charId = characters[i].charId;
@@ -82,17 +112,33 @@ $(function() {
     }
   });
 
+  /**
+   * Updates the system and chat box.
+   *
+   * @params {string} html
+   *   The complete HTML of the contained chat item.
+   */
   socket.on('update-chat', html => {
     const chatContainer = $('.chat-box');
     chatContainer.prepend(html);
   });
 
+  /**
+   * Resets the entire board: players, rosters, and characters chosen.
+   */
   $('#reset').click(() => {
     socket.emit('reset');
   });
 
   /**
-   * Needs to be run any time the character grid gets created, so the jQuery
+   * Shuffles the current players.
+   */
+  $('#randomize').click(() => {
+    socket.emit('players-shuffle');
+  });
+
+  /**
+   * Needs to be run any time the character grid gets recreated, so the jQuery
    * events properly attach.
    */
   function characterSetup() {
@@ -101,14 +147,16 @@ $(function() {
       socket.emit('add-character', charId);
     });
 
-    $(document).foundation();
+    $('#characters_container').foundation();
   }
 
+  /**
+   * Needs to be run any time the player list gets recreated.
+   */
   function playerSetup() {
     if (client.playerId !== null) {
       $('.player[data-player-id="' + client.playerId + '"]').addClass('player--current');
     }
-
 
     $('.player-picker').click(element => {
       const playerId = $(element.currentTarget).data('player-pick-id');
@@ -122,6 +170,6 @@ $(function() {
       field.val('');
     });
 
-    $(document).foundation();
+    $('#players_container').foundation();
   }
 });

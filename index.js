@@ -4,7 +4,7 @@ const http = require('http');
 const express = require('express');
 const Twig = require('twig');
 
-const config = require('./config.js');
+const config = require('config');
 
 const gulp = require('gulp');
 const $ = require('gulp-load-plugins')();
