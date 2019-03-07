@@ -28,6 +28,10 @@ $(function() {
     chatContainer.html(html);
   });
 
+  socket.on('setup-complete', () => {
+    $('.randomize').remove();
+  });
+
   /**
    * Adds a status message to the client's status box.
    *
@@ -131,13 +135,6 @@ $(function() {
   });
 
   /**
-   * Shuffles the current players.
-   */
-  $('#randomize').click(() => {
-    socket.emit('players-shuffle');
-  });
-
-  /**
    * Needs to be run any time the character grid gets recreated, so the jQuery
    * events properly attach.
    */
@@ -168,6 +165,13 @@ $(function() {
       const field = $('.player-add');
       socket.emit('add-player', field.val());
       field.val('');
+    });
+
+    /**
+     * Shuffles the current players.
+     */
+    $('#randomize').click(() => {
+      socket.emit('players-shuffle');
     });
 
     $('#players_container').foundation();

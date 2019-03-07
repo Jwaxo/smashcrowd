@@ -58,6 +58,7 @@ app.get('/', function(req, res) {
     characters,
     players_pick_order,
     currentRound,
+    currentPick,
     chatHistory,
   });
 });
@@ -292,6 +293,14 @@ function advanceDraft() {
 
   const prevPlayer = getActivePlayer();
   const updatedPlayers = [];
+
+  if (currentRound === 1 && currentPick === 0) {
+    // If this is the first pick of the game, tell clients so that we can update
+    // the interface.
+    io.sockets.emit('setup-complete');
+    setStatusAll('Character drafting has begun!', 'success');
+  }
+
   const newRound = (++currentPick % players.length === 0);
 
   // If players count goes evenly into current pick, we have reached a new round.
@@ -388,7 +397,7 @@ function renderPlayerRoster(player) {
 }
 
 function regeneratePlayers() {
-  Twig.renderFile('./views/players-container.twig', {players_pick_order, currentRound}, (error, html) => {
+  Twig.renderFile('./views/players-container.twig', {players_pick_order, currentRound, currentPick}, (error, html) => {
     io.sockets.emit('rebuild-players', html);
   });
 }
@@ -439,6 +448,30 @@ function updateCharacters(characters) {
   io.sockets.emit('update-characters', characters);
 }
 
+/**
+ * Sends a status message to all users.
+ *
+ * @param {string} status
+ *   The message to send.
+ * @param {string} type
+ *   The type of message. Uses Foundation's callout styles: https://foundation.zurb.com/sites/docs/callout.html
+ */
+function setStatusAll(status, type = 'secondary') {
+  Twig.renderFile('./views/status-message.twig', {status, type}, (error, html) => {
+    io.sockets.emit('set-status', html);
+  });
+}
+
+/**
+ * Sends a status message to a single user.
+ *
+ * @param {Client} client
+ *   The client object to target.
+ * @param {string} status
+ *   The message to send.
+ * @param {string} type
+ *   The type of message. Uses Foundation's callout styles: https://foundation.zurb.com/sites/docs/callout.html
+ */
 function setStatusSingle(client, status, type = 'secondary') {
   if (client && client.socket) {
     Twig.renderFile('./views/status-message.twig', {status, type}, (error, html) => {
