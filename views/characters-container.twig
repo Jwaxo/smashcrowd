@@ -4,7 +4,7 @@
 #}
 
 <div class="cell">
-  <div class="character-grid{% if board.getRound() == 0 %} character-grid--disabled{% endif %}">
+  <div class="character-grid{% if board.getDraftRound() == 0 %} character-grid--disabled{% endif %}">
     {% for character in board.getCharacters() %}
       {% if character.getPlayer() is null %}
         {% include 'character.twig' %}

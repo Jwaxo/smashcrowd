@@ -83,7 +83,6 @@ $(function() {
           removePlayerCurrent($player);
         }
       }
-      else {}
 
       if (player.hasOwnProperty('isActive')) {
         if (player.isActive) {

@@ -6,7 +6,7 @@ class Board {
     this.boardId = boardId;
 
     this.resetPick();
-    this.resetRound();
+    this.resetDraftRound();
     this.totalRounds = null;
     this.draftType = null;
     this.name = null;
@@ -37,14 +37,14 @@ class Board {
   getTotalRounds() {
     return this.totalRounds;
   }
-  advanceRound() {
-    return ++this.currentRound;
+  advanceDraftRound() {
+    return ++this.currentDraftRound;
   }
-  getRound() {
-    return this.currentRound;
+  getDraftRound() {
+    return this.currentDraftRound;
   }
-  resetRound() {
-    this.currentRound = 0;
+  resetDraftRound() {
+    this.currentDraftRound = 0;
   }
 
   advancePick() {

@@ -49,4 +49,8 @@
   text-shadow: rem-calc(0 0 2px) black, rem-calc(2px 2px 3px) black;
   text-transform: uppercase;
   width: 100%;
+
+  .character-grid--disabled & {
+    cursor: default;
+  }
 }

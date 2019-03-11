@@ -163,6 +163,11 @@ io.on('connection', socket => {
   socket.on('add-character', charId => {
     const player = client.getPlayer();
     const character = board.getCharacter(charId);
+
+    if (board.getDraftRound() < 1) {
+      serverLog(`${client.getLabel()} tried to add ${character.getName()} but drafting has not started.`);
+      setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
+    }
     if (player === null) {
       serverLog(`${client.getLabel()} tried to add ${character.getName()} but does not have a player selected!`);
       setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
@@ -189,7 +194,7 @@ io.on('connection', socket => {
 
   socket.on('start-draft', () => {
     serverLog(`${client.getLabel()} started the draft.`);
-    board.advanceRound();
+    board.advanceDraftRound();
     board.getPlayerByPickOrder(0).setActive(true);
     regenerateBoardInfo();
     regenerateCharacters();
@@ -260,7 +265,7 @@ function advanceDraft() {
   const prevPlayer = board.getActivePlayer();
   const updatedPlayers = [];
 
-  if (board.getRound() === 1 && board.getPick() === 0) {
+  if (board.getDraftRound() === 1 && board.getPick() === 0) {
     // If this is the first pick of the game, tell clients so that we can update
     // the interface.
     io.sockets.emit('setup-complete');
@@ -272,8 +277,8 @@ function advanceDraft() {
 
   // If players count goes evenly into current pick, we have reached a new round.
   if (newRound) {
-    serverLog(`Round ${board.getRound()} completed.`);
-    board.advanceRound();
+    serverLog(`Round ${board.getDraftRound()} completed.`);
+    board.advanceDraftRound();
     board.reversePlayersPick();
     board.resetPick();
   }
@@ -321,7 +326,7 @@ function resetAll(boardData) {
   // resetPlayers().
   board.dropAllPlayers();
   board.resetCharacters();
-  board.resetRound();
+  board.resetDraftRound();
   board.resetPick();
 
   if (boardData.draftType) {
