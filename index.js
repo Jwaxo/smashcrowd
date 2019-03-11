@@ -18,6 +18,7 @@ const server = http.Server(app);
 const clientFactory = require('./src/smashdown-clientfactory.js');
 const playerFactory = require('./src/smashdown-playerfactory.js');
 const characterFactory = require('./src/smashdown-characterfactory.js');
+const boardFactory = require('./src/smashdown-boardfactory.js');
 
 const io = socketio(server);
 
@@ -29,20 +30,16 @@ const sassPaths = [
 const port = 8080;
 const chatHistory = [];
 const clients = [];
-let players = [];
-let players_pick_order = [];
-let currentPick = 0;
-let currentRound = 1;
 const console_colors = [ 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'gray', 'bgRed', 'bgGreen', 'bgYellow', 'bgBlue', 'bgMagenta', 'bgCyan', 'bgWhite'];
+// Currently we only run one board at a time, so set the ID to 1.
+const board = boardFactory.createBoard(1, {'draftType': 'snake'});
 
 // Load characters from the character data file.
 const charData = require('./lib/chars.json');
 
 // Process characters.
-const characters = [];
-
 for (let i = 0; i < charData.chars.length; i++) {
-  characters[i] = characterFactory.createCharacter(i, charData.chars[i]);
+  board.addCharacter(characterFactory.createCharacter(i, charData.chars[i]));
 }
 
 // Do basic server setup stuff.
@@ -55,10 +52,7 @@ app.set("twig options", {
 
 app.get('/', function(req, res) {
   res.render('index.twig', {
-    characters,
-    players_pick_order,
-    currentRound,
-    currentPick,
+    board,
     chatHistory,
   });
 });
@@ -89,14 +83,14 @@ io.on('connection', socket => {
   serverLog(`${client.getLabel()} assigned to socket ${socket.id}`, true);
 
   // Generate everything just in case the connections existed before the server.
-  setClientInfoSingle(socket, client);
+  setClientInfoSingle(client);
   regeneratePlayers();
   regenerateCharacters();
   regenerateChatSingle(socket);
 
   // Set a default status for a connection if there are no players.
   if (!client.getPlayerId()) {
-    if (players.length === 0) {
+    if (board.getPlayersCount() === 0) {
       setStatusSingle(client, 'Add a player in order to start drafting!');
     }
     else {
@@ -114,13 +108,8 @@ io.on('connection', socket => {
     serverLog(`${client.getLabel()} adding player ${name}`);
     const player = playerFactory.createPlayer(name);
 
-    const playerId = players.push(player) - 1;
-    players_pick_order.push(player);
+    const playerId = board.addPlayer(player);
     player.setId(playerId);
-
-    if (playerId === 0) {
-      player.setActive(true);
-    }
 
     clients.forEach(client => {
       if (!client.getPlayerId()) {
@@ -138,14 +127,13 @@ io.on('connection', socket => {
    * from a prior player (if there was one), before regenerating player area.
    */
   socket.on('pick-player', playerId => {
-    const player = getPlayerById(playerId);
+    const player = board.getPlayerById(playerId);
     const updatedPlayers = [];
 
     // First remove the current client's player so it's empty again.
     if (client.getPlayerId() !== null) {
       const prevPlayer = client.getPlayer();
       serverLog(`Removing ${client.getColor()(`Client ${client.getId()}`)} from player ${prevPlayer.getName()}`, true);
-      prevPlayer.setClientId(0);
       client.setPlayer(null);
 
       updatedPlayers.push({
@@ -154,7 +142,6 @@ io.on('connection', socket => {
       });
     }
     serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
-    player.setClientId(clientId);
     client.setPlayer(player);
 
     updatedPlayers.push({
@@ -163,7 +150,7 @@ io.on('connection', socket => {
       'roster_html': renderPlayerRoster(player),
     });
 
-    setClientInfoSingle(socket, client);
+    setClientInfoSingle(client);
     updatePlayersInfo(updatedPlayers);
   });
 
@@ -175,7 +162,12 @@ io.on('connection', socket => {
    */
   socket.on('add-character', charId => {
     const player = client.getPlayer();
-    const character = characters[charId];
+    const character = board.getCharacter(charId);
+
+    if (board.getDraftRound() < 1) {
+      serverLog(`${client.getLabel()} tried to add ${character.getName()} but drafting has not started.`);
+      setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
+    }
     if (player === null) {
       serverLog(`${client.getLabel()} tried to add ${character.getName()} but does not have a player selected!`);
       setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
@@ -200,30 +192,27 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('start-draft', () => {
+    serverLog(`${client.getLabel()} started the draft.`);
+    board.advanceDraftRound();
+    board.getPlayerByPickOrder(0).setActive(true);
+    regenerateBoardInfo();
+    regenerateCharacters();
+    regeneratePlayers();
+    setStatusAll('The draft has begun!', 'success');
+  });
+
   // Reset the entire game board, players, characters, and all.
-  socket.on('reset', () => {
+  socket.on('reset', data => {
     serverLog(`${client.getLabel()} requested a server reset.`);
-    resetAll();
+    resetAll(data);
   });
 
   // Shuffles the players to a random order.
   socket.on('players-shuffle', () => {
     serverLog(`${client.getLabel()} shuffled the players.`);
-    players.forEach(player => {
-      player.sortOrder = Math.random();
-      player.setActive(false);
-    });
 
-    // After assigning new sort order, sort both players and pick order.
-    players.sort((a, b) => {
-      return a.sortOrder - b.sortOrder;
-    });
-    players_pick_order.sort((a, b) => {
-      return a.sortOrder - b.sortOrder;
-    });
-
-    // Set the first player to be active again.
-    players[0].setActive(true);
+    board.shufflePlayers();
 
     setStatusSingle(client, 'Players shuffled!');
 
@@ -236,7 +225,6 @@ io.on('connection', socket => {
     let noPlayer = true;
     if (player !== null) {
       noPlayer = false;
-      player.setClientId(0);
     }
 
     // If the client didn't have a player, don't bother announcing their
@@ -247,23 +235,6 @@ io.on('connection', socket => {
     regeneratePlayers();
   });
 });
-
-/**
- * Searches the players array for the player with the matching ID.
- *
- * @param {integer|null} playerId
- *    The ID to look for.
- */
-function getPlayerById(playerId) {
-  let player = null;
-  for (let i = 0; i < players.length; i++) {
-    if (players[i].getId() === playerId) {
-      player = players[i];
-      break;
-    }
-  }
-  return player;
-}
 
 /**
  * Creates a simple message for displaying to the server, with timestamp.
@@ -291,27 +262,28 @@ function serverLog(message, serverOnly = false) {
  */
 function advanceDraft() {
 
-  const prevPlayer = getActivePlayer();
+  const prevPlayer = board.getActivePlayer();
   const updatedPlayers = [];
 
-  if (currentRound === 1 && currentPick === 0) {
+  if (board.getDraftRound() === 1 && board.getPick() === 0) {
     // If this is the first pick of the game, tell clients so that we can update
     // the interface.
     io.sockets.emit('setup-complete');
     setStatusAll('Character drafting has begun!', 'success');
   }
 
-  const newRound = (++currentPick % players.length === 0);
+  // This boolean tells us if the most recent pick ended the round.
+  const newRound = (board.advancePick() % board.getPlayersCount() === 0);
 
   // If players count goes evenly into current pick, we have reached a new round.
   if (newRound) {
-    serverLog(`Round ${currentRound} completed.`);
-    currentRound++;
-    players_pick_order.reverse();
-    currentPick = 0;
+    serverLog(`Round ${board.getDraftRound()} completed.`);
+    board.advanceDraftRound();
+    board.reversePlayersPick();
+    board.resetPick();
   }
 
-  const currentPlayer = players_pick_order[currentPick];
+  const currentPlayer = board.getPlayerByPickOrder(board.getPick());
   const currentClient = clients[currentPlayer.getClientId() - 1];
 
   // We only need to change active state if the player changes.
@@ -336,6 +308,7 @@ function advanceDraft() {
   // that they reorder. Otherwise just update stuff!
   if (newRound) {
     setStatusSingle(currentClient, 'With the new round, it is once again your turn! Choose wisely.', 'primary');
+    regenerateBoardInfo();
     regeneratePlayers();
   }
   else {
@@ -344,44 +317,32 @@ function advanceDraft() {
 }
 
 /**
- * Figure out which player's turn it is to pick a character.
- *
- * Currently this is locked to "Snake" draft, where the turn order flips every
- * round.
- *
- * @returns Player
- *   The player that should pick their character next.
- */
-function getActivePlayer() {
-  let activePlayer = players[0];
-  for (let i = 0; i < players.length; i++) {
-    if (players[i].isActive) {
-      activePlayer = players[i];
-      break;
-    }
-  }
-  return activePlayer;
-}
-
-/**
  * Set all options back to defaults.
  */
-function resetAll() {
+function resetAll(boardData) {
 
-  players = [];
-  players_pick_order = [];
-  currentRound = 1;
-  currentPick = 0;
-  characters.forEach(character => {
-    character.setPlayer(null);
-  });
+  // Currently players get erased when we reset the board, since we don't have a
+  // way to remove a single player. Eventually we should reset this by just running
+  // resetPlayers().
+  board.dropAllPlayers();
+  board.resetCharacters();
+  board.resetDraftRound();
+  board.resetPick();
+
+  if (boardData.draftType) {
+    board.setDraftType(boardData.draftType);
+  }
+  if (boardData.totalRounds) {
+    board.setTotalRounds(boardData.totalRounds);
+  }
 
   clients.forEach(client => {
     client.setPlayer(null);
-    setClientInfoSingle(client.getSocket(), client);
+    setClientInfoSingle(client);
     serverLog(`Wiping player info for ${client.getLabel()}`);
   });
 
+  regenerateBoardInfo();
   regeneratePlayers();
   regenerateCharacters();
 }
@@ -396,14 +357,24 @@ function renderPlayerRoster(player) {
   return rendered;
 }
 
+function regenerateBoardInfo() {
+  Twig.renderFile('./views/board-data.twig', {board}, (error, html) => {
+    io.sockets.emit('rebuild-boardInfo', html);
+  });
+}
+
 function regeneratePlayers() {
-  Twig.renderFile('./views/players-container.twig', {players_pick_order, currentRound, currentPick}, (error, html) => {
-    io.sockets.emit('rebuild-players', html);
+  // The player listing is unique to each client, so we need to rebuild it and
+  // send it out individually.
+  clients.forEach(client => {
+    Twig.renderFile('./views/players-container.twig', {board, client}, (error, html) => {
+      client.getSocket().emit('rebuild-players', html);
+    });
   });
 }
 
 function regenerateCharacters() {
-  Twig.renderFile('./views/characters-container.twig', {characters}, (error, html) => {
+  Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
     io.sockets.emit('rebuild-characters', html);
   });
 }
@@ -414,25 +385,17 @@ function regenerateChatSingle(socket) {
   });
 }
 
-function setClientInfoSingle(socket, client) {
-  // Socket connections can't hold themselves, so we need to remove the socket
-  // info from the client before sending it.
-
-  let safeClient = {};
-
-  // Note that the cloned client also has no functions, only properties. It is,
-  // essentially, static.
-  Object.assign(safeClient, client);
-  safeClient.socket = null;
-
-  socket.emit('set-client', safeClient);
+function setClientInfoSingle(socketClient) {
+  const client = cleanClient(socketClient);
+  // Make sure to clean client before sending it.
+  socketClient.getSocket().emit('set-client', client);
 }
 
 /**
  * Sends an array of players with changed data to inform clients without needing
  * to completely rebuild the player area.
  *
- * @param {array} players
+ * @param {Array} players
  */
 function updatePlayersInfo(players) {
   io.sockets.emit('update-players', players);
@@ -442,7 +405,7 @@ function updatePlayersInfo(players) {
  * Sends an array of characters with changed data to inform clients without needing
  * to completely rebuild the character area.
  *
- * @param {array} characters
+ * @param {Array} characters
  */
 function updateCharacters(characters) {
   io.sockets.emit('update-characters', characters);
@@ -496,6 +459,26 @@ function updateChat(message) {
   Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
     io.sockets.emit('update-chat', html);
   });
+}
+
+/**
+ * Removes socket from Client objects without updating the actual object via ref.
+ *
+ * Socket connections can't hold themselves, so we need to remove the socket
+ * info from the client before sending it.
+ *
+ * Note that the cloned client also has no functions, only properties. It is,
+ * essentially, static.
+ * @param client
+ * @returns {{}}
+ */
+function cleanClient(client) {
+  let safeClient = {};
+
+  Object.assign(safeClient, client);
+  safeClient.socket = null;
+
+  return safeClient;
 }
 
 /**

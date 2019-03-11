@@ -7,31 +7,18 @@
 
   &.player--current {
     border-width: rem-calc(4px);
-
-    h4 {
-      display: block;
-    }
-
-    h4:after {
-      content: '(This is you)';
-      color: $light-gray;
-      float: right;
-      font-size: 75%;
-      margin-left: rem-calc(5px);
-    }
-  }
-  &.player--owned {
-    .player-picker {
-      display: none;
-    }
   }
   &.player--active {
     border-color: map-get($foundation-palette, alert);
   }
 
   h4 {
-    display: inline-block;
+    text-align: center;
   }
+}
+
+.player-picker-outer {
+  min-height: rem-calc(60px);
 }
 
 .player-roster {
@@ -53,12 +40,4 @@
     margin: 0 auto;
     width: rem-calc(180px);
   }
-}
-
-.player-picker {
-  border: rem-calc(1px) solid $black;
-  cursor: pointer;
-  display: inline-block;
-  float: right;
-  padding: rem-calc(3px);
 }

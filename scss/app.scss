@@ -4,9 +4,10 @@
 @import 'foundation';
 @import 'motion-ui';
 
+@import 'system';
+@import 'board';
 @import 'characters';
 @import 'players';
-@import 'system';
 
 // Global styles
 @include foundation-global-styles;

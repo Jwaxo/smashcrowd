@@ -9,11 +9,18 @@
   (player.getClientId() ? 'player--owned' : ''),
 ]|join(' ')|trim %}
 
-<div class="cell medium-4">
+<div class="cell small-2 medium-3 large-auto">
   <div class="{{ playerClasses }}" data-player-id="{{ player.getId() }}"{% if player.getClientId() %} data-client-id="{{ player.getClientId() }}"{% endif %}>
     <div class="card-section">
       <h4>{{ player.getName() }}</h4>
-      <div class="player-picker button" data-tooltip tabindex="2" title="Select this player to start picking characters for them." data-position="top" data-alignment="center" data-player-pick-id="{{ player.getId() }}">Be This Player</div>
+
+      <div class="player-picker-outer">
+        {% if client.getPlayerId() == player.getId() %}
+          <button class="player-picker button expanded hollow" data-tooltip tabindex="2">This is You</button>
+        {% elseif player.getClientId() == 0 %}
+          <button class="player-picker button expanded" data-tooltip tabindex="2" title="Select this player to start picking characters for them." data-position="top" data-alignment="center" data-player-pick-id="{{ player.getId() }}">Be This Player</button>
+        {% endif %}
+      </div>
 
       <div class="player-roster-container">
         {% include 'player-roster.twig' %}

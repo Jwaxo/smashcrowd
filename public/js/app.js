@@ -6,6 +6,7 @@ $(function() {
 
   characterSetup();
   playerSetup();
+  boardSetup();
 
   socket.on('set-client', newClient => {
     client = newClient;
@@ -28,8 +29,11 @@ $(function() {
     chatContainer.html(html);
   });
 
-  socket.on('setup-complete', () => {
-    $('.randomize').remove();
+  socket.on('rebuild-boardInfo', html => {
+    const boardInfoContainer = $('#board_info_container');
+    boardInfoContainer.html(html);
+    boardInfoContainer.foundation();
+    boardSetup();
   });
 
   /**
@@ -73,10 +77,10 @@ $(function() {
         }
 
         if (player.clientId === client.id) {
-          $player.addClass('player--current');
+          setPlayerCurrent($player);
         }
         else {
-          $player.removeClass('player--current');
+          removePlayerCurrent($player);
         }
       }
 
@@ -125,13 +129,28 @@ $(function() {
   socket.on('update-chat', html => {
     const chatContainer = $('.chat-box');
     chatContainer.prepend(html);
+    chatContainer.foundation();
   });
 
   /**
    * Resets the entire board: players, rosters, and characters chosen.
    */
-  $('#reset').click(() => {
-    socket.emit('reset');
+  $('form[name="new-board"]').submit((e) => {
+    e.preventDefault();
+    const form = $(event.currentTarget);
+    const boardModal = $('#modal_new_board');
+    const data = {};
+    if (form.find('input[name="draft-type"]:checked')) {
+      data.draftType = form.find('input[name="draft-type"]:checked').val();
+    }
+    if (form.find('input[name="rounds"]')) {
+      data.totalRounds = form.find('input[name="rounds"]').val();
+    }
+
+    // This will need to be replaced with a proper New Board functionality once
+    // we have multiple boards set up.
+    socket.emit('reset', data);
+    boardModal.foundation('close');
   });
 
   /**
@@ -152,7 +171,8 @@ $(function() {
    */
   function playerSetup() {
     if (client.playerId !== null) {
-      $('.player[data-player-id="' + client.playerId + '"]').addClass('player--current');
+      const $player = $('.player[data-player-id="' + client.playerId + '"]');
+      setPlayerCurrent($player);
     }
 
     $('.player-picker').click(element => {
@@ -167,13 +187,41 @@ $(function() {
       field.val('');
     });
 
+    $('#players_container').foundation();
+  }
+
+  /**
+   * Needs to be run any time the general board info updates.
+   */
+  function boardSetup() {
     /**
      * Shuffles the current players.
      */
     $('#randomize').click(() => {
       socket.emit('players-shuffle');
     });
+    $('#start_picking').click(() => {
+      socket.emit('start-draft');
+    })
+  }
 
-    $('#players_container').foundation();
+  /**
+   * Does some setup for if a player is current, since the browser is holding
+   * client information.
+   * @param $player
+   */
+  function setPlayerCurrent($player) {
+    $player.addClass('player--current');
+    $player.find('.player-picker').addClass('hollow').html('This is you');
+  }
+
+  /**
+   * The opposite of the above function; should remove classes and reset HTML.
+   * @param $player
+   */
+  function removePlayerCurrent($player) {
+    $player.removeClass('player--current');
+    $player.find('.player-picker').removeClass('hollow').html('Be This Player');
+
   }
 });
