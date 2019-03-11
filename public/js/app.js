@@ -6,6 +6,7 @@ $(function() {
 
   characterSetup();
   playerSetup();
+  boardSetup();
 
   socket.on('set-client', newClient => {
     client = newClient;
@@ -31,6 +32,8 @@ $(function() {
   socket.on('rebuild-boardInfo', html => {
     const boardInfoContainer = $('#board_info_container');
     boardInfoContainer.html(html);
+    boardInfoContainer.foundation();
+    boardSetup();
   });
 
   socket.on('setup-complete', () => {
@@ -187,13 +190,18 @@ $(function() {
       field.val('');
     });
 
+    $('#players_container').foundation();
+  }
+
+  /**
+   * Needs to be run any time the general board info updates.
+   */
+  function boardSetup() {
     /**
      * Shuffles the current players.
      */
     $('#randomize').click(() => {
       socket.emit('players-shuffle');
     });
-
-    $('#players_container').foundation();
   }
 });

@@ -4,9 +4,7 @@
       <input class="player-add" tabindex="1" type="text" {% if board.getCurrentRound() > 1 %}placeholder="Drafting has begun! Adding players now disabled." disabled="disabled"{% else %}placeholder="Add a new player"{% endif %}>
     </form>
   </div>
-  <div class="small-2 cell">
-    {% if board.getCurrentPick() < 1 and board.getCurrentRound() == 1 %}<div id="randomize" class="randomize button" data-tooltip title="Randomizes the player order. This option will disappear after picking has begun." data-position="bottom" data-alignment="center">Shuffle Players</div>{% endif %}
-  </div>
+
 </div>
 
 <div class="grid-x grid-margin-x">

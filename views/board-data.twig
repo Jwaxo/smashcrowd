@@ -5,3 +5,10 @@
 <h4>Draft Type: {{ board.getDraftType() }}</h4>
 
 <h4>Round: {{ board.getCurrentRound() }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>
+
+<div class="board-options grid-x grid-margin-x">
+  <div class="cell auto">
+    <button id="reset" data-open="modal_new_board" class="reset button">New Board</button>
+    {% if board.getCurrentPick() < 1 and board.getCurrentRound() == 1 %}<button id="randomize" class="randomize button" title="Randomizes the player order. This option will disappear after picking has begun.">Shuffle Players</button>{% endif %}
+  </div>
+</div>
