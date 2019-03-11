@@ -5,8 +5,8 @@ class Board {
   constructor(boardId, options) {
     this.boardId = boardId;
 
-    this.resetCurrentPick();
-    this.resetCurrentRound();
+    this.resetPick();
+    this.resetRound();
     this.totalRounds = null;
     this.draftType = null;
     this.name = null;
@@ -37,23 +37,23 @@ class Board {
   getTotalRounds() {
     return this.totalRounds;
   }
-  advanceCurrentRound() {
+  advanceRound() {
     return ++this.currentRound;
   }
-  getCurrentRound() {
+  getRound() {
     return this.currentRound;
   }
-  resetCurrentRound() {
-    this.currentRound = 1;
+  resetRound() {
+    this.currentRound = 0;
   }
 
-  advanceCurrentPick() {
+  advancePick() {
     return ++this.currentPick;
   }
-  getCurrentPick() {
+  getPick() {
     return this.currentPick;
   }
-  resetCurrentPick() {
+  resetPick() {
     this.currentPick = 0;
   }
 

@@ -7,18 +7,6 @@
 
   &.player--current {
     border-width: rem-calc(4px);
-
-    h4:after {
-      content: '(This is you)';
-      color: $light-gray;
-      display: block;
-      font-size: 75%;
-    }
-  }
-  &.player--owned {
-    .player-picker {
-      display: none;
-    }
   }
   &.player--active {
     border-color: map-get($foundation-palette, alert);
@@ -27,6 +15,10 @@
   h4 {
     text-align: center;
   }
+}
+
+.player-picker-outer {
+  min-height: rem-calc(60px);
 }
 
 .player-roster {

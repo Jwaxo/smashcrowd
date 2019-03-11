@@ -29,6 +29,11 @@
   &.character--disabled {
     width: 0;
   }
+
+  .character-grid--disabled & {
+    cursor: default;
+    opacity: .5;
+  }
 }
 
 .character-name {

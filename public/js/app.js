@@ -36,10 +36,6 @@ $(function() {
     boardSetup();
   });
 
-  socket.on('setup-complete', () => {
-    $('.randomize').remove();
-  });
-
   /**
    * Adds a status message to the client's status box.
    *
@@ -81,12 +77,13 @@ $(function() {
         }
 
         if (player.clientId === client.id) {
-          $player.addClass('player--current');
+          setPlayerCurrent($player);
         }
         else {
-          $player.removeClass('player--current');
+          removePlayerCurrent($player);
         }
       }
+      else {}
 
       if (player.hasOwnProperty('isActive')) {
         if (player.isActive) {
@@ -175,7 +172,8 @@ $(function() {
    */
   function playerSetup() {
     if (client.playerId !== null) {
-      $('.player[data-player-id="' + client.playerId + '"]').addClass('player--current');
+      const $player = $('.player[data-player-id="' + client.playerId + '"]');
+      setPlayerCurrent($player);
     }
 
     $('.player-picker').click(element => {
@@ -203,5 +201,28 @@ $(function() {
     $('#randomize').click(() => {
       socket.emit('players-shuffle');
     });
+    $('#start_picking').click(() => {
+      socket.emit('start-draft');
+    })
+  }
+
+  /**
+   * Does some setup for if a player is current, since the browser is holding
+   * client information.
+   * @param $player
+   */
+  function setPlayerCurrent($player) {
+    $player.addClass('player--current');
+    $player.find('.player-picker').addClass('hollow').html('This is you');
+  }
+
+  /**
+   * The opposite of the above function; should remove classes and reset HTML.
+   * @param $player
+   */
+  function removePlayerCurrent($player) {
+    $player.removeClass('player--current');
+    $player.find('.player-picker').removeClass('hollow').html('Be This Player');
+
   }
 });

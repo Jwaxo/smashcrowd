@@ -83,7 +83,7 @@ io.on('connection', socket => {
   serverLog(`${client.getLabel()} assigned to socket ${socket.id}`, true);
 
   // Generate everything just in case the connections existed before the server.
-  setClientInfoSingle(socket, client);
+  setClientInfoSingle(client);
   regeneratePlayers();
   regenerateCharacters();
   regenerateChatSingle(socket);
@@ -111,10 +111,6 @@ io.on('connection', socket => {
     const playerId = board.addPlayer(player);
     player.setId(playerId);
 
-    if (playerId === 0) {
-      player.setActive(true);
-    }
-
     clients.forEach(client => {
       if (!client.getPlayerId()) {
         setStatusSingle(client, 'Pick a player to draft.');
@@ -138,7 +134,6 @@ io.on('connection', socket => {
     if (client.getPlayerId() !== null) {
       const prevPlayer = client.getPlayer();
       serverLog(`Removing ${client.getColor()(`Client ${client.getId()}`)} from player ${prevPlayer.getName()}`, true);
-      prevPlayer.setClientId(0);
       client.setPlayer(null);
 
       updatedPlayers.push({
@@ -147,7 +142,6 @@ io.on('connection', socket => {
       });
     }
     serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
-    player.setClientId(clientId);
     client.setPlayer(player);
 
     updatedPlayers.push({
@@ -156,7 +150,7 @@ io.on('connection', socket => {
       'roster_html': renderPlayerRoster(player),
     });
 
-    setClientInfoSingle(socket, client);
+    setClientInfoSingle(client);
     updatePlayersInfo(updatedPlayers);
   });
 
@@ -193,6 +187,16 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('start-draft', () => {
+    serverLog(`${client.getLabel()} started the draft.`);
+    board.advanceRound();
+    board.getPlayerByPickOrder(0).setActive(true);
+    regenerateBoardInfo();
+    regenerateCharacters();
+    regeneratePlayers();
+    setStatusAll('The draft has begun!', 'success');
+  });
+
   // Reset the entire game board, players, characters, and all.
   socket.on('reset', data => {
     serverLog(`${client.getLabel()} requested a server reset.`);
@@ -216,7 +220,6 @@ io.on('connection', socket => {
     let noPlayer = true;
     if (player !== null) {
       noPlayer = false;
-      player.setClientId(0);
     }
 
     // If the client didn't have a player, don't bother announcing their
@@ -257,7 +260,7 @@ function advanceDraft() {
   const prevPlayer = board.getActivePlayer();
   const updatedPlayers = [];
 
-  if (board.getCurrentRound() === 1 && board.getCurrentPick() === 0) {
+  if (board.getRound() === 1 && board.getPick() === 0) {
     // If this is the first pick of the game, tell clients so that we can update
     // the interface.
     io.sockets.emit('setup-complete');
@@ -265,17 +268,17 @@ function advanceDraft() {
   }
 
   // This boolean tells us if the most recent pick ended the round.
-  const newRound = (board.advanceCurrentPick() % board.getPlayersCount() === 0);
+  const newRound = (board.advancePick() % board.getPlayersCount() === 0);
 
   // If players count goes evenly into current pick, we have reached a new round.
   if (newRound) {
-    serverLog(`Round ${board.getCurrentRound()} completed.`);
-    board.advanceCurrentRound();
+    serverLog(`Round ${board.getRound()} completed.`);
+    board.advanceRound();
     board.reversePlayersPick();
-    board.resetCurrentPick();
+    board.resetPick();
   }
 
-  const currentPlayer = board.getPlayerByPickOrder(board.getCurrentPick());
+  const currentPlayer = board.getPlayerByPickOrder(board.getPick());
   const currentClient = clients[currentPlayer.getClientId() - 1];
 
   // We only need to change active state if the player changes.
@@ -318,8 +321,8 @@ function resetAll(boardData) {
   // resetPlayers().
   board.dropAllPlayers();
   board.resetCharacters();
-  board.resetCurrentRound();
-  board.resetCurrentPick();
+  board.resetRound();
+  board.resetPick();
 
   if (boardData.draftType) {
     board.setDraftType(boardData.draftType);
@@ -330,7 +333,7 @@ function resetAll(boardData) {
 
   clients.forEach(client => {
     client.setPlayer(null);
-    setClientInfoSingle(client.getSocket(), client);
+    setClientInfoSingle(client);
     serverLog(`Wiping player info for ${client.getLabel()}`);
   });
 
@@ -356,8 +359,12 @@ function regenerateBoardInfo() {
 }
 
 function regeneratePlayers() {
-  Twig.renderFile('./views/players-container.twig', {board}, (error, html) => {
-    io.sockets.emit('rebuild-players', html);
+  // The player listing is unique to each client, so we need to rebuild it and
+  // send it out individually.
+  clients.forEach(client => {
+    Twig.renderFile('./views/players-container.twig', {board, client}, (error, html) => {
+      client.getSocket().emit('rebuild-players', html);
+    });
   });
 }
 
@@ -373,18 +380,10 @@ function regenerateChatSingle(socket) {
   });
 }
 
-function setClientInfoSingle(socket, client) {
-  // Socket connections can't hold themselves, so we need to remove the socket
-  // info from the client before sending it.
-
-  let safeClient = {};
-
-  // Note that the cloned client also has no functions, only properties. It is,
-  // essentially, static.
-  Object.assign(safeClient, client);
-  safeClient.socket = null;
-
-  socket.emit('set-client', safeClient);
+function setClientInfoSingle(socketClient) {
+  const client = cleanClient(socketClient);
+  // Make sure to clean client before sending it.
+  socketClient.getSocket().emit('set-client', client);
 }
 
 /**
@@ -455,6 +454,26 @@ function updateChat(message) {
   Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
     io.sockets.emit('update-chat', html);
   });
+}
+
+/**
+ * Removes socket from Client objects without updating the actual object via ref.
+ *
+ * Socket connections can't hold themselves, so we need to remove the socket
+ * info from the client before sending it.
+ *
+ * Note that the cloned client also has no functions, only properties. It is,
+ * essentially, static.
+ * @param client
+ * @returns {{}}
+ */
+function cleanClient(client) {
+  let safeClient = {};
+
+  Object.assign(safeClient, client);
+  safeClient.socket = null;
+
+  return safeClient;
 }
 
 /**

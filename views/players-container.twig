@@ -1,7 +1,7 @@
 <div class="grid-x grid-margin-x">
   <div class="medium-6 cell">
     <form class="player-add-form">
-      <input class="player-add" tabindex="1" type="text" {% if board.getCurrentRound() > 1 %}placeholder="Drafting has begun! Adding players now disabled." disabled="disabled"{% else %}placeholder="Add a new player"{% endif %}>
+      <input class="player-add" tabindex="1" type="text" {% if board.getRound() > 1 %}placeholder="Drafting has begun! Adding players now disabled." disabled="disabled"{% else %}placeholder="Add a new player"{% endif %}>
     </form>
   </div>
 

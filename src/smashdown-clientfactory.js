@@ -33,10 +33,28 @@ class Client {
     return this.color;
   }
 
+  /**
+   * Store a Player in the client's information. The client's info gets passed
+   * to the Player as well, but without passing the full object; this would cause
+   * recursion and an infinite call stack.
+   *
+   * @param {Player|null} player
+   *   The new player this client is assigned to. To remove a player from a client,
+   *   pass in `null`.
+   */
   setPlayer(player) {
+    // If a player is already set, remove this client from it.
+    if (this.player) {
+      this.player.setClientId(0);
+    }
+
+
+    // Store the new player information and update said player, or just remove
+    // the ID if we're wiping the player info.
     this.player = player;
     if (player) {
       this.playerId = player.getId();
+      this.player.setClientId(this.id);
     }
     else {
       this.playerId = null;
