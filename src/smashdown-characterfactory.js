@@ -41,8 +41,4 @@ class Character {
 
 }
 
-module.exports = {
-  "createCharacter": (...arguments) => {
-    return new Character(...arguments);
-  },
-};
+module.exports = Character;

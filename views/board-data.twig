@@ -12,8 +12,8 @@
     {% if board.getDraftRound() == 0 %}
       <button id="randomize" class="randomize button" title="Randomizes the player order. This option will disappear after picking has begun.">Shuffle Players</button>
       <button id="start_picking" class="start-draft button" title="Begin the drafting process.">Start Draft</button>
-    {% else %}
-      <button id="start_playing" class="start-game button" title="Begin going through rounds.">Start Game</button>
+    {% elseif board.getGameRound() == 0 %}
+      <button id="start_game" class="start-game button" title="Begin going through rounds.">Start Game</button>
     {% endif %}
   </div>
 </div>

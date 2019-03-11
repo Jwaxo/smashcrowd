@@ -202,7 +202,10 @@ $(function() {
     });
     $('#start_picking').click(() => {
       socket.emit('start-draft');
-    })
+    });
+    $('#start_game').click(() => {
+      socket.emit('start-game');
+    });
   }
 
   /**

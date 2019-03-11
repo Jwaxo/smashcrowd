@@ -80,8 +80,4 @@ class Client {
 
 }
 
-module.exports = {
-  "createClient": (...arguments) => {
-    return new Client(...arguments);
-  },
-};
+module.exports = Client;

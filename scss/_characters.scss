@@ -6,6 +6,10 @@
   display: flex;
   flex-flow: row wrap;
   justify-content: center;
+
+  &.character-grid--hidden {
+    display: none;
+  }
 }
 
 .character {

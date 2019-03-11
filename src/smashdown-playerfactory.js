@@ -53,8 +53,4 @@ class Player {
 
 }
 
-module.exports = {
-  "createPlayer": (...arguments) => {
-    return new Player(...arguments);
-  },
-};
+module.exports = Player;
