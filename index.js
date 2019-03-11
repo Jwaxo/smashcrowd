@@ -42,10 +42,8 @@ const board = boardFactory.createBoard(1, {'draftType': 'snake'});
 const charData = require('./lib/chars.json');
 
 // Process characters.
-const characters = [];
-
 for (let i = 0; i < charData.chars.length; i++) {
-  characters[i] = characterFactory.createCharacter(i, charData.chars[i]);
+  board.addCharacter(characterFactory.createCharacter(i, charData.chars[i]));
 }
 
 // Do basic server setup stuff.
@@ -59,7 +57,6 @@ app.set("twig options", {
 app.get('/', function(req, res) {
   res.render('index.twig', {
     board,
-    characters,
     currentRound,
     currentPick,
     chatHistory,
@@ -177,7 +174,7 @@ io.on('connection', socket => {
    */
   socket.on('add-character', charId => {
     const player = client.getPlayer();
-    const character = characters[charId];
+    const character = board.getCharacter(charId);
     if (player === null) {
       serverLog(`${client.getLabel()} tried to add ${character.getName()} but does not have a player selected!`);
       setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
@@ -321,7 +318,11 @@ function advanceDraft() {
  */
 function resetAll(boardData) {
 
-  board.resetPlayers();
+  // Currently players get erased when we reset the board, since we don't have a
+  // way to remove a single player. Eventually we should reset this by just running
+  // resetPlayers().
+  board.dropAllPlayers();
+  board.resetCharacters();
   currentRound = 1;
   currentPick = 0;
 
@@ -331,10 +332,6 @@ function resetAll(boardData) {
   if (boardData.totalRounds) {
     board.setTotalRounds(boardData.totalRounds);
   }
-
-  characters.forEach(character => {
-    character.setPlayer(null);
-  });
 
   clients.forEach(client => {
     client.setPlayer(null);
@@ -370,7 +367,7 @@ function regeneratePlayers() {
 }
 
 function regenerateCharacters() {
-  Twig.renderFile('./views/characters-container.twig', {characters}, (error, html) => {
+  Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
     io.sockets.emit('rebuild-characters', html);
   });
 }

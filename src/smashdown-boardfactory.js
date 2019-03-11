@@ -72,6 +72,11 @@ class Board {
     return this.playersPickOrder[currentPick];
   }
   resetPlayers() {
+    for (let i = 0; i < this.players.length; i++) {
+      this.players[i].setCharacters([]);
+    }
+  }
+  dropAllPlayers() {
     this.players = [];
     this.playersPickOrder = [];
   }
@@ -151,6 +156,17 @@ class Board {
   }
   getCharacters() {
     return this.characters;
+  }
+  getCharacter(charId) {
+    return this.characters[charId];
+  }
+  resetCharacters() {
+    this.characters.forEach(character => {
+      character.setPlayer(null);
+    });
+  }
+  dropAllCharacters() {
+    this.characters = [];
   }
 
 }
