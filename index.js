@@ -204,6 +204,7 @@ io.on('connection', socket => {
 
   socket.on('start-game', () => {
     serverLog(`${client.getLabel()} started the game.`);
+    board.getActivePlayer().setActive(false);
     advanceGame();
 
     // We only need to regenerate characters on game start, not every round,
@@ -332,7 +333,7 @@ function advanceGame() {
 
   // Go through all players and update their rosters.
   regeneratePlayers();
-
+  regenerateBoardInfo();
 }
 
 /**

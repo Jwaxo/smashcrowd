@@ -5,6 +5,7 @@
 {% set characterClasses = [
   'character',
   (isDisabled ? 'character--disabled' : ''),
+  (isActive ? 'character--active' : ''),
 ]|join(' ')|trim %}
 
 <div class="{{ characterClasses }}" data-character-id="{{ character.getCharId() }}" style="background-image: url('{{ character.getImage() }}')">
