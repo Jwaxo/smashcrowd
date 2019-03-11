@@ -8,6 +8,7 @@ class Board {
     this.totalRounds = null;
     this.draftType = null;
     this.players = [];
+    this.playersPickOrder = [];
     this.characters = [];
     this.currentRound = 1;
     this.currentPick = 0;
@@ -41,6 +42,115 @@ class Board {
   }
   getDraftType() {
     return this.draftType;
+  }
+
+  /**
+   * Add a player to the players array.
+   *
+   * @param player
+   * @returns {number} Index of the player.
+   */
+  addPlayer(player) {
+    this.playersPickOrder.push(player);
+    return this.players.push(player) - 1;
+  }
+  updatePlayer(playerId, data) {
+    for (option in data) {
+      this.players[playerId][option] = data[option];
+    }
+  }
+  getPlayers() {
+    return this.players;
+  }
+  getPlayersCount() {
+    return this.players.length;
+  }
+  getPlayersPickOrder() {
+    return this.playersPickOrder;
+  }
+  getPlayerByPickOrder(currentPick) {
+    return this.playersPickOrder[currentPick];
+  }
+  resetPlayers() {
+    this.players = [];
+    this.playersPickOrder = [];
+  }
+
+  /**
+   * Takes the current list of players and randomizes their order.
+   */
+  shufflePlayers() {
+    this.players.forEach(player => {
+      player.sortOrder = Math.random();
+      player.setActive(false);
+    });
+
+    // After assigning new sort order, sort both players and pick order.
+    this.players.sort((a, b) => {
+      return a.sortOrder - b.sortOrder;
+    });
+    this.playersPickOrder.sort((a, b) => {
+      return a.sortOrder - b.sortOrder;
+    });
+
+    // Set the first player to be active again.
+    this.players[0].setActive(true);
+  }
+
+
+  /**
+   * Figure out which player's turn it is to pick a character.
+   *
+   * Currently this is locked to "Snake" draft, where the turn order flips every
+   * round.
+   *
+   * @returns Player
+   *   The player that should pick their character next.
+   */
+  getActivePlayer() {
+    let activePlayer = this.players[0];
+    for (let i = 0; i < this.players.length; i++) {
+      if (this.players[i].isActive) {
+        activePlayer = this.players[i];
+        break;
+      }
+    }
+    return activePlayer;
+  }
+
+  /**
+   * Searches the players array for the player with the matching ID.
+   *
+   * @param {integer|null} playerId
+   *    The ID to look for.
+   */
+  getPlayerById(playerId) {
+    let player = null;
+    for (let i = 0; i < this.players.length; i++) {
+      if (this.players[i].getId() === playerId) {
+        player = this.players[i];
+        break;
+      }
+    }
+    return player;
+  }
+
+  /**
+   * Add a character to the characters array.
+   *
+   * @param character
+   * @returns {number} Index of the character.
+   */
+  addCharacter(character) {
+    return this.characters.push(character) - 1;
+  }
+  updateCharacter(charId, data) {
+    for (option in data) {
+      this.characters[charId][option] = data[option];
+    }
+  }
+  getCharacters() {
+    return this.characters;
   }
 
 }

@@ -76,7 +76,6 @@ the SCSS only gets recompiled when the server is started.
 
 * Persistent player assignment using cookies
 * Player boxes shake when they become active.
-* Randomizing of player order (prior to first pick)
 * "Done with Drafting" button which switches mode to Game Tracking
 * Persistent storage via MySQL (or other DB)
 * Game Tracking with scores for winners

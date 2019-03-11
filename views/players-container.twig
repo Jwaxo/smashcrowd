@@ -10,7 +10,7 @@
 </div>
 
 <div class="grid-x grid-margin-x small-up-2 medium-up-4">
-  {% for player in players_pick_order %}
+  {% for player in board.getPlayersPickOrder() %}
     {% include 'player.twig' %}
   {% endfor %}
 </div>

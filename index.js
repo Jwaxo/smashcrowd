@@ -60,7 +60,6 @@ app.get('/', function(req, res) {
   res.render('index.twig', {
     board,
     characters,
-    players_pick_order,
     currentRound,
     currentPick,
     chatHistory,
@@ -100,7 +99,7 @@ io.on('connection', socket => {
 
   // Set a default status for a connection if there are no players.
   if (!client.getPlayerId()) {
-    if (players.length === 0) {
+    if (board.getPlayersCount() === 0) {
       setStatusSingle(client, 'Add a player in order to start drafting!');
     }
     else {
@@ -118,8 +117,7 @@ io.on('connection', socket => {
     serverLog(`${client.getLabel()} adding player ${name}`);
     const player = playerFactory.createPlayer(name);
 
-    const playerId = players.push(player) - 1;
-    players_pick_order.push(player);
+    const playerId = board.addPlayer(player);
     player.setId(playerId);
 
     if (playerId === 0) {
@@ -142,7 +140,7 @@ io.on('connection', socket => {
    * from a prior player (if there was one), before regenerating player area.
    */
   socket.on('pick-player', playerId => {
-    const player = getPlayerById(playerId);
+    const player = board.getPlayerById(playerId);
     const updatedPlayers = [];
 
     // First remove the current client's player so it's empty again.
@@ -213,21 +211,8 @@ io.on('connection', socket => {
   // Shuffles the players to a random order.
   socket.on('players-shuffle', () => {
     serverLog(`${client.getLabel()} shuffled the players.`);
-    players.forEach(player => {
-      player.sortOrder = Math.random();
-      player.setActive(false);
-    });
 
-    // After assigning new sort order, sort both players and pick order.
-    players.sort((a, b) => {
-      return a.sortOrder - b.sortOrder;
-    });
-    players_pick_order.sort((a, b) => {
-      return a.sortOrder - b.sortOrder;
-    });
-
-    // Set the first player to be active again.
-    players[0].setActive(true);
+    board.shufflePlayers();
 
     setStatusSingle(client, 'Players shuffled!');
 
@@ -251,23 +236,6 @@ io.on('connection', socket => {
     regeneratePlayers();
   });
 });
-
-/**
- * Searches the players array for the player with the matching ID.
- *
- * @param {integer|null} playerId
- *    The ID to look for.
- */
-function getPlayerById(playerId) {
-  let player = null;
-  for (let i = 0; i < players.length; i++) {
-    if (players[i].getId() === playerId) {
-      player = players[i];
-      break;
-    }
-  }
-  return player;
-}
 
 /**
  * Creates a simple message for displaying to the server, with timestamp.
@@ -295,7 +263,7 @@ function serverLog(message, serverOnly = false) {
  */
 function advanceDraft() {
 
-  const prevPlayer = getActivePlayer();
+  const prevPlayer = board.getActivePlayer();
   const updatedPlayers = [];
 
   if (currentRound === 1 && currentPick === 0) {
@@ -305,7 +273,7 @@ function advanceDraft() {
     setStatusAll('Character drafting has begun!', 'success');
   }
 
-  const newRound = (++currentPick % players.length === 0);
+  const newRound = (++currentPick % board.getPlayersCount() === 0);
 
   // If players count goes evenly into current pick, we have reached a new round.
   if (newRound) {
@@ -315,7 +283,7 @@ function advanceDraft() {
     currentPick = 0;
   }
 
-  const currentPlayer = players_pick_order[currentPick];
+  const currentPlayer = board.getPlayerByPickOrder(currentPick);
   const currentClient = clients[currentPlayer.getClientId() - 1];
 
   // We only need to change active state if the player changes.
@@ -349,32 +317,11 @@ function advanceDraft() {
 }
 
 /**
- * Figure out which player's turn it is to pick a character.
- *
- * Currently this is locked to "Snake" draft, where the turn order flips every
- * round.
- *
- * @returns Player
- *   The player that should pick their character next.
- */
-function getActivePlayer() {
-  let activePlayer = players[0];
-  for (let i = 0; i < players.length; i++) {
-    if (players[i].isActive) {
-      activePlayer = players[i];
-      break;
-    }
-  }
-  return activePlayer;
-}
-
-/**
  * Set all options back to defaults.
  */
 function resetAll(boardData) {
 
-  players = [];
-  players_pick_order = [];
+  board.resetPlayers();
   currentRound = 1;
   currentPick = 0;
 
@@ -417,7 +364,7 @@ function regenerateBoardInfo() {
 }
 
 function regeneratePlayers() {
-  Twig.renderFile('./views/players-container.twig', {players_pick_order, currentRound, currentPick}, (error, html) => {
+  Twig.renderFile('./views/players-container.twig', {board, currentRound, currentPick}, (error, html) => {
     io.sockets.emit('rebuild-players', html);
   });
 }
@@ -452,7 +399,7 @@ function setClientInfoSingle(socket, client) {
  * Sends an array of players with changed data to inform clients without needing
  * to completely rebuild the player area.
  *
- * @param {array} players
+ * @param {Array} players
  */
 function updatePlayersInfo(players) {
   io.sockets.emit('update-players', players);
@@ -462,7 +409,7 @@ function updatePlayersInfo(players) {
  * Sends an array of characters with changed data to inform clients without needing
  * to completely rebuild the character area.
  *
- * @param {array} characters
+ * @param {Array} characters
  */
 function updateCharacters(characters) {
   io.sockets.emit('update-characters', characters);
