@@ -28,6 +28,11 @@ $(function() {
     chatContainer.html(html);
   });
 
+  socket.on('rebuild-boardInfo', html => {
+    const boardInfoContainer = $('#board_info_container');
+    boardInfoContainer.html(html);
+  });
+
   socket.on('setup-complete', () => {
     $('.randomize').remove();
   });
@@ -125,13 +130,28 @@ $(function() {
   socket.on('update-chat', html => {
     const chatContainer = $('.chat-box');
     chatContainer.prepend(html);
+    chatContainer.foundation();
   });
 
   /**
    * Resets the entire board: players, rosters, and characters chosen.
    */
-  $('#reset').click(() => {
-    socket.emit('reset');
+  $('form[name="new-board"]').submit((e) => {
+    e.preventDefault();
+    const form = $(event.currentTarget);
+    const boardModal = $('#modal_new_board');
+    const data = {};
+    if (form.find('input[name="draft-type"]:checked')) {
+      data.draftType = form.find('input[name="draft-type"]:checked').val();
+    }
+    if (form.find('input[name="rounds"]')) {
+      data.totalRounds = form.find('input[name="rounds"]').val();
+    }
+
+    // This will need to be replaced with a proper New Board functionality once
+    // we have multiple boards set up.
+    socket.emit('reset', data);
+    boardModal.foundation('close');
   });
 
   /**

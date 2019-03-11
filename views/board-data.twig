@@ -1,0 +1,7 @@
+{#
+  Displays information about the current board.
+#}
+
+<h4>Draft Type: {{ board.getDraftType() }}</h4>
+
+<h4>Round: {{ currentRound }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>

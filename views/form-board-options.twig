@@ -1,0 +1,28 @@
+{#
+  A form to select the various options in a new SmashCrowd board.
+#}
+
+<form name="new-board">
+
+  <div class="form-options">
+    <p>Select the type of draft:</p>
+    <label><input type="radio" name="draft-type" value="snake" required>Snake Draft</label>
+    <label><input type="radio" name="draft-type" value="free">Free Pick</label>
+  </div>
+
+  <div class="form-options">
+    <p>How many rounds? Leave blank for unlimited.</p>
+    <div class="grid-x grid-padding-x">
+      <div class="cell small-3">
+        <label for="rounds" class="text-right">Rounds</label>
+      </div>
+      <div class="cell small-6">
+        <input name="rounds" type="number" min="0" step="1">
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="button submit">Submit</button>
+
+</form>
+

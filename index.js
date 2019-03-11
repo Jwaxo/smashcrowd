@@ -18,6 +18,7 @@ const server = http.Server(app);
 const clientFactory = require('./src/smashdown-clientfactory.js');
 const playerFactory = require('./src/smashdown-playerfactory.js');
 const characterFactory = require('./src/smashdown-characterfactory.js');
+const boardFactory = require('./src/smashdown-boardfactory.js');
 
 const io = socketio(server);
 
@@ -34,6 +35,8 @@ let players_pick_order = [];
 let currentPick = 0;
 let currentRound = 1;
 const console_colors = [ 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'gray', 'bgRed', 'bgGreen', 'bgYellow', 'bgBlue', 'bgMagenta', 'bgCyan', 'bgWhite'];
+// Currently we only run one board at a time, so set the ID to 1.
+const board = boardFactory.createBoard(1, {'draftType': 'snake'});
 
 // Load characters from the character data file.
 const charData = require('./lib/chars.json');
@@ -55,6 +58,7 @@ app.set("twig options", {
 
 app.get('/', function(req, res) {
   res.render('index.twig', {
+    board,
     characters,
     players_pick_order,
     currentRound,
@@ -201,9 +205,9 @@ io.on('connection', socket => {
   });
 
   // Reset the entire game board, players, characters, and all.
-  socket.on('reset', () => {
+  socket.on('reset', data => {
     serverLog(`${client.getLabel()} requested a server reset.`);
-    resetAll();
+    resetAll(data);
   });
 
   // Shuffles the players to a random order.
@@ -336,6 +340,7 @@ function advanceDraft() {
   // that they reorder. Otherwise just update stuff!
   if (newRound) {
     setStatusSingle(currentClient, 'With the new round, it is once again your turn! Choose wisely.', 'primary');
+    regenerateBoardInfo();
     regeneratePlayers();
   }
   else {
@@ -366,12 +371,20 @@ function getActivePlayer() {
 /**
  * Set all options back to defaults.
  */
-function resetAll() {
+function resetAll(boardData) {
 
   players = [];
   players_pick_order = [];
   currentRound = 1;
   currentPick = 0;
+
+  if (boardData.draftType) {
+    board.setDraftType(boardData.draftType);
+  }
+  if (boardData.totalRounds) {
+    board.setTotalRounds(boardData.totalRounds);
+  }
+
   characters.forEach(character => {
     character.setPlayer(null);
   });
@@ -382,6 +395,7 @@ function resetAll() {
     serverLog(`Wiping player info for ${client.getLabel()}`);
   });
 
+  regenerateBoardInfo();
   regeneratePlayers();
   regenerateCharacters();
 }
@@ -394,6 +408,12 @@ function renderPlayerRoster(player) {
   });
 
   return rendered;
+}
+
+function regenerateBoardInfo() {
+  Twig.renderFile('./views/board-data.twig', {board, currentRound}, (error, html) => {
+    io.sockets.emit('rebuild-boardInfo', html);
+  });
 }
 
 function regeneratePlayers() {
