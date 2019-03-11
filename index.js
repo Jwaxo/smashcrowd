@@ -30,10 +30,6 @@ const sassPaths = [
 const port = 8080;
 const chatHistory = [];
 const clients = [];
-let players = [];
-let players_pick_order = [];
-let currentPick = 0;
-let currentRound = 1;
 const console_colors = [ 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'gray', 'bgRed', 'bgGreen', 'bgYellow', 'bgBlue', 'bgMagenta', 'bgCyan', 'bgWhite'];
 // Currently we only run one board at a time, so set the ID to 1.
 const board = boardFactory.createBoard(1, {'draftType': 'snake'});
@@ -57,8 +53,6 @@ app.set("twig options", {
 app.get('/', function(req, res) {
   res.render('index.twig', {
     board,
-    currentRound,
-    currentPick,
     chatHistory,
   });
 });
@@ -263,24 +257,25 @@ function advanceDraft() {
   const prevPlayer = board.getActivePlayer();
   const updatedPlayers = [];
 
-  if (currentRound === 1 && currentPick === 0) {
+  if (board.getCurrentRound() === 1 && board.getCurrentPick() === 0) {
     // If this is the first pick of the game, tell clients so that we can update
     // the interface.
     io.sockets.emit('setup-complete');
     setStatusAll('Character drafting has begun!', 'success');
   }
 
-  const newRound = (++currentPick % board.getPlayersCount() === 0);
+  // This boolean tells us if the most recent pick ended the round.
+  const newRound = (board.advanceCurrentPick() % board.getPlayersCount() === 0);
 
   // If players count goes evenly into current pick, we have reached a new round.
   if (newRound) {
-    serverLog(`Round ${currentRound} completed.`);
-    currentRound++;
-    players_pick_order.reverse();
-    currentPick = 0;
+    serverLog(`Round ${board.getCurrentRound()} completed.`);
+    board.advanceCurrentRound();
+    board.reversePlayersPick();
+    board.resetCurrentPick();
   }
 
-  const currentPlayer = board.getPlayerByPickOrder(currentPick);
+  const currentPlayer = board.getPlayerByPickOrder(board.getCurrentPick());
   const currentClient = clients[currentPlayer.getClientId() - 1];
 
   // We only need to change active state if the player changes.
@@ -323,8 +318,8 @@ function resetAll(boardData) {
   // resetPlayers().
   board.dropAllPlayers();
   board.resetCharacters();
-  currentRound = 1;
-  currentPick = 0;
+  board.resetCurrentRound();
+  board.resetCurrentPick();
 
   if (boardData.draftType) {
     board.setDraftType(boardData.draftType);
@@ -355,13 +350,13 @@ function renderPlayerRoster(player) {
 }
 
 function regenerateBoardInfo() {
-  Twig.renderFile('./views/board-data.twig', {board, currentRound}, (error, html) => {
+  Twig.renderFile('./views/board-data.twig', {board}, (error, html) => {
     io.sockets.emit('rebuild-boardInfo', html);
   });
 }
 
 function regeneratePlayers() {
-  Twig.renderFile('./views/players-container.twig', {board, currentRound, currentPick}, (error, html) => {
+  Twig.renderFile('./views/players-container.twig', {board}, (error, html) => {
     io.sockets.emit('rebuild-players', html);
   });
 }

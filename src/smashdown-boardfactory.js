@@ -5,14 +5,15 @@ class Board {
   constructor(boardId, options) {
     this.boardId = boardId;
 
+    this.resetCurrentPick();
+    this.resetCurrentRound();
     this.totalRounds = null;
     this.draftType = null;
+    this.name = null;
+
     this.players = [];
     this.playersPickOrder = [];
     this.characters = [];
-    this.currentRound = 1;
-    this.currentPick = 0;
-    this.name = null;
 
     for (let option in options) {
       if (this.hasOwnProperty(option)) {
@@ -35,6 +36,25 @@ class Board {
   }
   getTotalRounds() {
     return this.totalRounds;
+  }
+  advanceCurrentRound() {
+    return ++this.currentRound;
+  }
+  getCurrentRound() {
+    return this.currentRound;
+  }
+  resetCurrentRound() {
+    this.currentRound = 1;
+  }
+
+  advanceCurrentPick() {
+    return ++this.currentPick;
+  }
+  getCurrentPick() {
+    return this.currentPick;
+  }
+  resetCurrentPick() {
+    this.currentPick = 0;
   }
 
   setDraftType(type) {
@@ -80,6 +100,9 @@ class Board {
     this.players = [];
     this.playersPickOrder = [];
   }
+  reversePlayersPick() {
+    this.playersPickOrder.reverse();
+  }
 
   /**
    * Takes the current list of players and randomizes their order.
@@ -101,7 +124,6 @@ class Board {
     // Set the first player to be active again.
     this.players[0].setActive(true);
   }
-
 
   /**
    * Figure out which player's turn it is to pick a character.

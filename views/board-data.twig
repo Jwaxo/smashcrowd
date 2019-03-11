@@ -4,4 +4,4 @@
 
 <h4>Draft Type: {{ board.getDraftType() }}</h4>
 
-<h4>Round: {{ currentRound }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>
+<h4>Round: {{ board.getCurrentRound() }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>
