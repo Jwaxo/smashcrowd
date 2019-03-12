@@ -48,6 +48,7 @@
 
     // List of players, will clean up much more soon
     <template v-slot:players-list>
+
       <div
         class="cell small-2 medium-3 large-auto"
         v-for="player in players"
