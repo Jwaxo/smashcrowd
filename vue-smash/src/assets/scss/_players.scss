@@ -1,0 +1,43 @@
+/**
+ * Styles defining how player columns appear.
+ */
+
+.player {
+  transition: border-width .25s, border-color .25s, height .25s;
+
+  &.player--current {
+    border-width: rem-calc(4px);
+  }
+  &.player--active {
+    border-color: map-get($foundation-palette, alert);
+  }
+
+  h4 {
+    text-align: center;
+  }
+}
+
+.player-picker-outer {
+  min-height: rem-calc(60px);
+}
+
+.player-roster {
+
+  &.player-roster--empty {
+    border: rem-calc(3px) dashed $medium-gray;
+    &:after {
+      color: $dark-gray;
+      content: '+';
+      display: block;
+      font-weight: bold;
+      margin: rem-calc(15px 0);
+      text-align: center;
+    }
+  }
+
+  .character {
+    height: rem-calc(100px);
+    margin: 0 auto;
+    width: rem-calc(180px);
+  }
+}
