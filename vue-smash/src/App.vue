@@ -169,10 +169,11 @@ export default {
 </script>
 
 <style lang="scss">
-  @import 'assets/scss/settings';
-  @import 'assets/scss/system';
-  @import 'assets/scss/board';
-  @import 'assets/scss/characters';
-  @import 'assets/scss/players';
-  @import '~foundation-sites/scss/foundation';
+  @import 'assets/scss/app';
+  /*@import 'assets/scss/settings';*/
+  /*@import 'assets/scss/system';*/
+  /*@import 'assets/scss/board';*/
+  /*@import 'assets/scss/characters';*/
+  /*@import 'assets/scss/players';*/
+  /*@import '~foundation-sites/scss/foundation';*/
 </style>
