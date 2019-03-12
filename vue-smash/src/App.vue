@@ -4,27 +4,28 @@
     // App buttons at the top (not bound yet)
     <template v-slot:app-buttons>
       <button
-        id="reset"
-        data-open="modal_new_board"
-        class="reset button" v-on:click="resetBoard"
+        class="button"
         :class="{disabled: !draftAvailable}"
+        :disabled="!draftAvailable"
+        v-on:click="resetBoard"
       >
         New Board
       </button>
       <button
-        id="randomize"
-        class="randomize button"
-        title="Randomizes the player order. This option will disappear after picking has begun."
+        class="button"
+        :class="{ disabled: !draftAvailable || draftStarted}"
+        :disabled="!draftAvailable && draftStarted"
         v-on:click="shufflePlayers"
-        :class="{ disabled: !draftAvailable}"
+        title="Randomizes the player order. This option will disappear after picking has begun."
       >
         Shuffle Players
       </button>
       <button
-        id="start_picking"
-        class="start-draft button"
-        title="Begin the drafting process."
+        class="button"
         :class="{ disabled: !draftAvailable}"
+        :disabled="!draftAvailable"
+        v-on:click="draftStarted = true"
+        title="Begin the drafting process."
       >
         Start Draft
       </button>
@@ -32,46 +33,61 @@
 
     // Form list area
     <template v-slot:player-form>
-      <form v-on:submit.prevent="addPlayer" class="player-add-form">
-        <input v-model="newPlayer" class="player-add" tabindex="1" type="text" placeholder="Add a new player"> <span>Players: {{playerCount}}</span>
+      <form
+        class="player-add-form"
+        v-on:submit.prevent="addPlayer"
+      >
+        <input
+          v-model="newPlayer"
+          class="player-add"
+          type="text"
+          placeholder="Add a new player">
+        <span>Players: {{playerCount}}</span>
       </form>
     </template>
 
     // List of players, will clean up much more soon
     <template v-slot:players-list>
-      <!-- Temp -->
       <div
+        class="cell small-2 medium-3 large-auto"
         v-for="player in players"
         :key="player.name"
-        v-on:click="activePlayer=player.name"
-        class="cell small-2 medium-3 large-auto"
+        v-on:click="activePlayer = player.name"
       >
-        <div class="card player" :class="{'player--owned': ownedPlayer === player.name, 'player--current': activePlayer === player.name}">
+        <div
+          class="card player"
+          :class="{
+            'player--owned': ownedPlayer === player.name,
+            'player--current': activePlayer === player.name
+          }"
+        >
           <div class="card-section">
             <h4>{{ player.name}}</h4>
 
             <div class="player-picker-outer">
               <button
                 class="player-picker button expanded"
-                :class="{'hollow': ownedPlayer === player.name && activePlayer === player.name}"
+                :class="{'hollow': ownedPlayer === player.name}"
                 v-on:click="ownedPlayer = player.name"
               >
-                Be This Player
+                {{ ownedPlayer === player.name ? 'You are this player' : 'Be this player' }}
               </button>
             </div>
 
             <div class="player-roster-container">
-              <div class="player-roster" :class="{'player-roster--empty': !player.characters.length}">
-                <div
-                  class="character"
+              <div
+                class="player-roster"
+                :class="{'player-roster--empty': !player.characters.length}"
+              >
+
+                <Character
                   v-for="character in player.characters"
                   :key="`player-character-${character.name}`"
-                  :style="{backgroundImage: `url(${character.image})`}"
-                >
-                  <span class="character-name">{{character.name}}</span>
-                </div>
-              </div>
+                  :name="character.name"
+                  :image="character.image"
+                />
 
+              </div>
             </div>
           </div>
         </div>
@@ -80,16 +96,19 @@
 
     // Full characters roster
     <template v-slot:characters>
-      <div class="character-grid" :class="{'character-grid--disabled': !draftAvailable}">
-        <div
-          class="character"
+      <div
+        class="character-grid"
+        :class="{'character-grid--disabled': !draftStarted}"
+      >
+
+        <Character
           v-for="char in allCharacters"
           :key="`character-${char.name}`"
-          v-on:click="addCharToPlayer(char.name)"
-          :style="{backgroundImage: `url(${char.image})`}"
-        >
-          <span class="character-name">{{char.name}}</span>
-        </div>
+          v-on:click.native="addCharToPlayer(char.name)"
+          :name="char.name"
+          :image="char.image"
+        />
+
       </div>
     </template>
 
@@ -97,83 +116,81 @@
 </template>
 
 <script>
-import shuffle from 'lodash/shuffle';
+  import shuffle from 'lodash/shuffle';
 
-import Page from './Page';
-import allCharacters from '../../lib/chars';
+  import Page from './Page';
+  import Character from './components/Character';
+  import allCharacters from '../../lib/chars';
 
-export default {
-  name: 'app',
-  methods: {
-    addPlayer() {
-      // Add new player
-      this.players.push({ name: this.newPlayer, characters: [], owned: false });
-      // Set each new player to active
-      this.activePlayer = this.newPlayer;
-      this.ownedPlayer = this.newPlayer;
-      // Wipe input field
-      this.newPlayer = '';
+  export default {
+    name: 'app',
+    methods: {
+      addPlayer() {
+        // Add new player
+        this.players.push({name: this.newPlayer, characters: [], owned: false});
+        // Set each new player to active
+        this.activePlayer = this.newPlayer;
+        this.ownedPlayer = this.newPlayer;
+        // Wipe input field
+        this.newPlayer = '';
+      },
+      shufflePlayers() {
+        this.players = shuffle(this.players);
+        this.activePlayer = this.players[0].name;
+      },
+      addCharToPlayer(charName) {
+        if (!this.draftStarted) {
+          return;
+        }
+        // Find char object
+        const char = this.allCharacters.find(char => char.name === charName);
+        // Add it to end of active player's characters array
+        this.players.find(player => player.name === this.activePlayer).characters.push(char);
+        // Remove char from full roster
+        this.allCharacters = this.allCharacters.filter(char => char.name !== charName);
+        // Jump to next player
+        this.setNextActivePlayer();
+      },
+      setNextActivePlayer() {
+        const playerIndex = this.players.findIndex(p => p.name === this.activePlayer);
+        // If last in array
+        this.activePlayer = playerIndex === this.playerCount - 1
+          // then jump to first player
+          ? this.players[0].name
+          // otherwise next index in array
+          : this.players[playerIndex + 1].name;
+      },
+      resetBoard() {
+        this.allCharacters = allCharacters.chars;
+        this.players = [];
+        this.draftStarted = false;
+      },
     },
-    shufflePlayers() {
-      this.players = shuffle(this.players);
+    computed: {
+      draftAvailable() {
+        return !!this.players.length;
+      },
+      playerCount() {
+        return this.players.length;
+      },
     },
-    addCharToPlayer(charName) {
-      if (!this.draftAvailable) {
-        return;
-      }
-      // Find char object
-      const char = this.allCharacters.find(char => char.name === charName);
-      // Add it to end of active player's characters array
-      this.players.find(player => player.name === this.activePlayer).characters.push(char);
-      // Remove char from full roster
-      this.allCharacters = this.allCharacters.filter(char => char.name !== charName);
-      // Jump to next player
-      this.setNextActivePlayer();
+    data() {
+      return {
+        newPlayer: '',
+        activePlayer: '',
+        ownedPlayer: '',
+        draftStarted: false,
+        allCharacters: allCharacters.chars,
+        players: [],
+      };
     },
-    setNextActivePlayer(){
-      const playerIndex = this.players.findIndex(p => p.name === this.activePlayer);
-      // If last in array
-      this.activePlayer = playerIndex === this.playerCount - 1
-        // then jump to first player
-        ? this.players[0].name
-        // otherwise next index in array
-        : this.players[playerIndex + 1].name;
-    },
-    resetBoard() {
-      this.allCharacters = allCharacters.chars;
-      this.players = [];
-    },
-  },
-  computed: {
-    draftAvailable() {
-      return !!this.players.length;
-    },
-    playerCount() {
-      return this.players.length;
-    },
-  },
-  data() {
-    return {
-      newPlayer: '',
-      activePlayer: '',
-      ownedPlayer: '',
-      draftStarted: false,
-      allCharacters: allCharacters.chars,
-      players: [],
-    };
-  },
-  components: {
-    Page
+    components: {
+      Character,
+      Page,
+    }
   }
-}
 </script>
 
 <style lang="scss">
   @import 'assets/scss/app';
-  /*@import 'assets/scss/settings';*/
-  /*@import 'assets/scss/system';*/
-  /*@import 'assets/scss/board';*/
-  /*@import 'assets/scss/characters';*/
-  /*@import 'assets/scss/players';*/
-  /*@import '~foundation-sites/scss/foundation';*/
 </style>
