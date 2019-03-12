@@ -40,11 +40,9 @@
 
     <div id="characters-container" class="grid-x grid-margin-x">
       <div class="cell">
-        <div class="character-grid">
 
           <slot name="characters"></slot>
 
-        </div>
       </div>
     </div>
 
