@@ -39,5 +39,22 @@
     height: rem-calc(100px);
     margin: 0 auto;
     width: rem-calc(180px);
+
+    &.character--active {
+      border: rem-calc(3px) solid $black;
+    }
+
+    &.character--disabled {
+      cursor: default;
+      opacity: .25;
+    }
+
+    &.character--win {
+      border: rem-calc(3px) solid map-get($foundation-palette, success);
+
+      &.character--disabled {
+        opacity: .75;
+      }
+    }
   }
 }

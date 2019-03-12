@@ -7,6 +7,7 @@ class Character {
     this.name = data.name;
     this.image = data.image;
     this.player = null;
+    this.state = null;
 
     return this;
   }
@@ -39,10 +40,13 @@ class Character {
     return this.player;
   }
 
+  setState(state) {
+    this.state = state;
+  }
+  getState() {
+    return this.state;
+  }
+
 }
 
-module.exports = {
-  "createCharacter": (...arguments) => {
-    return new Character(...arguments);
-  },
-};
+module.exports = Character;

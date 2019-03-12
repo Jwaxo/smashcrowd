@@ -32,7 +32,6 @@ $(function() {
   socket.on('rebuild-boardInfo', html => {
     const boardInfoContainer = $('#board_info_container');
     boardInfoContainer.html(html);
-    boardInfoContainer.foundation();
     boardSetup();
   });
 
@@ -180,11 +179,17 @@ $(function() {
       socket.emit('pick-player', playerId);
     });
 
-    $('.player-add-form').submit((event) => {
+    $('.player-add-form').submit(event => {
       event.preventDefault();
       const field = $('.player-add');
       socket.emit('add-player', field.val());
       field.val('');
+    });
+
+    $('.player .character').click(element => {
+      const $character = $(element.currentTarget);
+      const $player = $character.closest('.player');
+      socket.emit('player-character-click', $character.data('character-id'), $character.data('character-round'), $player.data('player-id'));
     });
 
     $('#players_container').foundation();
@@ -194,15 +199,29 @@ $(function() {
    * Needs to be run any time the general board info updates.
    */
   function boardSetup() {
+    const boardInfoContainer = $('#board_info_container');
+    boardInfoContainer.foundation();
+
     /**
      * Shuffles the current players.
      */
     $('#randomize').click(() => {
       socket.emit('players-shuffle');
     });
+
+    /**
+     * Starts the character picking process.
+     */
     $('#start_picking').click(() => {
       socket.emit('start-draft');
-    })
+    });
+
+    /**
+     * Starts the round-tracking process.
+     */
+    $('#start_game').click(() => {
+      socket.emit('start-game');
+    });
   }
 
   /**

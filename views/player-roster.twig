@@ -6,6 +6,10 @@
 
 <div class="{{ playerRosterClasses }}">
   {% for character in player.getCharacters() %}
-    {% include 'character.twig' %}
+    {% include 'character.twig' with {
+      isDisabled: (board.getGameRound() > 0 and loop.index != board.getGameRound()),
+      isActive: (board.getGameRound() > 0 and loop.index == board.getGameRound()),
+      characterRound: loop.index,
+    } %}
   {% endfor %}
 </div>

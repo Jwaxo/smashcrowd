@@ -15,10 +15,10 @@ const stripAnsi = require('strip-ansi');
 const app = express();
 const server = http.Server(app);
 
-const clientFactory = require('./src/smashdown-clientfactory.js');
-const playerFactory = require('./src/smashdown-playerfactory.js');
-const characterFactory = require('./src/smashdown-characterfactory.js');
-const boardFactory = require('./src/smashdown-boardfactory.js');
+const Client = require('./src/smashdown-clientfactory.js');
+const Player = require('./src/smashdown-playerfactory.js');
+const Character = require('./src/smashdown-characterfactory.js');
+const Board = require('./src/smashdown-boardfactory.js');
 
 const io = socketio(server);
 
@@ -32,14 +32,14 @@ const chatHistory = [];
 const clients = [];
 const console_colors = [ 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'gray', 'bgRed', 'bgGreen', 'bgYellow', 'bgBlue', 'bgMagenta', 'bgCyan', 'bgWhite'];
 // Currently we only run one board at a time, so set the ID to 1.
-const board = boardFactory.createBoard(1, {'draftType': 'snake'});
+const board = new Board(1, {'draftType': 'snake'});
 
 // Load characters from the character data file.
 const charData = require('./lib/chars.json');
 
 // Process characters.
 for (let i = 0; i < charData.chars.length; i++) {
-  board.addCharacter(characterFactory.createCharacter(i, charData.chars[i]));
+  board.addCharacter(new Character(i, charData.chars[i]));
 }
 
 // Do basic server setup stuff.
@@ -75,7 +75,7 @@ io.on('connection', socket => {
 
   const randomColor = Math.floor(Math.random() * (console_colors.length));
 
-  const client = clientFactory.createClient(socket);
+  const client = new Client(socket);
   const clientId = clients.push(client);
   client.setId(clientId);
   client.setColor(chalk[console_colors[randomColor]]);
@@ -106,7 +106,7 @@ io.on('connection', socket => {
    */
   socket.on('add-player', name => {
     serverLog(`${client.getLabel()} adding player ${name}`);
-    const player = playerFactory.createPlayer(name);
+    const player = new Player(name);
 
     const playerId = board.addPlayer(player);
     player.setId(playerId);
@@ -192,6 +192,34 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('player-character-click', (charId, charRound, playerId) => {
+    // We need to do different things depending upon the state of the board and
+    // what type of draft we're running.
+    const clientPlayer = client.getPlayer();
+    const clickedPlayer = board.getPlayerById(playerId);
+    const character = board.getCharacter(charId);
+    const character_index = charRound - 1;
+
+    if (board.getGameRound() === charRound) {
+      // The user is marking a winner of a round.
+      clickedPlayer.addStat('game_score');
+      clickedPlayer.setCharacterState(character_index, 'win');
+      board.players.forEach(eachPlayer => {
+        if (eachPlayer.getId() !== playerId) {
+          eachPlayer.addStat('lost_rounds');
+          eachPlayer.setCharacterState(character_index, 'loss');
+        }
+      });
+      advanceGame();
+    }
+    else if (board.getDraftType() === 'free' && clientPlayer.getId() === playerId) {
+      // The user is removing a character from their roster.
+      clientPlayer.dropCharacter(character_index);
+
+      regeneratePlayers();
+    }
+  });
+
   socket.on('start-draft', () => {
     serverLog(`${client.getLabel()} started the draft.`);
     board.advanceDraftRound();
@@ -200,6 +228,18 @@ io.on('connection', socket => {
     regenerateCharacters();
     regeneratePlayers();
     setStatusAll('The draft has begun!', 'success');
+  });
+
+  socket.on('start-game', () => {
+    serverLog(`${client.getLabel()} started the game.`);
+    board.getActivePlayer().setActive(false);
+    advanceGame();
+
+    // We only need to regenerate characters on game start, not every round,
+    // since we want to hide them.
+    regenerateCharacters();
+
+    setStatusAll('The game has begun!', 'success');
   });
 
   // Reset the entire game board, players, characters, and all.
@@ -316,18 +356,18 @@ function advanceDraft() {
   }
 }
 
+function advanceGame() {
+  const round = board.advanceGameRound();
+
+  // Go through all players and update their rosters.
+  regeneratePlayers();
+  regenerateBoardInfo();
+}
+
 /**
  * Set all options back to defaults.
  */
 function resetAll(boardData) {
-
-  // Currently players get erased when we reset the board, since we don't have a
-  // way to remove a single player. Eventually we should reset this by just running
-  // resetPlayers().
-  board.dropAllPlayers();
-  board.resetCharacters();
-  board.resetDraftRound();
-  board.resetPick();
 
   if (boardData.draftType) {
     board.setDraftType(boardData.draftType);
@@ -350,7 +390,7 @@ function resetAll(boardData) {
 function renderPlayerRoster(player) {
   let rendered = '';
 
-  Twig.renderFile('./views/player-roster.twig', {player}, (error, html) => {
+  Twig.renderFile('./views/player-roster.twig', {player, board}, (error, html) => {
     rendered = html;
   });
 

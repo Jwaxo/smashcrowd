@@ -2,7 +2,13 @@
   Individual character portraits. These are rendered both in a roster or in the
   main character container.
 #}
+{% set characterClasses = [
+  'character',
+  (isDisabled ? 'character--disabled' : ''),
+  (isActive ? 'character--active' : ''),
+  (character.getState() ? 'character--' ~ character.getState() : ''),
+]|join(' ')|trim %}
 
-<div class="character" data-character-id="{{ character.getCharId() }}" style="background-image: url('{{ character.getImage() }}')">
+<div class="{{ characterClasses }}" data-character-round="{{ characterRound ? characterRound : 0 }}" data-character-id="{{ character.getCharId() }}" style="background-image: url('{{ character.getImage() }}')">
   <span class="character-name">{{ character.getName() }}</span>
 </div>

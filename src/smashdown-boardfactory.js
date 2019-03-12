@@ -7,6 +7,7 @@ class Board {
 
     this.resetPick();
     this.resetDraftRound();
+    this.resetGameRound();
     this.totalRounds = null;
     this.draftType = null;
     this.name = null;
@@ -37,6 +38,7 @@ class Board {
   getTotalRounds() {
     return this.totalRounds;
   }
+
   advanceDraftRound() {
     return ++this.currentDraftRound;
   }
@@ -45,6 +47,16 @@ class Board {
   }
   resetDraftRound() {
     this.currentDraftRound = 0;
+  }
+
+  advanceGameRound() {
+    return ++this.currentGameRound;
+  }
+  getGameRound() {
+    return this.currentGameRound;
+  }
+  resetGameRound() {
+    this.currentGameRound = 0;
   }
 
   advancePick() {
@@ -191,10 +203,17 @@ class Board {
     this.characters = [];
   }
 
+  resetAll() {
+    // Currently players get erased when we reset the board, since we don't have a
+    // way to remove a single player. Eventually we should reset this by just running
+    // resetPlayers().
+    this.dropAllPlayers();
+    this.resetCharacters();
+    this.resetDraftRound();
+    this.resetGameRound();
+    this.resetPick();
+  }
+
 }
 
-module.exports = {
-  "createBoard": (...arguments) => {
-    return new Board(...arguments);
-  },
-};
+module.exports = Board;
