@@ -17,7 +17,7 @@
 
     // Form list area
     <template v-slot:player-form>
-      <form v-on:submit.prevent="onSubmit" class="player-add-form">
+      <form v-on:submit.prevent="addPlayer" class="player-add-form">
         <input v-model="newPlayer" class="player-add" tabindex="1" type="text" placeholder="Add a new player">
       </form>
     </template>
@@ -85,7 +85,7 @@ import allCharacters from '../../lib/chars';
 export default {
   name: 'app',
   methods: {
-    onSubmit() {
+    addPlayer() {
       // Add new player
       this.players.push({ name: this.newPlayer, characters: [], owned: false });
       // Wipe input field
