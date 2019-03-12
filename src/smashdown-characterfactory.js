@@ -7,6 +7,7 @@ class Character {
     this.name = data.name;
     this.image = data.image;
     this.player = null;
+    this.state = null;
 
     return this;
   }
@@ -37,6 +38,13 @@ class Character {
   }
   getPlayer() {
     return this.player;
+  }
+
+  setState(state) {
+    this.state = state;
+  }
+  getState() {
+    return this.state;
   }
 
 }

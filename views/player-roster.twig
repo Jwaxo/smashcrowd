@@ -9,6 +9,7 @@
     {% include 'character.twig' with {
       isDisabled: (board.getGameRound() > 0 and loop.index != board.getGameRound()),
       isActive: (board.getGameRound() > 0 and loop.index == board.getGameRound()),
+      characterRound: loop.index,
     } %}
   {% endfor %}
 </div>

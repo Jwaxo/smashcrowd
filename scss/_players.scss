@@ -45,7 +45,16 @@
     }
 
     &.character--disabled {
+      cursor: default;
       opacity: .25;
+    }
+
+    &.character--win {
+      border: rem-calc(3px) solid map-get($foundation-palette, success);
+
+      &.character--disabled {
+        opacity: .75;
+      }
     }
   }
 }

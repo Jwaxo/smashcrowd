@@ -192,6 +192,34 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('player-character-click', (charId, charRound, playerId) => {
+    // We need to do different things depending upon the state of the board and
+    // what type of draft we're running.
+    const clientPlayer = client.getPlayer();
+    const clickedPlayer = board.getPlayerById(playerId);
+    const character = board.getCharacter(charId);
+    const character_index = charRound - 1;
+
+    if (board.getGameRound() === charRound) {
+      // The user is marking a winner of a round.
+      clickedPlayer.addStat('game_score');
+      clickedPlayer.setCharacterState(character_index, 'win');
+      board.players.forEach(eachPlayer => {
+        if (eachPlayer.getId() !== playerId) {
+          eachPlayer.addStat('lost_rounds');
+          eachPlayer.setCharacterState(character_index, 'loss');
+        }
+      });
+      advanceGame();
+    }
+    else if (board.getDraftType() === 'free' && clientPlayer.getId() === playerId) {
+      // The user is removing a character from their roster.
+      clientPlayer.dropCharacter(character_index);
+
+      regeneratePlayers();
+    }
+  });
+
   socket.on('start-draft', () => {
     serverLog(`${client.getLabel()} started the draft.`);
     board.advanceDraftRound();

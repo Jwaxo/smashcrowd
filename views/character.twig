@@ -6,8 +6,9 @@
   'character',
   (isDisabled ? 'character--disabled' : ''),
   (isActive ? 'character--active' : ''),
+  (character.getState() ? 'character--' ~ character.getState() : ''),
 ]|join(' ')|trim %}
 
-<div class="{{ characterClasses }}" data-character-id="{{ character.getCharId() }}" style="background-image: url('{{ character.getImage() }}')">
+<div class="{{ characterClasses }}" data-character-round="{{ characterRound ? characterRound : 0 }}" data-character-id="{{ character.getCharId() }}" style="background-image: url('{{ character.getImage() }}')">
   <span class="character-name">{{ character.getName() }}</span>
 </div>
