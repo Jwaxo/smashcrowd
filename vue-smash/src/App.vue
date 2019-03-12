@@ -22,7 +22,7 @@
       </button>
       <button
         class="button"
-        :class="{ disabled: !draftAvailable}"
+        :class="{ disabled: !draftAvailable || draftStarted}"
         :disabled="!draftAvailable"
         v-on:click="draftStarted = true"
         title="Begin the drafting process."
@@ -143,11 +143,11 @@
           return;
         }
         // Find char object
-        const char = this.allCharacters.find(char => char.name === charName);
+        const char = this.allCharacters.find(({ name }) => name === charName);
         // Add it to end of active player's characters array
-        this.players.find(player => player.name === this.activePlayer).characters.push(char);
+        this.players.find(({ name }) => name === this.activePlayer).characters.push(char);
         // Remove char from full roster
-        this.allCharacters = this.allCharacters.filter(char => char.name !== charName);
+        this.allCharacters = this.allCharacters.filter(({ name }) => name !== charName);
         // Jump to next player
         this.setNextActivePlayer();
       },
