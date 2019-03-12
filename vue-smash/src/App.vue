@@ -3,10 +3,20 @@
 
     // App buttons at the top (not bound yet)
     <template v-slot:app-buttons>
-      <button id="reset" data-open="modal_new_board" class="reset button" v-on:click="resetBoard">
+      <button
+        id="reset"
+        data-open="modal_new_board"
+        class="reset button" v-on:click="resetBoard"
+        :class="{disabled: !draftAvailable}"
+      >
         New Board
       </button>
-      <button id="randomize" class="randomize button" title="Randomizes the player order. This option will disappear after picking has begun."
+      <button
+        id="randomize"
+        class="randomize button"
+        title="Randomizes the player order. This option will disappear after picking has begun."
+        v-on:click="shufflePlayers"
+        :class="{ disabled: !draftAvailable}"
       >
         Shuffle Players
       </button>
@@ -23,7 +33,7 @@
     // Form list area
     <template v-slot:player-form>
       <form v-on:submit.prevent="addPlayer" class="player-add-form">
-        <input v-model="newPlayer" class="player-add" tabindex="1" type="text" placeholder="Add a new player">
+        <input v-model="newPlayer" class="player-add" tabindex="1" type="text" placeholder="Add a new player"> <span>Players: {{playerCount}}</span>
       </form>
     </template>
 
@@ -87,6 +97,8 @@
 </template>
 
 <script>
+import shuffle from 'lodash/shuffle';
+
 import Page from './Page';
 import allCharacters from '../../lib/chars';
 
@@ -102,6 +114,9 @@ export default {
       // Wipe input field
       this.newPlayer = '';
     },
+    shufflePlayers() {
+      this.players = shuffle(this.players);
+    },
     addCharToPlayer(charName) {
       if (!this.draftAvailable) {
         return;
@@ -112,6 +127,17 @@ export default {
       this.players.find(player => player.name === this.activePlayer).characters.push(char);
       // Remove char from full roster
       this.allCharacters = this.allCharacters.filter(char => char.name !== charName);
+      // Jump to next player
+      this.setNextActivePlayer();
+    },
+    setNextActivePlayer(){
+      const playerIndex = this.players.findIndex(p => p.name === this.activePlayer);
+      // If last in array
+      this.activePlayer = playerIndex === this.playerCount - 1
+        // then jump to first player
+        ? this.players[0].name
+        // otherwise next index in array
+        : this.players[playerIndex + 1].name;
     },
     resetBoard() {
       this.allCharacters = allCharacters.chars;
@@ -121,6 +147,9 @@ export default {
   computed: {
     draftAvailable() {
       return !!this.players.length;
+    },
+    playerCount() {
+      return this.players.length;
     },
   },
   data() {
