@@ -6,6 +6,7 @@ $(function() {
 
   characterSetup();
   playerSetup();
+  playerFormSetup();
   boardSetup();
 
   socket.on('set-client', newClient => {
@@ -16,6 +17,12 @@ $(function() {
     const playerContainer = $('#players_container');
     playerContainer.html(html);
     playerSetup();
+  });
+
+  socket.on('rebuild-player-form', (html) => {
+    const playerFormContainer = $('#add_player_form_container');
+    playerFormContainer.html(html);
+    playerFormSetup();
   });
 
   socket.on('rebuild-characters', html => {
@@ -179,13 +186,6 @@ $(function() {
       socket.emit('pick-player', playerId);
     });
 
-    $('.player-add-form').submit(event => {
-      event.preventDefault();
-      const field = $('.player-add');
-      socket.emit('add-player', field.val());
-      field.val('');
-    });
-
     $('.player .character').click(element => {
       const $character = $(element.currentTarget);
       const $player = $character.closest('.player');
@@ -193,6 +193,19 @@ $(function() {
     });
 
     $('#players_container').foundation();
+  }
+
+  /**
+   * Needs to be run any time the player form gets recreated.
+   */
+  function playerFormSetup() {
+    $('.player-add-form').submit(event => {
+      event.preventDefault();
+      const field = $('.player-add');
+      socket.emit('add-player', field.val());
+      field.val('');
+      field.focus();
+    });
   }
 
   /**

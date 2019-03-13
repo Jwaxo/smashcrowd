@@ -19,6 +19,13 @@
 
 .player-picker-outer {
   min-height: rem-calc(60px);
+  overflow: hidden;
+}
+
+.player-picker {
+  .player--owned:not(.player--current) & {
+    display: none;
+  }
 }
 
 .player-roster {

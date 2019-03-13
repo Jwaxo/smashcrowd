@@ -410,6 +410,10 @@ function regeneratePlayers() {
       client.getSocket().emit('rebuild-players', html);
     });
   });
+
+  Twig.renderFile('./views/form-add-player.twig', {board}, (error, html) => {
+    io.sockets.emit('rebuild-player-form', html);
+  })
 }
 
 function regenerateCharacters() {
