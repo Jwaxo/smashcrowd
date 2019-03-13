@@ -73,6 +73,11 @@ server.listen(port, () => {
 io.on('connection', socket => {
   serverLog(`New connection established with hash ${socket.id}`, true);
 
+  // Vue testing
+  // socket.send(socket.id);
+  // console.log(socket.id);
+  io.sockets.emit('customVueEvent', socket.id);
+
   const randomColor = Math.floor(Math.random() * (console_colors.length));
 
   const client = clientFactory.createClient(socket);
@@ -97,6 +102,10 @@ io.on('connection', socket => {
       setStatusSingle(client, 'Pick a player to draft.')
     }
   }
+
+  socket.on('customVueEvent', data => {
+    console.log(`${data} is sent.`);
+  });
 
   /**
    * The client has created a player for the roster.

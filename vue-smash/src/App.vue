@@ -33,6 +33,8 @@
 
     // Form list area
     <template v-slot:player-form>
+      <h1>Is connected? {{ isConnected }}</h1>
+      <h2>Socket ID: {{ socketId }}</h2>
       <form
         class="player-add-form"
         @submit.prevent="addPlayer"
@@ -115,7 +117,8 @@
         });
         // Set each new player to active
         this.activePlayer = this.newPlayer;
-        this.ownedPlayer = this.newPlayer;
+        // Also, set new player to be "owned" by current user
+        this.setOwnedPlayer(this.newPlayer);
         // Wipe input field
         this.newPlayer = '';
       },
@@ -170,12 +173,23 @@
         draftStarted: false,
         allCharacters: allCharacters.chars,
         players: [],
+        // Sockets testing
+        isConnected: false,
+        socketId: '',
       };
     },
     components: {
       Character,
       Page,
       Player,
+    },
+    sockets: {
+      connect() {
+        this.isConnected = true;
+      },
+      customVueEvent(id) {
+        this.socketId = id;
+      },
     }
   }
 </script>
