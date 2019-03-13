@@ -9,6 +9,7 @@ class Player {
     this.isActive = false;
     this.playerId = null;
     this.stats = {};
+    this.sortOrder = null;
 
     return this;
   }
@@ -52,6 +53,13 @@ class Player {
   }
   setCharacterState(characterIndex, value) {
     this.characters[characterIndex].setState(value);
+  }
+
+  setSortOrder(order) {
+    this.sortOrder = order;
+  }
+  getSortOrder() {
+    return this.sortOrder;
   }
 
   setActive(state) {

@@ -108,8 +108,7 @@ io.on('connection', socket => {
     serverLog(`${client.getLabel()} adding player ${name}`);
     const player = new Player(name);
 
-    const playerId = board.addPlayer(player);
-    player.setId(playerId);
+    board.addPlayer(player);
 
     clients.forEach(client => {
       if (!client.getPlayerId()) {

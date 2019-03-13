@@ -11,6 +11,7 @@ class Board {
     this.totalRounds = null;
     this.draftType = null;
     this.name = null;
+    this.nextPlayerId = 0;
 
     this.players = [];
     this.playersPickOrder = [];
@@ -83,8 +84,12 @@ class Board {
    * @returns {number} Index of the player.
    */
   addPlayer(player) {
+    this.players.push(player);
     this.playersPickOrder.push(player);
-    return this.players.push(player) - 1;
+    player.setId(this.nextPlayerId++);
+    player.setSortOrder(player.getId()); // Sort by ID by default.
+
+    return player.getId();
   }
   updatePlayer(playerId, data) {
     for (option in data) {
@@ -121,20 +126,16 @@ class Board {
    */
   shufflePlayers() {
     this.players.forEach(player => {
-      player.sortOrder = Math.random();
-      player.setActive(false);
+      player.setSortOrder(Math.random());
     });
 
     // After assigning new sort order, sort both players and pick order.
     this.players.sort((a, b) => {
-      return a.sortOrder - b.sortOrder;
+      return a.getSortOrder() - b.getSortOrder();
     });
     this.playersPickOrder.sort((a, b) => {
-      return a.sortOrder - b.sortOrder;
+      return a.getSortOrder() - b.getSortOrder();
     });
-
-    // Set the first player to be active again.
-    this.players[0].setActive(true);
   }
 
   /**

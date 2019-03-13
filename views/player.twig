@@ -16,8 +16,8 @@
 
       <div class="player-picker-outer">
         {% if client.getPlayerId() == player.getId() %}
-          <button class="player-picker button expanded hollow" data-tooltip tabindex="2">This is You</button>
-        {% elseif player.getClientId() == 0 %}
+          <button class="player-picker button expanded hollow" data-player-pick-id="{{ player.getId() }}" tabindex="2">This is You</button>
+        {% elseif not player.getClientId() %}
           <button class="player-picker button expanded" data-tooltip tabindex="2" title="Select this player to start picking characters for them." data-position="top" data-alignment="center" data-player-pick-id="{{ player.getId() }}">Be This Player</button>
         {% endif %}
       </div>
