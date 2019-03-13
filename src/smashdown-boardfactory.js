@@ -17,6 +17,15 @@ class Board {
     this.playersPickOrder = [];
     this.characters = [];
 
+    /**
+     * The types of drafts currently able to pick.
+     * @todo: create a draftfactory, then plugin different draft types.
+     */
+    this.draftTypes = {
+      snake: 'Snake Draft',
+      free: 'Free Pick',
+    };
+
     for (let option in options) {
       if (this.hasOwnProperty(option)) {
         this[option] = options[option];
@@ -71,10 +80,19 @@ class Board {
   }
 
   setDraftType(type) {
-    this.draftType = type;
+    if (this.draftTypes.hasOwnProperty(type)) {
+      this.draftType = type;
+    }
+    else {
+      throw "Tried to set nonexistent draft type.";
+    }
   }
-  getDraftType() {
-    return this.draftType;
+  getDraftType(userFriendly = false) {
+    let type = this.draftType;
+    if (userFriendly) {
+      type = this.draftTypes[this.draftType];
+    }
+    return type;
   }
 
   /**

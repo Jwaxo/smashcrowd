@@ -2,7 +2,7 @@
   Displays information about the current board.
 #}
 
-<h4>Draft Type: {{ board.getDraftType() }}</h4>
+<h4>Draft Type: {{ board.getDraftType(true) }}</h4>
 
 {% if board.getGameRound() == 0 and board.getDraftRound() > 0 %}
   <h4>Draft Round: {{ board.getDraftRound() }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>
