@@ -116,7 +116,7 @@ io.on('connection', socket => {
       }
     });
 
-    regeneratePlayers();
+    regeneratePlayers(false);
   });
 
   /**
@@ -367,6 +367,7 @@ function advanceGame() {
  * Set all options back to defaults.
  */
 function resetAll(boardData) {
+  board.resetAll();
 
   if (boardData.draftType) {
     board.setDraftType(boardData.draftType);
@@ -402,7 +403,7 @@ function regenerateBoardInfo() {
   });
 }
 
-function regeneratePlayers() {
+function regeneratePlayers(regenerateForm) {
   // The player listing is unique to each client, so we need to rebuild it and
   // send it out individually.
   clients.forEach(client => {
@@ -411,9 +412,11 @@ function regeneratePlayers() {
     });
   });
 
-  Twig.renderFile('./views/form-add-player.twig', {board}, (error, html) => {
-    io.sockets.emit('rebuild-player-form', html);
-  })
+  if (regenerateForm) {
+    Twig.renderFile('./views/form-add-player.twig', {board}, (error, html) => {
+      io.sockets.emit('rebuild-player-form', html);
+    })
+  }
 }
 
 function regenerateCharacters() {

@@ -204,7 +204,6 @@ $(function() {
       const field = $('.player-add');
       socket.emit('add-player', field.val());
       field.val('');
-      field.focus();
     });
   }
 
