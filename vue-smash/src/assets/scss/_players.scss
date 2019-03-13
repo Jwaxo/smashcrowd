@@ -2,6 +2,18 @@
  * Styles defining how player columns appear.
  */
 
+@mixin add-character() {
+  border: rem-calc(3px) dashed $medium-gray;
+  &:after {
+    color: $dark-gray;
+    content: '+';
+    display: block;
+    font-weight: bold;
+    margin: rem-calc(15px 0);
+    text-align: center;
+  }
+}
+
 .player {
   transition: border-width .25s, border-color .25s, height .25s;
 
@@ -24,15 +36,7 @@
 .player-roster {
 
   &.player-roster--empty {
-    border: rem-calc(3px) dashed $medium-gray;
-    &:after {
-      color: $dark-gray;
-      content: '+';
-      display: block;
-      font-weight: bold;
-      margin: rem-calc(15px 0);
-      text-align: center;
-    }
+   @include add-character();
   }
 
   .character {
@@ -40,4 +44,8 @@
     margin: 0 auto;
     width: rem-calc(180px);
   }
+}
+
+.add-character {
+  @include add-character();
 }
