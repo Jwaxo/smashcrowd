@@ -4,7 +4,13 @@
 
 <h4>Draft Type: {{ board.getDraftType() }}</h4>
 
-<h4>Round: {{ board.getDraftRound() }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>
+{% if board.getGameRound() == 0 and board.getDraftRound() > 0 %}
+  <h4>Draft Round: {{ board.getDraftRound() }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>
+{% elseif board.getGameRound() > 0 %}
+  <h4>Game Round: {{ board.getGameRound() }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>
+{% else %}
+  <h4 class="warning">Waiting to Start Draft</h4>
+{% endif %}
 
 <div class="board-options grid-x grid-margin-x">
   <div class="cell auto">

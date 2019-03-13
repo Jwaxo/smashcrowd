@@ -3,13 +3,17 @@
  */
 
 .player {
-  transition: border-width .25s, border-color .25s, height .25s;
+  transition: border-width .25s, border-color .25s, height .25s, padding .25s;
 
   &.player--current {
     border-width: rem-calc(4px);
   }
   &.player--active {
     border-color: map-get($foundation-palette, alert);
+  }
+
+  &:not(.player--current) {
+    padding: rem-calc(3px);
   }
 
   h4 {
