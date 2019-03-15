@@ -251,6 +251,7 @@ class Board {
    *   back.
    */
   eachPlayer(args, returnValue = false, fn = null) {
+    const compareObject = {};
     // If the user sent only a function, ensure fn is the function.
     if (typeof args === 'function' && returnValue === false && fn === null) {
       fn = args;
@@ -263,10 +264,10 @@ class Board {
     }
     for (let i = 0; i < this.players.length; i++) {
       if (Array.isArray(args)) {
-        returnValue = fn(this.players[i], ...args);
+        returnValue = fn(this.players[i], ...args, compareObject);
       }
       else {
-        returnValue = fn(this.players[i]);
+        returnValue = fn(this.players[i], compareObject);
       }
 
       if (returnValue) {

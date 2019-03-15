@@ -4,10 +4,10 @@ $(function() {
   const socket = io();
   let client = {};
 
-  characterSetup();
-  playerSetup();
-  playerFormSetup();
-  boardSetup();
+  characterSetup(true);
+  playerSetup(true);
+  playerFormSetup(true);
+  boardSetup(true);
 
   socket.on('set-client', newClient => {
     client = newClient;
@@ -166,43 +166,47 @@ $(function() {
    * Needs to be run any time the character grid gets recreated, so the jQuery
    * events properly attach.
    */
-  function characterSetup() {
-    $('.character-grid .character').click((element) => {
+  function characterSetup(initial = false) {
+    $('.character-grid .character').unbind('click').click((element) => {
       const charId = $(element.currentTarget).data('character-id');
       socket.emit('add-character', charId);
     });
 
-    $('#characters_container').foundation();
+    if (!initial) {
+      $('#characters_container').foundation();
+    }
   }
 
   /**
    * Needs to be run any time the player list gets recreated.
    */
-  function playerSetup() {
+  function playerSetup(initial = false) {
     if (client.playerId !== null) {
       const $player = $('.player[data-player-id="' + client.playerId + '"]');
       setPlayerCurrent($player);
     }
 
-    $('.player-picker').click(element => {
+    $('.player-picker').unbind('click').click(element => {
       const playerId = $(element.currentTarget).data('player-pick-id');
       socket.emit('pick-player', playerId);
     });
 
-    $('.player .character').click(element => {
+    $('.player .character').unbind('click').click(element => {
       const $character = $(element.currentTarget);
       const $player = $character.closest('.player');
       socket.emit('player-character-click', $character.data('character-id'), $character.data('character-round'), $player.data('player-id'));
     });
 
-    $('#players_container').foundation();
+    if (!initial) {
+      $('#players_container').foundation();
+    }
   }
 
   /**
    * Needs to be run any time the player form gets recreated.
    */
-  function playerFormSetup() {
-    $('.player-add-form').submit(event => {
+  function playerFormSetup(initial = false) {
+    $('.player-add-form').unbind('submit').submit(event => {
       event.preventDefault();
       const field = $('.player-add');
       socket.emit('add-player', field.val());
@@ -213,30 +217,33 @@ $(function() {
   /**
    * Needs to be run any time the general board info updates.
    */
-  function boardSetup() {
+  function boardSetup(initial = false) {
     const boardInfoContainer = $('#board_info_container');
-    boardInfoContainer.foundation();
 
     /**
      * Shuffles the current players.
      */
-    $('#randomize').click(() => {
+    $('#randomize').unbind('click').click(() => {
       socket.emit('players-shuffle');
     });
 
     /**
      * Starts the character picking process.
      */
-    $('#start_picking').click(() => {
+    $('#start_picking').unbind('click').click(() => {
       socket.emit('start-draft');
     });
 
     /**
      * Starts the round-tracking process.
      */
-    $('#start_game').click(() => {
+    $('#start_game').unbind('click').click(() => {
       socket.emit('start-game');
     });
+
+    if (!initial) {
+      boardInfoContainer.foundation();
+    }
   }
 
   /**

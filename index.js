@@ -244,23 +244,32 @@ io.on('connection', socket => {
     // @todo: check to see if all character lists are equal before starting.
     const players = board.getPlayers();
 
-    for (let i = 0; i < players.length; i++) {
-
-    }
-
-    serverLog(`${client.getLabel()} started the game.`);
-
-    board.getPlayers().forEach(player => {
-      player.setActive(false);
+    const mismatchedChars = board.eachPlayer((player, compareObject) => {
+      if (compareObject.hasOwnProperty('last') && compareObject.last !== player.getCharacterCount()) {
+        return true;
+      }
+      compareObject.last = player.getCharacterCount();
     });
 
-    advanceGame();
+    if (!mismatchedChars) {
 
-    // We only need to regenerate characters on game start, not every round,
-    // since we want to hide them.
-    regenerateCharacters();
+      serverLog(`${client.getLabel()} started the game.`);
 
-    setStatusAll('The game has begun!', 'success');
+      players.forEach(player => {
+        player.setActive(false);
+      });
+
+      advanceGame();
+
+      // We only need to regenerate characters on game start, not every round,
+      // since we want to hide them.
+      regenerateCharacters();
+
+      setStatusAll('The game has begun!', 'success');
+    }
+    else {
+      setStatusSingle(client, 'Cannot start the game: players do not have even characters.', 'error');
+    }
   });
 
   // Reset the entire game board, players, characters, and all.
@@ -351,6 +360,8 @@ function setClientPlayer(client, player) {
   });
 
   setClientInfoSingle(client);
+
+  updateCharactersSingle(client, {allDisabled: !player.isActive});
   updatePlayersInfo(updatedPlayers);
 }
 
@@ -366,7 +377,6 @@ function setClientPlayer(client, player) {
  */
 function advanceFreePick(client) {
   const updatedPlayers = [];
-  const players = board.getPlayers();
   const player = client.getPlayer();
 
   player.setActive((!board.getTotalRounds() || player.getCharacterCount() < board.getTotalRounds()));
@@ -382,15 +392,14 @@ function advanceFreePick(client) {
 
   updatePlayersInfo(updatedPlayers);
 
-  // If a single player is not yet ready, don't update the board.
-  const draftNotComplete = board.eachPlayer([board.getTotalRounds()], (player, totalRounds) => {
+  // If any single player is not yet ready, don't update the board info.
+  const draftComplete = !board.eachPlayer([board.getTotalRounds()], (player, totalRounds) => {
     if (player.getCharacterCount() < totalRounds) {
       return true;
     }
   });
 
-  if (!draftNotComplete) {
-    console.log('draft completed');
+  if (draftComplete) {
     board.setStatus('draft-complete');
     regenerateBoardInfo();
   }
