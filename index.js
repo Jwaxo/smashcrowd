@@ -174,17 +174,17 @@ io.on('connection', socket => {
       player.addCharacter(character);
 
       if (board.getDraftType() === 'free') {
-        advanceFreePick(player);
+        advanceFreePick(client);
       }
       else {
         character.setPlayer(player.getId());
 
-        updateCharacters([
+        updateCharacters({'chars' : [
           {
             'charId' : charId,
             'disabled': true,
           }
-        ]);
+        ]});
         advanceDraft();
       }
     }
@@ -351,18 +351,26 @@ function setClientPlayer(client, player) {
  * track how many characters each player has added, and update the board info/
  * state if they've all picked.
  *
+ * @params {Client} client
+ *  The client that just picked.
  * @params {Player} player
  *  The player that just picked.
  */
-function advanceFreePick(player) {
+function advanceFreePick(client) {
   const updatedPlayers = [];
   const players = board.getPlayers();
+  const player = client.getPlayer();
   let draftComplete = true;
+
+  player.setActive((!board.getTotalRounds() || player.getCharacterCount() < board.getTotalRounds()));
+
+  // Disable/Enable picking for this user.
+  updateCharactersSingle(client, {allDisabled: !player.isActive});
 
   updatedPlayers.push({
     'playerId': player.getId(),
+    'isActive': player.isActive,
     'roster_html': renderPlayerRoster(player),
-    'isActive': (!board.getTotalRounds() || player.getCharacterCount() < board.getTotalRounds()),
   });
 
   updatePlayersInfo(updatedPlayers);
@@ -575,13 +583,34 @@ function updatePlayersInfo(players) {
 }
 
 /**
- * Sends an array of characters with changed data to inform clients without needing
- * to completely rebuild the character area.
+ * Sends character select data with changed info to one client.
  *
- * @param {Array} characters
+ * @see updateCharacters().
+ *
+ * @param {Client} client
+ * @param {Object} character_data
  */
-function updateCharacters(characters) {
-  io.sockets.emit('update-characters', characters);
+function updateCharactersSingle(client, character_data) {
+  client.socket.emit('update-characters', character_data);
+}
+
+/**
+ * Sends character select data with changed data to all clients.
+ *
+ * Used to inform clients without needing to completely rebuild the character area.
+ *
+ * @param {Object} character_data
+ *   {boolean} allDisabled
+ *     If the character select sheet should be disabled or enabled.
+ *   {Array} chars
+ *     An array of objects describing characters by their ID and how to update
+ *     them. Current allowed properties:
+ *     - {integer} charId: the ID of the character to update.
+ *     - {boolean} disabled: whether or not the character should be removed from
+ *       the list.
+ */
+function updateCharacters(character_data) {
+  io.sockets.emit('update-characters', character_data);
 }
 
 /**

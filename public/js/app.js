@@ -108,20 +108,22 @@ $(function() {
   /**
    * Updates the character select area based off of the characters in an array.
    *
-   * @params {array} characters
-   *   An array of objects describing characters by their ID and how to update
-   *   them. Current allowed properties:
-   *   - {integer} charId: the ID of the character to update.
-   *   - {boolean} disabled: whether or not the character should be removed from
-   *     the list.
+   * @params {object} character_data
+   *   @see index.js:updateCharacters() for full parameters.
    */
-  socket.on('update-characters', characters => {
-    for (let i = 0; i < characters.length; i++) {
-      const charId = characters[i].charId;
-      const disabled = characters[i].disabled;
+  socket.on('update-characters', character_data => {
+    if (character_data.hasOwnProperty('allDisabled')) {
+      $('.character-grid').toggleClass('character-grid--disabled', character_data.allDisabled);
+    }
 
-      if (disabled) {
-        $('.character-grid .character[data-character-id="' + charId + '"]').addClass('character--disabled');
+    if (character_data.hasOwnProperty('chars')) {
+      for (let i = 0; i < character_data.chars.length; i++) {
+        const charId = character_data.chars[i].charId;
+        const disabled = character_data.chars[i].disabled;
+
+        if (disabled) {
+          $('.character-grid .character[data-character-id="' + charId + '"]').addClass('character--disabled');
+        }
       }
     }
   });
