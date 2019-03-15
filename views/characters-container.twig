@@ -4,8 +4,8 @@
 #}
 {% set characterGridClasses = [
   'character-grid',
-  (board.getDraftRound() == 0 ? 'character-grid--disabled' : ''),
-  (board.getGameRound() > 0 ? 'character-grid--hidden' : ''),
+  (board.getStatus() != 'draft' ? 'character-grid--disabled' : ''),
+  (board.getStatus() == 'game' ? 'character-grid--hidden' : ''),
 ]|join(' ')|trim %}
 
 <div class="cell">

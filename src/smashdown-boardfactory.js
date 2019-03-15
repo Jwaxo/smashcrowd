@@ -5,16 +5,35 @@ class Board {
   constructor(boardId, options) {
     this.boardId = boardId;
 
-    this.resetPick();
-    this.resetDraftRound();
-    this.resetGameRound();
+    this.currentPick = 0;
+    this.currentDraftRound = 0;
+    this.currentGameRound = 0;
     this.totalRounds = null;
     this.draftType = null;
     this.name = null;
+    this.status = 'new';
+    this.nextPlayerId = 0;
 
     this.players = [];
     this.playersPickOrder = [];
     this.characters = [];
+
+    /**
+     * The types of drafts currently able to pick.
+     * @todo: create a draftfactory, then plugin different draft types.
+     */
+    this.draftTypes = {
+      snake: 'Snake Draft',
+      free: 'Free Pick',
+    };
+
+    this.statusTypes = [
+      'new',
+      'draft',
+      'draft-complete',
+      'game',
+      'game-complete',
+    ];
 
     for (let option in options) {
       if (this.hasOwnProperty(option)) {
@@ -33,13 +52,16 @@ class Board {
   }
 
   setTotalRounds(rounds) {
-    this.totalRounds = rounds;
+    this.totalRounds = parseInt(rounds);
   }
   getTotalRounds() {
     return this.totalRounds;
   }
 
   advanceDraftRound() {
+    if (this.currentDraftRound === 0) {
+      this.setStatus('draft');
+    }
     return ++this.currentDraftRound;
   }
   getDraftRound() {
@@ -50,6 +72,9 @@ class Board {
   }
 
   advanceGameRound() {
+    if (this.currentGameRound === 0) {
+      this.setStatus('game');
+    }
     return ++this.currentGameRound;
   }
   getGameRound() {
@@ -70,10 +95,44 @@ class Board {
   }
 
   setDraftType(type) {
-    this.draftType = type;
+    if (this.draftTypes.hasOwnProperty(type)) {
+      this.draftType = type;
+    }
+    else {
+      throw "Tried to set nonexistent draft type.";
+    }
   }
-  getDraftType() {
-    return this.draftType;
+  getDraftType(userFriendly = false) {
+    let type = this.draftType;
+    if (userFriendly) {
+      type = this.draftTypes[this.draftType];
+    }
+    return type;
+  }
+
+  setStatus(status) {
+    if (this.statusTypes.includes(status)) {
+      this.status = status;
+    }
+    else {
+      throw "Tried to set nonexistent board status.";
+    }
+  }
+
+  /**
+   * Either checks if the status is a particular string or, what it currently is.
+   *
+   * @param state
+   * @returns {boolean|string|array}
+   */
+  getStatus(state = null) {
+    if (typeof state === 'string') {
+      return this.status === state;
+    }
+    else if (Array.isArray(state)) {
+      return state.includes(this.status);
+    }
+    return this.status;
   }
 
   /**
@@ -83,8 +142,12 @@ class Board {
    * @returns {number} Index of the player.
    */
   addPlayer(player) {
+    this.players.push(player);
     this.playersPickOrder.push(player);
-    return this.players.push(player) - 1;
+    player.setId(this.nextPlayerId++);
+    player.setSortOrder(player.getId()); // Sort by ID by default.
+
+    return player.getId();
   }
   updatePlayer(playerId, data) {
     for (option in data) {
@@ -104,9 +167,9 @@ class Board {
     return this.playersPickOrder[currentPick];
   }
   resetPlayers() {
-    for (let i = 0; i < this.players.length; i++) {
-      this.players[i].setCharacters([]);
-    }
+    this.players.forEach(player => {
+      player.setCharacters([]);
+    });
   }
   dropAllPlayers() {
     this.players = [];
@@ -121,20 +184,16 @@ class Board {
    */
   shufflePlayers() {
     this.players.forEach(player => {
-      player.sortOrder = Math.random();
-      player.setActive(false);
+      player.setSortOrder(Math.random());
     });
 
     // After assigning new sort order, sort both players and pick order.
     this.players.sort((a, b) => {
-      return a.sortOrder - b.sortOrder;
+      return a.getSortOrder() - b.getSortOrder();
     });
     this.playersPickOrder.sort((a, b) => {
-      return a.sortOrder - b.sortOrder;
+      return a.getSortOrder() - b.getSortOrder();
     });
-
-    // Set the first player to be active again.
-    this.players[0].setActive(true);
   }
 
   /**
@@ -175,6 +234,54 @@ class Board {
   }
 
   /**
+   * Easy way to run functions for all players on the board with a break and return
+   * value, which normal Array.forEach() functions cannot do.
+   *
+   * Possible forms:
+   *   eachPlayer(callback)
+   *   eachPlayer(args, callback)
+   *   eachPlayer(args, returnValue, callback)
+   *
+   * @param {Array|function} args
+   *   An optional array of arguments to pass to fn.
+   * @param {*} returnValue
+   *   A optional value to be returned by the function. Note that this is also
+   *   measured as a means to break the loop; if this ever returns True, you get
+   *   an early return.
+   * @param {function|null} fn
+   *   The function to run on each Player. If this function returns a truthy value,
+   *   the loop will be broken at that point, and that truthy value will be passed
+   *   back.
+   */
+  eachPlayer(args, returnValue = false, fn = null) {
+    const compareObject = {};
+    // If the user sent only a function, ensure fn is the function.
+    if (typeof args === 'function' && returnValue === false && fn === null) {
+      fn = args;
+    }
+    // If the user sent args and a function, ensure fn is the function and the
+    // return is the default.
+    else if (Array.isArray(args) && typeof returnValue === 'function' && fn === null) {
+      fn = returnValue;
+      returnValue = false;
+    }
+    for (let i = 0; i < this.players.length; i++) {
+      if (Array.isArray(args)) {
+        returnValue = fn(this.players[i], ...args, compareObject);
+      }
+      else {
+        returnValue = fn(this.players[i], compareObject);
+      }
+
+      if (returnValue) {
+        break;
+      }
+    }
+
+    return returnValue;
+  }
+
+  /**
    * Add a character to the characters array.
    *
    * @param character
@@ -212,6 +319,7 @@ class Board {
     this.resetDraftRound();
     this.resetGameRound();
     this.resetPick();
+    this.setStatus('new');
   }
 
 }

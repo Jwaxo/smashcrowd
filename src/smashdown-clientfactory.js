@@ -48,7 +48,6 @@ class Client {
       this.player.setClientId(0);
     }
 
-
     // Store the new player information and update said player, or just remove
     // the ID if we're wiping the player info.
     this.player = player;

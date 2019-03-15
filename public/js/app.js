@@ -4,9 +4,10 @@ $(function() {
   const socket = io();
   let client = {};
 
-  characterSetup();
-  playerSetup();
-  boardSetup();
+  characterSetup(true);
+  playerSetup(true);
+  playerFormSetup(true);
+  boardSetup(true);
 
   socket.on('set-client', newClient => {
     client = newClient;
@@ -16,6 +17,12 @@ $(function() {
     const playerContainer = $('#players_container');
     playerContainer.html(html);
     playerSetup();
+  });
+
+  socket.on('rebuild-player-form', (html) => {
+    const playerFormContainer = $('#add_player_form_container');
+    playerFormContainer.html(html);
+    playerFormSetup();
   });
 
   socket.on('rebuild-characters', html => {
@@ -96,25 +103,28 @@ $(function() {
         $player.find('.player-roster-container').html(player.roster_html);
       }
     }
+    playerSetup();
   });
 
   /**
    * Updates the character select area based off of the characters in an array.
    *
-   * @params {array} characters
-   *   An array of objects describing characters by their ID and how to update
-   *   them. Current allowed properties:
-   *   - {integer} charId: the ID of the character to update.
-   *   - {boolean} disabled: whether or not the character should be removed from
-   *     the list.
+   * @params {object} character_data
+   *   @see index.js:updateCharacters() for full parameters.
    */
-  socket.on('update-characters', characters => {
-    for (let i = 0; i < characters.length; i++) {
-      const charId = characters[i].charId;
-      const disabled = characters[i].disabled;
+  socket.on('update-characters', character_data => {
+    if (character_data.hasOwnProperty('allDisabled')) {
+      $('.character-grid').toggleClass('character-grid--disabled', character_data.allDisabled);
+    }
 
-      if (disabled) {
-        $('.character-grid .character[data-character-id="' + charId + '"]').addClass('character--disabled');
+    if (character_data.hasOwnProperty('chars')) {
+      for (let i = 0; i < character_data.chars.length; i++) {
+        const charId = character_data.chars[i].charId;
+        const disabled = character_data.chars[i].disabled;
+
+        if (disabled) {
+          $('.character-grid .character[data-character-id="' + charId + '"]').addClass('character--disabled');
+        }
       }
     }
   });
@@ -156,72 +166,85 @@ $(function() {
    * Needs to be run any time the character grid gets recreated, so the jQuery
    * events properly attach.
    */
-  function characterSetup() {
-    $('.character-grid .character').click((element) => {
+  function characterSetup(initial = false) {
+    $('.character-grid:not(.character-grid--disabled) .character').unbind('click').click((element) => {
       const charId = $(element.currentTarget).data('character-id');
       socket.emit('add-character', charId);
+      $('.character-grid').addClass('character-grid--disabled', true);
     });
 
-    $('#characters_container').foundation();
+    if (!initial) {
+      $('#characters_container').foundation();
+    }
   }
 
   /**
    * Needs to be run any time the player list gets recreated.
    */
-  function playerSetup() {
+  function playerSetup(initial = false) {
     if (client.playerId !== null) {
       const $player = $('.player[data-player-id="' + client.playerId + '"]');
       setPlayerCurrent($player);
     }
 
-    $('.player-picker').click(element => {
+    $('.player-picker').unbind('click').click(element => {
       const playerId = $(element.currentTarget).data('player-pick-id');
       socket.emit('pick-player', playerId);
     });
 
-    $('.player-add-form').submit(event => {
-      event.preventDefault();
-      const field = $('.player-add');
-      socket.emit('add-player', field.val());
-      field.val('');
-    });
-
-    $('.player .character').click(element => {
+    $('.player .character').unbind('click').click(element => {
       const $character = $(element.currentTarget);
       const $player = $character.closest('.player');
       socket.emit('player-character-click', $character.data('character-id'), $character.data('character-round'), $player.data('player-id'));
     });
 
-    $('#players_container').foundation();
+    if (!initial) {
+      $('#players_container').foundation();
+    }
+  }
+
+  /**
+   * Needs to be run any time the player form gets recreated.
+   */
+  function playerFormSetup(initial = false) {
+    $('.player-add-form').unbind('submit').submit(event => {
+      event.preventDefault();
+      const field = $('.player-add');
+      socket.emit('add-player', field.val());
+      field.val('');
+    });
   }
 
   /**
    * Needs to be run any time the general board info updates.
    */
-  function boardSetup() {
+  function boardSetup(initial = false) {
     const boardInfoContainer = $('#board_info_container');
-    boardInfoContainer.foundation();
 
     /**
      * Shuffles the current players.
      */
-    $('#randomize').click(() => {
+    $('#randomize').unbind('click').click(() => {
       socket.emit('players-shuffle');
     });
 
     /**
      * Starts the character picking process.
      */
-    $('#start_picking').click(() => {
+    $('#start_picking').unbind('click').click(() => {
       socket.emit('start-draft');
     });
 
     /**
      * Starts the round-tracking process.
      */
-    $('#start_game').click(() => {
+    $('#start_game').unbind('click').click(() => {
       socket.emit('start-game');
     });
+
+    if (!initial) {
+      boardInfoContainer.foundation();
+    }
   }
 
   /**
