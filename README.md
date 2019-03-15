@@ -75,18 +75,15 @@ the SCSS only gets recompiled when the server is started.
 ### Planned features/Todo
 
 * Persistent player assignment using cookies
+* A "sit the game out" box for games with more players than rounds dictate.
 * Player boxes shake when they become active.
-* "Done with Drafting" button which switches mode to Game Tracking
 * Persistent storage via MySQL (or other DB)
-* Game Tracking with scores for winners
-* Removal/graying out of characters when they are not the "active" ones.
 * Game options:
   * Re-orderable roster
-  * Multiple styles of drafting:
-    * No draft (free pick, characters do not remove after picking)
+  * Players per round with rotating sit out player
+  * More styles of drafting:
     * Iron Man (where you can't advance to the next character until you "win" (with win being definable), but it gradually widens your character choices as you lose)
     * Linear
-    * Snake
     * Auction?
   * Game title
 * User Profiles
