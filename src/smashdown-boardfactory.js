@@ -5,12 +5,13 @@ class Board {
   constructor(boardId, options) {
     this.boardId = boardId;
 
-    this.resetPick();
-    this.resetDraftRound();
-    this.resetGameRound();
+    this.currentPick = 0;
+    this.currentDraftRound = 0;
+    this.currentGameRound = 0;
     this.totalRounds = null;
     this.draftType = null;
     this.name = null;
+    this.status = 'new';
     this.nextPlayerId = 0;
 
     this.players = [];
@@ -25,6 +26,14 @@ class Board {
       snake: 'Snake Draft',
       free: 'Free Pick',
     };
+
+    this.statusTypes = [
+      'new',
+      'draft',
+      'draft-complete',
+      'game',
+      'game-complete',
+    ];
 
     for (let option in options) {
       if (this.hasOwnProperty(option)) {
@@ -50,6 +59,9 @@ class Board {
   }
 
   advanceDraftRound() {
+    if (this.currentDraftRound === 0) {
+      this.setStatus('draft');
+    }
     return ++this.currentDraftRound;
   }
   getDraftRound() {
@@ -60,6 +72,9 @@ class Board {
   }
 
   advanceGameRound() {
+    if (this.currentGameRound === 0) {
+      this.setStatus('game');
+    }
     return ++this.currentGameRound;
   }
   getGameRound() {
@@ -93,6 +108,18 @@ class Board {
       type = this.draftTypes[this.draftType];
     }
     return type;
+  }
+
+  setStatus(status) {
+    if (this.statusTypes.includes(status)) {
+      this.status = status;
+    }
+    else {
+      throw "Tried to set nonexistent board status.";
+    }
+  }
+  getStatus() {
+    return this.status;
   }
 
   /**
@@ -231,6 +258,7 @@ class Board {
     this.resetDraftRound();
     this.resetGameRound();
     this.resetPick();
+    this.setStatus('new');
   }
 
 }

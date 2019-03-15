@@ -307,7 +307,6 @@ function advanceDraft() {
   if (board.getDraftRound() === 1 && board.getPick() === 0) {
     // If this is the first pick of the game, tell clients so that we can update
     // the interface.
-    io.sockets.emit('setup-complete');
     setStatusAll('Character drafting has begun!', 'success');
   }
 
@@ -315,43 +314,54 @@ function advanceDraft() {
   const newRound = (board.advancePick() % board.getPlayersCount() === 0);
 
   // If players count goes evenly into current pick, we have reached a new round.
-  if (newRound) {
-    serverLog(`Round ${board.getDraftRound()} completed.`);
-    board.advanceDraftRound();
-    board.reversePlayersPick();
-    board.resetPick();
-  }
-
-  const currentPlayer = board.getPlayerByPickOrder(board.getPick());
-  const currentClient = clients[currentPlayer.getClientId() - 1];
-
-  // We only need to change active state if the player changes.
-  if (prevPlayer !== currentPlayer) {
-    prevPlayer.setActive(false);
-    currentPlayer.setActive(true);
-
-    updatedPlayers.push({
-      'playerId': currentPlayer.getId(),
-      'isActive': true,
-    });
-    setStatusSingle(currentClient, 'It is your turn! Please choose your next character.', 'primary');
-  }
-
-  updatedPlayers.push({
-    'playerId': prevPlayer.getId(),
-    'isActive': prevPlayer.isActive,
-    'roster_html': renderPlayerRoster(prevPlayer),
-  });
-
-  // If we're at a new round we need to regenerate the player area entirely so
-  // that they reorder. Otherwise just update stuff!
-  if (newRound) {
-    setStatusSingle(currentClient, 'With the new round, it is once again your turn! Choose wisely.', 'primary');
+  if (newRound && board.getDraftRound() === board.getTotalRounds()) {
+    serverLog(`Drafting is now complete!`);
+    io.sockets.emit('draft-complete');
+    board.getActivePlayer().setActive(false);
+    board.setStatus('draft-complete');
     regenerateBoardInfo();
     regeneratePlayers();
+    regenerateCharacters();
   }
   else {
-    updatePlayersInfo(updatedPlayers);
+    // On with the draft!
+    if (newRound) {
+      serverLog(`Round ${board.getDraftRound()} completed.`);
+      board.reversePlayersPick();
+      board.resetPick();
+    }
+
+    const currentPlayer = board.getPlayerByPickOrder(board.getPick());
+    const currentClient = clients[currentPlayer.getClientId() - 1];
+
+    // We only need to change active state if the player changes.
+    if (prevPlayer !== currentPlayer) {
+      prevPlayer.setActive(false);
+      currentPlayer.setActive(true);
+
+      updatedPlayers.push({
+        'playerId': currentPlayer.getId(),
+        'isActive': true,
+      });
+      setStatusSingle(currentClient, 'It is your turn! Please choose your next character.', 'primary');
+    }
+
+    updatedPlayers.push({
+      'playerId': prevPlayer.getId(),
+      'isActive': prevPlayer.isActive,
+      'roster_html': renderPlayerRoster(prevPlayer),
+    });
+
+    // If we're at a new round we need to regenerate the player area entirely so
+    // that they reorder. Otherwise just update stuff!
+    if (newRound) {
+      setStatusSingle(currentClient, 'With the new round, it is once again your turn! Choose wisely.', 'primary');
+      regenerateBoardInfo();
+      regeneratePlayers();
+    }
+    else {
+      updatePlayersInfo(updatedPlayers);
+    }
   }
 }
 
