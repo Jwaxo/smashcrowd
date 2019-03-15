@@ -110,6 +110,13 @@ io.on('connection', socket => {
 
     board.addPlayer(player);
 
+    if (!client.getPlayer()) {
+      // If the client doesn't yet have a player, assume they want this one for
+      // now.
+      serverLog(`${client.getLabel()} automatically taking control of player ${player.getName()}`);
+      client.setPlayer(player);
+    }
+
     clients.forEach(client => {
       if (!client.getPlayerId()) {
         setStatusSingle(client, 'Pick a player to draft.');
@@ -178,16 +185,19 @@ io.on('connection', socket => {
     else {
       // We can add the character!
       serverLog(`${client.getLabel()} adding character ${character.getName()}.`);
-      character.setPlayer(player.getId());
+      if (board.getDraftType() !== 'free') {
+        character.setPlayer(player.getId());
+
+        updateCharacters([
+          {
+            'charId' : charId,
+            'disabled': true,
+          }
+        ]);
+      }
       player.addCharacter(character);
 
-      const characterUpdateData = [{
-        'charId' : charId,
-        'disabled': true,
-      }];
-
       advanceDraft();
-      updateCharacters(characterUpdateData);
     }
   });
 
@@ -196,11 +206,10 @@ io.on('connection', socket => {
     // what type of draft we're running.
     const clientPlayer = client.getPlayer();
     const clickedPlayer = board.getPlayerById(playerId);
-    const character = board.getCharacter(charId);
     const character_index = charRound - 1;
 
+    // The user is marking a winner of a round.
     if (board.getGameRound() === charRound) {
-      // The user is marking a winner of a round.
       clickedPlayer.addStat('game_score');
       clickedPlayer.setCharacterState(character_index, 'win');
       board.players.forEach(eachPlayer => {
@@ -211,8 +220,8 @@ io.on('connection', socket => {
       });
       advanceGame();
     }
+    // The user is removing a character from their roster.
     else if (board.getDraftType() === 'free' && clientPlayer.getId() === playerId) {
-      // The user is removing a character from their roster.
       clientPlayer.dropCharacter(character_index);
 
       regeneratePlayers();
