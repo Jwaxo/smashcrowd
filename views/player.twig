@@ -24,7 +24,7 @@
       </div>
 
       <div class="player-score">
-        {% if board.getStatus('game') %}
+        {% if board.getStatus(['game', 'game-complete']) %}
           <h4>Wins: {{ player.getStat('game_score') }}</h4>
         {% endif %}
       </div>

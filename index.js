@@ -420,9 +420,10 @@ function advanceDraft() {
   }
 
   // This boolean tells us if the most recent pick ended the round.
+  // If players count goes evenly into current pick, we have reached a new round.
   const newRound = (board.advancePick() % board.getPlayersCount() === 0);
 
-  // If players count goes evenly into current pick, we have reached a new round.
+  // If our round is new and the pre-advance current round equals the total, end!
   if (newRound && board.getDraftRound() === board.getTotalRounds()) {
     serverLog(`Drafting is now complete!`);
     io.sockets.emit('draft-complete');
@@ -436,6 +437,7 @@ function advanceDraft() {
     // On with the draft!
     if (newRound) {
       serverLog(`Round ${board.getDraftRound()} completed.`);
+      board.advanceDraftRound();
       board.reversePlayersPick();
       board.resetPick();
     }
@@ -476,6 +478,9 @@ function advanceDraft() {
 
 function advanceGame() {
   const round = board.advanceGameRound();
+  if (round > board.getTotalRounds()) {
+    board.setStatus('game-complete');
+  }
 
   // Go through all players and update their rosters.
   regeneratePlayers();

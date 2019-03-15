@@ -52,7 +52,7 @@ class Board {
   }
 
   setTotalRounds(rounds) {
-    this.totalRounds = rounds;
+    this.totalRounds = parseInt(rounds);
   }
   getTotalRounds() {
     return this.totalRounds;
@@ -123,11 +123,14 @@ class Board {
    * Either checks if the status is a particular string or, what it currently is.
    *
    * @param state
-   * @returns {boolean|string}
+   * @returns {boolean|string|array}
    */
   getStatus(state = null) {
-    if (state) {
+    if (typeof state === 'string') {
       return this.status === state;
+    }
+    else if (Array.isArray(state)) {
+      return state.includes(this.status);
     }
     return this.status;
   }

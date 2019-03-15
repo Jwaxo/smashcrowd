@@ -17,6 +17,7 @@
   cursor: pointer;
   flex: 0 0 auto;
   height: rem-calc(50px);
+  overflow: hidden;
   position: relative;
   transition: width .25s;
   width: rem-calc(90px);
