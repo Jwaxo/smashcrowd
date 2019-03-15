@@ -178,12 +178,15 @@ io.on('connection', socket => {
       else {
         character.setPlayer(player.getId());
 
-        updateCharacters({'chars' : [
-          {
-            'charId' : charId,
-            'disabled': true,
-          }
-        ]});
+        updateCharacters({
+          'allDisabled': false,
+          'chars' : [
+            {
+              'charId' : charId,
+              'disabled': true,
+            },
+          ],
+        });
         advanceDraft();
       }
     }

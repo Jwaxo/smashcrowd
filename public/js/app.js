@@ -167,9 +167,10 @@ $(function() {
    * events properly attach.
    */
   function characterSetup(initial = false) {
-    $('.character-grid .character').unbind('click').click((element) => {
+    $('.character-grid:not(.character-grid--disabled) .character').unbind('click').click((element) => {
       const charId = $(element.currentTarget).data('character-id');
       socket.emit('add-character', charId);
+      $('.character-grid').addClass('character-grid--disabled', true);
     });
 
     if (!initial) {
