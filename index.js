@@ -163,7 +163,6 @@ io.on('connection', socket => {
       setStatusSingle(client, 'It is not yet your turn! Please wait.', 'alert');
     }
     else if (board.getDraftType() === 'free' && !player.isActive) {
-      // @todo: for some reason this does not trigger in free draft.
       serverLog(`${client.getLabel()} tried to add ${character.getName()} but has already added maximum characters!`);
       setStatusSingle(client, 'You have reached the maximum number of characters!', 'alert');
     }
@@ -211,7 +210,6 @@ io.on('connection', socket => {
     }
     // The user is removing a character from their roster.
     else if (board.getDraftType() === 'free' && clientPlayer.getId() === playerId) {
-      // @todo: this appeared to not be working anymore. Maybe related to the non-unique character?
       clientPlayer.dropCharacter(character_index);
       // If the draft was marked complete, uncomplete it!
       if (board.getStatus() === 'draft-complete') {

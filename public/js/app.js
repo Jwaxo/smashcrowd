@@ -103,6 +103,7 @@ $(function() {
         $player.find('.player-roster-container').html(player.roster_html);
       }
     }
+    playerSetup();
   });
 
   /**
