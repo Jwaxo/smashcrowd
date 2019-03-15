@@ -168,7 +168,7 @@ io.on('connection', socket => {
    */
   socket.on('add-character', charId => {
     const player = client.getPlayer();
-    const character = board.getCharacter(charId);
+    const character = board.getDraftType() !== 'free' ? board.getCharacter(charId) : new Character(charId, charData.chars[charId]);
 
     if (board.getDraftRound() < 1) {
       serverLog(`${client.getLabel()} tried to add ${character.getName()} but drafting has not started.`);
@@ -178,14 +178,25 @@ io.on('connection', socket => {
       serverLog(`${client.getLabel()} tried to add ${character.getName()} but does not have a player selected!`);
       setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
     }
-    else if (!player.isActive) {
+    else if (board.getDraftType() !== 'free' && !player.isActive) {
       serverLog(`${client.getLabel()} tried to add ${character.getName()} but it is not their turn.`);
       setStatusSingle(client, 'It is not yet your turn! Please wait.', 'alert');
+    }
+    else if (board.getDraftType() === 'free' && !player.isActive) {
+      // @todo: for some reason this does not trigger in free draft.
+      serverLog(`${client.getLabel()} tried to add ${character.getName()} but has already added maximum characters!`);
+      setStatusSingle(client, 'You have reached the maximum number of characters!', 'alert');
     }
     else {
       // We can add the character!
       serverLog(`${client.getLabel()} adding character ${character.getName()}.`);
-      if (board.getDraftType() !== 'free') {
+
+      player.addCharacter(character);
+
+      if (board.getDraftType() === 'free') {
+        advanceFreePick(player);
+      }
+      else {
         character.setPlayer(player.getId());
 
         updateCharacters([
@@ -194,10 +205,8 @@ io.on('connection', socket => {
             'disabled': true,
           }
         ]);
+        advanceDraft();
       }
-      player.addCharacter(character);
-
-      advanceDraft();
     }
   });
 
@@ -222,7 +231,13 @@ io.on('connection', socket => {
     }
     // The user is removing a character from their roster.
     else if (board.getDraftType() === 'free' && clientPlayer.getId() === playerId) {
+      // @todo: this appeared to not be working anymore. Maybe related to the non-unique character?
       clientPlayer.dropCharacter(character_index);
+      // If the draft was marked complete, uncomplete it!
+      if (board.getStatus() === 'draft-complete') {
+        board.setStatus('draft');
+        regenerateBoardInfo();
+      }
 
       regeneratePlayers();
     }
@@ -231,7 +246,17 @@ io.on('connection', socket => {
   socket.on('start-draft', () => {
     serverLog(`${client.getLabel()} started the draft.`);
     board.advanceDraftRound();
-    board.getPlayerByPickOrder(0).setActive(true);
+
+    if (board.getDraftType() === 'free') {
+      const players = board.getPlayers();
+      for (let i = 0; i < players.length; i++) {
+        players[i].setActive(true);
+      }
+    }
+    else {
+      board.getPlayerByPickOrder(0).setActive(true);
+    }
+
     regenerateBoardInfo();
     regenerateCharacters();
     regeneratePlayers();
@@ -306,6 +331,42 @@ function serverLog(message, serverOnly = false) {
 }
 
 /**
+ * Since free pick doesn't have a nice, easy draft count of rounds, we need to
+ * track how many characters each player has added, and update the board info/
+ * state if they've all picked.
+ *
+ * @params {Player} player
+ *  The player that just picked.
+ */
+function advanceFreePick(player) {
+  const updatedPlayers = [];
+  const players = board.getPlayers();
+  let draftComplete = true;
+
+  updatedPlayers.push({
+    'playerId': player.getId(),
+    'roster_html': renderPlayerRoster(player),
+    'isActive': (!board.getTotalRounds() || player.getCharacterCount() < board.getTotalRounds()),
+  });
+
+  updatePlayersInfo(updatedPlayers);
+
+  // If a single player is not yet ready, don't update the board.
+  for (let i = 0; i < players.length; i++) {
+    if (players[i].getCharacterCount() < board.getTotalRounds()) {
+      draftComplete = false;
+
+      break;
+    }
+  }
+
+  if (draftComplete) {
+    board.setStatus('draft-complete');
+    regenerateBoardInfo();
+  }
+}
+
+/**
  * Move to the next active player and do any additional processing.
  */
 function advanceDraft() {
@@ -354,6 +415,8 @@ function advanceDraft() {
       });
       setStatusSingle(currentClient, 'It is your turn! Please choose your next character.', 'primary');
     }
+
+    // @todo: somewhere around here in snake draft, if the first player was automatically assigned, they do not see their first character.
 
     updatedPlayers.push({
       'playerId': prevPlayer.getId(),

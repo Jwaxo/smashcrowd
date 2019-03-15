@@ -4,12 +4,20 @@
 
 <h4>Draft Type: {{ board.getDraftType(true) }}</h4>
 
-{% if board.getGameRound() == 0 and board.getDraftRound() > 0 %}
-  <h4>Draft Round: {{ board.getDraftRound() }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>
-{% elseif board.getGameRound() > 0 %}
-  <h4>Game Round: {{ board.getGameRound() }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>
-{% else %}
+{% if board.getStatus() == 'new' %}
   <h4 class="warning">Waiting to Start Draft</h4>
+{% elseif board.getStatus() == 'draft' %}
+  {% if board.getDraftType() == 'free' %}
+    <h4>Please Draft {% if board.getTotalRounds() %}{{ board.getTotalRounds() }}{% else %}Your{% endif %} Characters</h4>
+  {% else %}
+    <h4>Draft Round: {{ board.getDraftRound() }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>
+  {% endif %}
+{% elseif board.getStatus() == 'draft-complete' %}
+  <h4>Draft Complete!</h4>
+{% elseif board.getStatus() == 'game' %}
+  <h4>Game Round: {{ board.getGameRound() }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>
+{% elseif board.getStatus() == 'game-complete' %}
+  <h4>Game Complete!</h4>
 {% endif %}
 
 <div class="board-options grid-x grid-margin-x">
