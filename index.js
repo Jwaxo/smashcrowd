@@ -200,7 +200,7 @@ io.on('connection', socket => {
     if (board.getGameRound() === charRound) {
       clickedPlayer.addStat('game_score');
       clickedPlayer.setCharacterState(character_index, 'win');
-      board.players.forEach(eachPlayer => {
+      board.getPlayers().forEach(eachPlayer => {
         if (eachPlayer.getId() !== playerId) {
           eachPlayer.addStat('lost_rounds');
           eachPlayer.setCharacterState(character_index, 'loss');
@@ -226,10 +226,9 @@ io.on('connection', socket => {
     board.advanceDraftRound();
 
     if (board.getDraftType() === 'free') {
-      const players = board.getPlayers();
-      for (let i = 0; i < players.length; i++) {
-        players[i].setActive(true);
-      }
+      board.getPlayers().forEach(player => {
+        player.setActive(true);
+      });
     }
     else {
       board.getPlayerByPickOrder(0).setActive(true);
@@ -242,8 +241,19 @@ io.on('connection', socket => {
   });
 
   socket.on('start-game', () => {
+    // @todo: check to see if all character lists are equal before starting.
+    const players = board.getPlayers();
+
+    for (let i = 0; i < players.length; i++) {
+
+    }
+
     serverLog(`${client.getLabel()} started the game.`);
-    board.getActivePlayer().setActive(false);
+
+    board.getPlayers().forEach(player => {
+      player.setActive(false);
+    });
+
     advanceGame();
 
     // We only need to regenerate characters on game start, not every round,
@@ -358,7 +368,6 @@ function advanceFreePick(client) {
   const updatedPlayers = [];
   const players = board.getPlayers();
   const player = client.getPlayer();
-  let draftComplete = true;
 
   player.setActive((!board.getTotalRounds() || player.getCharacterCount() < board.getTotalRounds()));
 
@@ -374,15 +383,14 @@ function advanceFreePick(client) {
   updatePlayersInfo(updatedPlayers);
 
   // If a single player is not yet ready, don't update the board.
-  for (let i = 0; i < players.length; i++) {
-    if (players[i].getCharacterCount() < board.getTotalRounds()) {
-      draftComplete = false;
-
-      break;
+  const draftNotComplete = board.eachPlayer([board.getTotalRounds()], (player, totalRounds) => {
+    if (player.getCharacterCount() < totalRounds) {
+      return true;
     }
-  }
+  });
 
-  if (draftComplete) {
+  if (!draftNotComplete) {
+    console.log('draft completed');
     board.setStatus('draft-complete');
     regenerateBoardInfo();
   }

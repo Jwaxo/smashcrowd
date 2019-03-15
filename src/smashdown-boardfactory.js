@@ -118,7 +118,17 @@ class Board {
       throw "Tried to set nonexistent board status.";
     }
   }
-  getStatus() {
+
+  /**
+   * Either checks if the status is a particular string or, what it currently is.
+   *
+   * @param state
+   * @returns {boolean|string}
+   */
+  getStatus(state = null) {
+    if (state) {
+      return this.status === state;
+    }
     return this.status;
   }
 
@@ -154,9 +164,9 @@ class Board {
     return this.playersPickOrder[currentPick];
   }
   resetPlayers() {
-    for (let i = 0; i < this.players.length; i++) {
-      this.players[i].setCharacters([]);
-    }
+    this.players.forEach(player => {
+      player.setCharacters([]);
+    });
   }
   dropAllPlayers() {
     this.players = [];
@@ -218,6 +228,53 @@ class Board {
       }
     }
     return player;
+  }
+
+  /**
+   * Easy way to run functions for all players on the board with a break and return
+   * value, which normal Array.forEach() functions cannot do.
+   *
+   * Possible forms:
+   *   eachPlayer(callback)
+   *   eachPlayer(args, callback)
+   *   eachPlayer(args, returnValue, callback)
+   *
+   * @param {Array|function} args
+   *   An optional array of arguments to pass to fn.
+   * @param {*} returnValue
+   *   A optional value to be returned by the function. Note that this is also
+   *   measured as a means to break the loop; if this ever returns True, you get
+   *   an early return.
+   * @param {function|null} fn
+   *   The function to run on each Player. If this function returns a truthy value,
+   *   the loop will be broken at that point, and that truthy value will be passed
+   *   back.
+   */
+  eachPlayer(args, returnValue = false, fn = null) {
+    // If the user sent only a function, ensure fn is the function.
+    if (typeof args === 'function' && returnValue === false && fn === null) {
+      fn = args;
+    }
+    // If the user sent args and a function, ensure fn is the function and the
+    // return is the default.
+    else if (Array.isArray(args) && typeof returnValue === 'function' && fn === null) {
+      fn = returnValue;
+      returnValue = false;
+    }
+    for (let i = 0; i < this.players.length; i++) {
+      if (Array.isArray(args)) {
+        returnValue = fn(this.players[i], ...args);
+      }
+      else {
+        returnValue = fn(this.players[i]);
+      }
+
+      if (returnValue) {
+        break;
+      }
+    }
+
+    return returnValue;
   }
 
   /**

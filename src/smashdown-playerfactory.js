@@ -70,7 +70,11 @@ class Player {
     this.stats[stat] = val;
   }
   getStat(stat) {
-    return this.stats[stat];
+    let data = 0;
+    if (this.stats.hasOwnProperty(stat)) {
+      data = this.stats[stat];
+    }
+    return data;
   }
   /**
    *

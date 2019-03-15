@@ -23,6 +23,12 @@
         {% endif %}
       </div>
 
+      <div class="player-score">
+        {% if board.getStatus('game') %}
+          Wins: {{ player.getStat('game_score') }}
+        {% endif %}
+      </div>
+
       <div class="player-roster-container">
         {% include 'player-roster.twig' %}
       </div>
