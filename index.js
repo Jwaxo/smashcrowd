@@ -114,6 +114,7 @@ io.on('connection', socket => {
       // If the client doesn't yet have a player, assume they want this one for
       // now.
       serverLog(`${client.getLabel()} automatically taking control of player ${player.getName()}`);
+      setClientPlayer(client, player);
       client.setPlayer(player);
     }
 
@@ -134,30 +135,9 @@ io.on('connection', socket => {
    */
   socket.on('pick-player', playerId => {
     const player = board.getPlayerById(playerId);
-    const updatedPlayers = [];
 
-    // First remove the current client's player so it's empty again.
-    if (client.getPlayerId() !== null) {
-      const prevPlayer = client.getPlayer();
-      serverLog(`Removing ${client.getColor()(`Client ${client.getId()}`)} from player ${prevPlayer.getName()}`, true);
-      client.setPlayer(null);
-
-      updatedPlayers.push({
-        'playerId': prevPlayer.getId(),
-        'clientId': 0,
-      });
-    }
     serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
-    client.setPlayer(player);
-
-    updatedPlayers.push({
-      'playerId': player.getId(),
-      'clientId': client.getId(),
-      'roster_html': renderPlayerRoster(player),
-    });
-
-    setClientInfoSingle(client);
-    updatePlayersInfo(updatedPlayers);
+    setClientPlayer(client, player);
   });
 
   /**
@@ -331,6 +311,42 @@ function serverLog(message, serverOnly = false) {
 }
 
 /**
+ * Set a Client's Player, then updates the HTML of all clients to match.
+ *
+ * Note that this does not spark a regeneratePlayers, which allows us to do a few
+ * transition animations and such.
+ *
+ * @param {Client} client
+ * @param {Player} player
+ */
+function setClientPlayer(client, player) {
+  const updatedPlayers = [];
+
+  // First remove the current client's player so it's empty again.
+  if (client.getPlayerId() !== null) {
+    const prevPlayer = client.getPlayer();
+    serverLog(`Removing ${client.getColor()(`Client ${client.getId()}`)} from player ${prevPlayer.getName()}`, true);
+    client.setPlayer(null);
+
+    updatedPlayers.push({
+      'playerId': prevPlayer.getId(),
+      'clientId': 0,
+    });
+  }
+
+  client.setPlayer(player);
+
+  updatedPlayers.push({
+    'playerId': player.getId(),
+    'clientId': client.getId(),
+    'roster_html': renderPlayerRoster(player),
+  });
+
+  setClientInfoSingle(client);
+  updatePlayersInfo(updatedPlayers);
+}
+
+/**
  * Since free pick doesn't have a nice, easy draft count of rounds, we need to
  * track how many characters each player has added, and update the board info/
  * state if they've all picked.
@@ -416,22 +432,20 @@ function advanceDraft() {
       setStatusSingle(currentClient, 'It is your turn! Please choose your next character.', 'primary');
     }
 
-    // @todo: somewhere around here in snake draft, if the first player was automatically assigned, they do not see their first character.
-
-    updatedPlayers.push({
-      'playerId': prevPlayer.getId(),
-      'isActive': prevPlayer.isActive,
-      'roster_html': renderPlayerRoster(prevPlayer),
-    });
-
-    // If we're at a new round we need to regenerate the player area entirely so
-    // that they reorder. Otherwise just update stuff!
-    if (newRound) {
+    // If we're at a new round in snake draft we need to regenerate the player
+    // area entirely so that they reorder. Otherwise just update stuff!
+    if (newRound && board.getDraftType() === 'snake') {
       setStatusSingle(currentClient, 'With the new round, it is once again your turn! Choose wisely.', 'primary');
       regenerateBoardInfo();
       regeneratePlayers();
     }
     else {
+      updatedPlayers.push({
+        'playerId': prevPlayer.getId(),
+        'isActive': prevPlayer.isActive,
+        'roster_html': renderPlayerRoster(prevPlayer),
+      });
+
       updatePlayersInfo(updatedPlayers);
     }
   }
@@ -469,6 +483,12 @@ function resetAll(boardData) {
   regenerateCharacters();
 }
 
+/**
+ * Twig renders out the list of characters in a given player's roster.
+ *
+ * @param {Player} player
+ * @returns {string}
+ */
 function renderPlayerRoster(player) {
   let rendered = '';
 
@@ -479,12 +499,22 @@ function renderPlayerRoster(player) {
   return rendered;
 }
 
+/**
+ * Renders the board info and updates all clients with new board info.
+ */
 function regenerateBoardInfo() {
   Twig.renderFile('./views/board-data.twig', {board}, (error, html) => {
     io.sockets.emit('rebuild-boardInfo', html);
   });
 }
 
+/**
+ * Renders the players and updates all clients with new player info.
+ *
+ * @param {boolean} regenerateForm
+ *   Whether or not the "Add Player" form should also be regenerated. Only needed
+ *   when starting a new draft or setting up a new game.
+ */
 function regeneratePlayers(regenerateForm) {
   // The player listing is unique to each client, so we need to rebuild it and
   // send it out individually.
@@ -501,18 +531,33 @@ function regeneratePlayers(regenerateForm) {
   }
 }
 
-function regenerateCharacters() {
+/**
+ * Renders the character select screen and updates all clients with new char info.
+ */
+ function regenerateCharacters() {
   Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
     io.sockets.emit('rebuild-characters', html);
   });
 }
 
-function regenerateChatSingle(socket) {
+/**
+ * Renders the players and updates all clients with new player info.
+ */
+ function regenerateChatSingle(socket) {
   Twig.renderFile('./views/chat-container.twig', {chatHistory}, (error, html) => {
     socket.emit('rebuild-chat', html);
   });
 }
 
+/**
+ * Sends client info to that client.
+ *
+ * Since Clients contain socket information, we need to remove that prior to
+ * passing, or else the whole app will crash.
+ *
+ * @param {Client} socketClient
+ *   The Client object with socket information attached.
+ */
 function setClientInfoSingle(socketClient) {
   const client = cleanClient(socketClient);
   // Make sure to clean client before sending it.
