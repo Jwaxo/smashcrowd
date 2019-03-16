@@ -1,4 +1,3 @@
-
 const socketio = require('socket.io');
 const http = require('http');
 const express = require('express');
@@ -65,6 +64,19 @@ server.listen(port, () => {
   console.log(`Listening on ${port}`);
 });
 
+
+// Vue testing
+// io.on('connection', socket => {
+//   console.log('User has connected');
+//   socket.on('disconnect', () => {
+//     console.log('User has disconnected');
+//   });
+//
+//   socket.on('add-player', playerName => {
+//     io.sockets.emit('add-player', playerName);
+//   })
+// });
+
 /**
  * Handling of individual sockets as they remain connected.
  * Creates a Client to track the user at the socket, which is then used for all
@@ -72,11 +84,6 @@ server.listen(port, () => {
  */
 io.on('connection', socket => {
   serverLog(`New connection established with hash ${socket.id}`, true);
-
-  // Vue testing
-  // socket.send(socket.id);
-  // console.log(socket.id);
-  io.sockets.emit('customVueEvent', socket.id);
 
   const randomColor = Math.floor(Math.random() * (console_colors.length));
 
@@ -102,10 +109,6 @@ io.on('connection', socket => {
       setStatusSingle(client, 'Pick a player to draft.')
     }
   }
-
-  socket.on('customVueEvent', data => {
-    console.log(`${data} is sent.`);
-  });
 
   /**
    * The client has created a player for the roster.

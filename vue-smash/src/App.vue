@@ -13,8 +13,8 @@
       </button>
       <button
         class="button"
-        :class="{ disabled: !draftAvailable || draftStarted}"
-        :disabled="!draftAvailable && draftStarted"
+        :class="{ disabled: !draftAvailable || roomState.draftStarted}"
+        :disabled="!draftAvailable && roomState.draftStarted"
         @click="shufflePlayers"
         title="Randomizes the player order. This option will disappear after picking has begun."
       >
@@ -23,7 +23,7 @@
       <button
         class="button"
         title="Begin the drafting process."
-        :class="{ disabled: !draftAvailable || draftStarted}"
+        :class="{ disabled: !draftAvailable || roomState.draftStarted}"
         :disabled="!draftAvailable"
         @click="startDraft"
       >
@@ -33,17 +33,17 @@
 
     // Form list area
     <template v-slot:player-form>
-      <h1>Is connected? {{ isConnected }}</h1>
-      <h2>Socket ID: {{ socketId }}</h2>
       <form
         class="player-add-form"
         @submit.prevent="addPlayer"
       >
         <input
-          v-model="newPlayer"
+          v-model="playerName"
           class="player-add"
           type="text"
-          placeholder="Add a new player">
+          placeholder="Add a new player"
+          :disabled="inputDisabled"
+        >
         <span>Players: {{playerCount}}</span>
       </form>
     </template>
@@ -52,15 +52,14 @@
     <template v-slot:players-list>
       <div
         class="cell small-2 medium-3 large-auto"
-        v-for="player in players"
+        v-for="player in roomState.players"
         :key="player.name"
         @click="activePlayer = player.name"
       >
         <Player
           :is-owned="ownedPlayer === player.name"
-          :is-active="activePlayer === player.name"
+          :is-active="roomState.activePlayer === player.name"
           :name="player.name"
-          @own-player="setOwnedPlayer"
         >
           <div v-if="!player.characters.length" class="add-character"></div>
 
@@ -80,7 +79,7 @@
     <template v-slot:characters>
       <div
         class="character-grid"
-        :class="{'character-grid--disabled': !draftStarted}"
+        :class="{'character-grid--disabled': !roomState.draftStarted}"
       >
 
         <Character
@@ -88,7 +87,7 @@
           :key="`character-${char.name}`"
           :name="char.name"
           :image="char.image"
-          @click.native="draftStarted && addCharToPlayer(char.name)"
+          @click.native="roomState.draftStarted && addCharToPlayer(char.name)"
         />
 
       </div>
@@ -98,7 +97,7 @@
 </template>
 
 <script>
-  import shuffle from 'lodash/shuffle';
+  import set from 'lodash/set';
 
   import Page from './Page';
   import Player from './components/Player';
@@ -109,24 +108,18 @@
     name: 'app',
     methods: {
       addPlayer() {
-        // Add new player
-        this.players.push({
-          name: this.newPlayer,
-          characters: [],
-          owned: false,
-        });
-        // Set each new player to active
-        this.activePlayer = this.newPlayer;
-        // Also, set new player to be "owned" by current user
-        this.setOwnedPlayer(this.newPlayer);
-        // Wipe input field
-        this.newPlayer = '';
-      },
-      setOwnedPlayer(name) {
-        this.ownedPlayer = name;
+        // Tell everyone
+        this.emitSocket('PLAYER_ADD', this.playerName);
+
+        // Retrieve localstorage
+        const history = JSON.parse(localStorage.getItem('smashcrowd')) || {};
+        // Update player name for this room
+        set(history, `${this.room}.playerName`, this.playerName);
+        // Set player name for this room in localstorage
+        localStorage.setItem('smashcrowd', JSON.stringify(history));
       },
       shufflePlayers() {
-        this.players = shuffle(this.players);
+        this.emitSocket('PLAYERS_SHUFFLE');
       },
       addCharToPlayer(charName) {
         // Find char object
@@ -148,34 +141,51 @@
           : this.players[playerIndex + 1].name;
       },
       startDraft() {
-        this.draftStarted = true;
-        this.activePlayer = this.players[0].name;
+        this.emitSocket('DRAFT_START');
       },
       resetBoard() {
-        this.allCharacters = allCharacters.chars;
-        this.players = [];
-        this.draftStarted = false;
+        this.emitSocket('ROOM_RESET');
       },
+      emitSocket(event, payload) {
+        this.$socket.emit(event, {
+          room: this.room,
+          payload,
+        });
+      },
+    },
+    mounted() {
+      const history = JSON.parse(localStorage.getItem('smashcrowd'));
+      // Restore player name for this room
+      if (history && history[this.room]) {
+        this.playerName = history[this.room].playerName;
+      }
     },
     computed: {
       draftAvailable() {
-        return !!this.players.length;
+        return this.roomState.players && this.roomState.players.length;
       },
       playerCount() {
-        return this.players.length;
+        return this.roomState.players && this.roomState.players.length;
       },
+      // Player has already chosen name
+      inputDisabled() {
+        return this.roomState.players
+          && this.roomState.players.find(({ name }) => name === this.playerName);
+      },
+      ownedPlayer() {
+        const player = this.roomState.players
+          && this.roomState.players.find(({ name }) => name === this.playerName);
+
+        return player ? player.name : '';
+      }
     },
     data() {
       return {
-        newPlayer: '',
-        activePlayer: '',
-        ownedPlayer: '',
-        draftStarted: false,
+        playerName: '',
         allCharacters: allCharacters.chars,
-        players: [],
-        // Sockets testing
-        isConnected: false,
-        socketId: '',
+
+        room: 'awesome-superb-penguin',
+        roomState: {},
       };
     },
     components: {
@@ -185,10 +195,10 @@
     },
     sockets: {
       connect() {
-        this.isConnected = true;
+        this.emitSocket('ROOM_JOIN', this.room);
       },
-      customVueEvent(id) {
-        this.socketId = id;
+      ROOM_STATE(roomState) {
+        this.roomState = roomState;
       },
     }
   }

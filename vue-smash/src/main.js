@@ -5,7 +5,7 @@ import VueSocketIO from 'vue-socket.io';
 // Sockets set up
 Vue.use(new VueSocketIO({
   debug: true,
-  connection: 'http://localhost:8080',
+  connection: 'http://localhost:3000',
 }));
 
 Vue.config.productionTip = false;
