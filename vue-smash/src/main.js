@@ -1,6 +1,8 @@
 import Vue from 'vue';
-import App from './App.vue';
 import VueSocketIO from 'vue-socket.io';
+
+import App from './App.vue';
+import router from './router';
 
 // Sockets set up
 Vue.use(new VueSocketIO({
@@ -8,8 +10,10 @@ Vue.use(new VueSocketIO({
   connection: 'http://localhost:3000',
 }));
 
+
 Vue.config.productionTip = false;
 
 new Vue({
+  router,
   render: h => h(App),
 }).$mount('#app');

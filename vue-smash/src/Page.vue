@@ -4,6 +4,7 @@
       <div class="cell medium-6 large-4">
         <h1>SmashCrowd</h1>
         <p>Draft your next online Smashdown!</p>
+        <router-view></router-view>
       </div>
 
       <div class="cell medium-6 large-8 text-right">
