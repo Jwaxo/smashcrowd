@@ -64,19 +64,6 @@ server.listen(port, () => {
   console.log(`Listening on ${port}`);
 });
 
-
-// Vue testing
-// io.on('connection', socket => {
-//   console.log('User has connected');
-//   socket.on('disconnect', () => {
-//     console.log('User has disconnected');
-//   });
-//
-//   socket.on('add-player', playerName => {
-//     io.sockets.emit('add-player', playerName);
-//   })
-// });
-
 /**
  * Handling of individual sockets as they remain connected.
  * Creates a Client to track the user at the socket, which is then used for all
