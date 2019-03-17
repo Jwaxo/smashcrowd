@@ -1,0 +1,304 @@
+{
+  "chars": [
+    {
+      "name": "Mario",
+      "image": "https://ssbworld.com/images/chart/su/mario.png"
+    },
+    {
+      "name": "Donkey Kong",
+      "image": "https://ssbworld.com/images/chart/su/donkey_kong.png"
+    },
+    {
+      "name": "Link",
+      "image": "https://ssbworld.com/images/chart/su/link.png"
+    },
+    {
+      "name": "Samus",
+      "image": "https://ssbworld.com/images/chart/su/samus.png"
+    },
+    {
+      "name": "Dark Samus",
+      "image": "https://ssbworld.com/images/chart/su/dark_samus.png"
+    },
+    {
+      "name": "Yoshi",
+      "image": "https://ssbworld.com/images/chart/su/yoshi.png"
+    },
+    {
+      "name": "Kirby",
+      "image": "https://ssbworld.com/images/chart/su/kirby.png"
+    },
+    {
+      "name": "Fox",
+      "image": "https://ssbworld.com/images/chart/su/fox.png"
+    },
+    {
+      "name": "Pikachu",
+      "image": "https://ssbworld.com/images/chart/su/pikachu.png"
+    },
+    {
+      "name": "Luigi",
+      "image": "https://ssbworld.com/images/chart/su/luigi.png"
+    },
+    {
+      "name": "Ness",
+      "image": "https://ssbworld.com/images/chart/su/ness.png"
+    },
+    {
+      "name": "Captain Falcon",
+      "image": "https://ssbworld.com/images/chart/su/captain_falcon.png"
+    },
+    {
+      "name": "Jigglypuff",
+      "image": "https://ssbworld.com/images/chart/su/jigglypuff.png"
+    },
+    {
+      "name": "Peach",
+      "image": "https://ssbworld.com/images/chart/su/peach.png"
+    },
+    {
+      "name": "Daisy",
+      "image": "https://ssbworld.com/images/chart/su/daisy.png"
+    },
+    {
+      "name": "Bowser",
+      "image": "https://ssbworld.com/images/chart/su/bowser.png"
+    },
+    {
+      "name": "Ice Climbers",
+      "image": "https://ssbworld.com/images/chart/su/ice_climbers.png"
+    },
+    {
+      "name": "Sheik",
+      "image": "https://ssbworld.com/images/chart/su/sheik.png"
+    },
+    {
+      "name": "Zelda",
+      "image": "https://ssbworld.com/images/chart/su/zelda.png"
+    },
+    {
+      "name": "Dr. Mario",
+      "image": "https://ssbworld.com/images/chart/su/dr_mario.png"
+    },
+    {
+      "name": "Pichu",
+      "image": "https://ssbworld.com/images/chart/su/pichu.png"
+    },
+    {
+      "name": "Falco",
+      "image": "https://ssbworld.com/images/chart/su/falco.png"
+    },
+    {
+      "name": "Marth",
+      "image": "https://ssbworld.com/images/chart/su/marth.png"
+    },
+    {
+      "name": "Lucina",
+      "image": "https://ssbworld.com/images/chart/su/lucina.png"
+    },
+    {
+      "name": "Young Link",
+      "image": "https://ssbworld.com/images/chart/su/young_link.png"
+    },
+    {
+      "name": "Ganondorf",
+      "image": "https://ssbworld.com/images/chart/su/ganondorf.png"
+    },
+    {
+      "name": "Mewtwo",
+      "image": "https://ssbworld.com/images/chart/su/mewtwo.png"
+    },
+    {
+      "name": "Roy",
+      "image": "https://ssbworld.com/images/chart/su/roy.png"
+    },
+    {
+      "name": "Chrom",
+      "image": "https://ssbworld.com/images/chart/su/chrom.png"
+    },
+    {
+      "name": "Mr. Game & Watch",
+      "image": "https://ssbworld.com/images/chart/su/mr_game_and_watch.png"
+    },
+    {
+      "name": "Meta Knight",
+      "image": "https://ssbworld.com/images/chart/su/meta_knight.png"
+    },
+    {
+      "name": "Pit",
+      "image": "https://ssbworld.com/images/chart/su/pit.png"
+    },
+    {
+      "name": "Dark Pit",
+      "image": "https://ssbworld.com/images/chart/su/dark_pit.png"
+    },
+    {
+      "name": "Zero Suit Samus",
+      "image": "https://ssbworld.com/images/chart/su/zero_suit_samus.png"
+    },
+    {
+      "name": "Wario",
+      "image": "https://ssbworld.com/images/chart/su/wario.png"
+    },
+    {
+      "name": "Snake",
+      "image": "https://ssbworld.com/images/chart/su/snake.png"
+    },
+    {
+      "name": "Ike",
+      "image": "https://ssbworld.com/images/chart/su/ike.png"
+    },
+    {
+      "name": "Pokémon Trainer",
+      "image": "https://ssbworld.com/images/chart/su/pokemon_trainer.png"
+    },
+    {
+      "name": "Diddy Kong",
+      "image": "https://ssbworld.com/images/chart/su/diddy_kong.png"
+    },
+    {
+      "name": "Lucas",
+      "image": "https://ssbworld.com/images/chart/su/lucas.png"
+    },
+    {
+      "name": "Sonic",
+      "image": "https://ssbworld.com/images/chart/su/sonic.png"
+    },
+    {
+      "name": "King Dedede",
+      "image": "https://ssbworld.com/images/chart/su/king_dedede.png"
+    },
+    {
+      "name": "Olimar",
+      "image": "https://ssbworld.com/images/chart/su/C.png"
+    },
+    {
+      "name": "Lucario",
+      "image": "https://ssbworld.com/images/chart/su/lucario.png"
+    },
+    {
+      "name": "R.O.B.",
+      "image": "https://ssbworld.com/images/chart/su/rob.png"
+    },
+    {
+      "name": "Toon Link",
+      "image": "https://ssbworld.com/images/chart/su/toon_link.png"
+    },
+    {
+      "name": "Wolf",
+      "image": "https://ssbworld.com/images/chart/su/wolf.png"
+    },
+    {
+      "name": "Villager",
+      "image": "https://ssbworld.com/images/chart/su/villager.png"
+    },
+    {
+      "name": "Mega Man",
+      "image": "https://ssbworld.com/images/chart/su/mega_man.png"
+    },
+    {
+      "name": "Wii Fit Trainer",
+      "image": "https://ssbworld.com/images/chart/su/wii_fit_trainer.png"
+    },
+    {
+      "name": "Rosalina & Luma",
+      "image": "https://ssbworld.com/images/chart/su/rosalina_and_luma.png"
+    },
+    {
+      "name": "Little Mac",
+      "image": "https://ssbworld.com/images/chart/su/little_mac.png"
+    },
+    {
+      "name": "Greninja",
+      "image": "https://ssbworld.com/images/chart/su/greninja.png"
+    },
+    {
+      "name": "Palutena",
+      "image": "https://ssbworld.com/images/chart/su/palutena.png"
+    },
+    {
+      "name": "PAC-Man",
+      "image": "https://ssbworld.com/images/chart/su/pac_man.png"
+    },
+    {
+      "name": "Robin",
+      "image": "https://ssbworld.com/images/chart/su/robin.png"
+    },
+    {
+      "name": "Shulk",
+      "image": "https://ssbworld.com/images/chart/su/shulk.png"
+    },
+    {
+      "name": "Bowser Jr.",
+      "image": "https://ssbworld.com/images/chart/su/bowser_jr.png"
+    },
+    {
+      "name": "Duck Hunt",
+      "image": "https://ssbworld.com/images/chart/su/duck_hunt.png"
+    },
+    {
+      "name": "Ryu",
+      "image": "https://ssbworld.com/images/chart/su/ryu.png"
+    },
+    {
+      "name": "Ken",
+      "image": "https://ssbworld.com/images/chart/su/ken.png"
+    },
+    {
+      "name": "Cloud",
+      "image": "https://ssbworld.com/images/chart/su/cloud.png"
+    },
+    {
+      "name": "Corrin",
+      "image": "https://ssbworld.com/images/chart/su/corrin.png"
+    },
+    {
+      "name": "Bayonetta",
+      "image": "https://ssbworld.com/images/chart/su/bayonetta.png"
+    },
+    {
+      "name": "Inkling",
+      "image": "https://ssbworld.com/images/chart/su/inkling.png"
+    },
+    {
+      "name": "Ridley",
+      "image": "https://ssbworld.com/images/chart/su/ridley.png"
+    },
+    {
+      "name": "Simon",
+      "image": "https://ssbworld.com/images/chart/su/simon.png"
+    },
+    {
+      "name": "Richter",
+      "image": "https://ssbworld.com/images/chart/su/richter.png"
+    },
+    {
+      "name": "King K. Rool",
+      "image": "https://ssbworld.com/images/chart/su/king_k_rool.png"
+    },
+    {
+      "name": "Isabelle",
+      "image": "https://ssbworld.com/images/chart/su/isabelle.png"
+    },
+    {
+      "name": "Incineroar",
+      "image": "https://ssbworld.com/images/chart/su/incineroar.png"
+    },
+    {
+      "name": "Piranha Plant",
+      "image": "https://ssbworld.com/images/chart/su/piranha_plant.png"
+    },
+    {
+      "name": "Mii Brawler",
+      "image": "https://ssbworld.com/images/chart/su/mii_brawler.png"
+    },
+    {
+      "name": "Mii Swordfighter",
+      "image": "https://ssbworld.com/images/chart/su/mii_swordfighter.png"
+    },
+    {
+      "name": "Mii Gunner",
+      "image": "https://ssbworld.com/images/chart/su/mii_gunner.png"
+    }
+  ]
+}

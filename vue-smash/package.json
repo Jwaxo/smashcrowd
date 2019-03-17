@@ -2,15 +2,19 @@
   "name": "vue-smash",
   "version": "0.1.0",
   "private": true,
+  "main": "server.js",
   "scripts": {
+    "start": "concurrently \"nodemon .\" \"npm run serve\" ",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "express": "^4.16.4",
     "foundation-sites": "^6.5.3",
     "lodash": "^4.17.11",
     "motion-ui": "^2.0.3",
+    "socket.io": "^2.2.0",
     "unique-names-generator": "^2.0.1",
     "vue": "^2.6.6",
     "vue-router": "^3.0.2",
@@ -21,9 +25,11 @@
     "@vue/cli-plugin-eslint": "^3.5.0",
     "@vue/cli-service": "^3.5.0",
     "babel-eslint": "^10.0.1",
+    "concurrently": "^4.1.0",
     "eslint": "^5.8.0",
     "eslint-plugin-vue": "^5.0.0",
     "node-sass": "^4.11.0",
+    "nodemon": "^1.18.10",
     "sass-loader": "^7.1.0",
     "vue-template-compiler": "^2.5.21"
   },

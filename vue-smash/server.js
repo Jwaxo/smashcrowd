@@ -14,6 +14,8 @@ const PORT = 3000;
 
 // Express stuff
 app.use(express.static(__dirname + '/public'));
+
+// @TODO: change to serve vue build dir
 app.get('/', function(req, res){
   res.send('<h1>Hello world</h1>');
 });
