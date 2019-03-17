@@ -63,6 +63,7 @@
           :is-owned="ownedPlayer === player.name"
           :is-active="roomState.activePlayer === player.name"
           :name="player.name"
+          @own-player="ownPlayer"
         >
           <div v-if="!player.characters.length" class="add-character"></div>
 
@@ -101,11 +102,11 @@
 
 <script>
   import set from 'lodash/set';
-  import { uniqueNamesGenerator } from 'unique-names-generator';
+  import { uniqueNamesGenerator } from 'unique-names-generator/dist/index';
 
   import Page from './Page';
-  import Player from './components/Player';
-  import Character from './components/Character';
+  import Player from './Player';
+  import Character from './Character';
 
   export default {
     name: 'Board',
@@ -132,6 +133,9 @@
       },
       startDraft() {
         this.emitSocket('DRAFT_START');
+      },
+      ownPlayer(name) {
+        this.playerName = name;
       },
       resetBoard() {
         this.emitSocket('ROOM_RESET');
@@ -207,5 +211,5 @@
 </script>
 
 <style lang="scss">
-  @import 'assets/scss/app';
+  @import '../assets/scss/app';
 </style>

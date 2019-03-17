@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
 
-import Board from './Board.vue';
+import Board from './components/Board.vue';
 
 Vue.use(VueRouter);
 
