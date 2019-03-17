@@ -8,6 +8,8 @@ const app = express();
 const server = http.Server(app);
 const io = socketio(server);
 
+const characters = require('./lib/chars').chars;
+
 const PORT = 3000;
 
 // Express stuff
@@ -32,9 +34,10 @@ io.sockets.on('connection', socket => {
     // Create room if joining first time
     if (!state[room]) {
       state[room] = {
-        players: [],
-        draftStarted: false,
         activePlayer: '',
+        draftStarted: false,
+        players: [],
+        characters,
       };
     }
     // Join and emit back to current socket the room state
@@ -70,6 +73,7 @@ io.sockets.on('connection', socket => {
   socket.on('ROOM_RESET', ({ room }) => {
     state[room].players = [];
     state[room].draftStarted = false;
+    state[room].characters = characters;
 
     io.sockets.in(room).emit('ROOM_STATE', state[room]);
   });
@@ -79,6 +83,35 @@ io.sockets.on('connection', socket => {
   socket.on('DRAFT_START', ({ room }) => {
     state[room].draftStarted = true;
     state[room].activePlayer = state[room].players[0].name;
+
+    io.sockets.in(room).emit('ROOM_STATE', state[room]);
+  });
+  /**
+   *
+   * Add char to player
+   */
+  socket.on('PLAYER_ADD_CHARACTER', ({ room, payload}) => {
+    const { charName, playerName } = payload;
+    const characters = state[room].characters;
+
+    // Find char
+    const char = characters.find(({ name }) => name === charName);
+    // Add char to player
+    state[room].players
+      .find(({ name }) => name === playerName)
+      .characters.push(char);
+    // Overwrite characters, removing selected char
+    state[room].characters = characters.filter(({ name }) => name !== charName);
+
+    // Set next active player
+    const playerIndex = state[room].players
+      .findIndex(({ name }) => name === state[room].activePlayer);
+    // If last in array
+    state[room].activePlayer = playerIndex === state[room].players.length - 1
+      // then jump to first player
+      ? state[room].players[0].name
+      // otherwise next index in array
+      : state[room].players[playerIndex + 1].name;
 
     io.sockets.in(room).emit('ROOM_STATE', state[room]);
   });

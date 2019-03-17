@@ -44,8 +44,10 @@
           placeholder="Add a new player"
           :disabled="inputDisabled"
         >
-        <span>Players: {{playerCount}}</span>
       </form>
+      <div v-if="isActivePlayer && roomState.draftStarted" class="callout success">
+        <h5>It is your turn!</h5>
+      </div>
     </template>
 
     // List of players
@@ -79,15 +81,15 @@
     <template v-slot:characters>
       <div
         class="character-grid"
-        :class="{'character-grid--disabled': !roomState.draftStarted}"
+        :class="{'character-grid--disabled': !roomState.draftStarted || !isActivePlayer}"
       >
 
         <Character
-          v-for="char in allCharacters"
+          v-for="char in roomState.characters"
           :key="`character-${char.name}`"
           :name="char.name"
           :image="char.image"
-          @click.native="roomState.draftStarted && addCharToPlayer(char.name)"
+          @click.native="isActivePlayer && roomState.draftStarted && addCharToPlayer(char.name)"
         />
 
       </div>
@@ -102,7 +104,6 @@
   import Page from './Page';
   import Player from './components/Player';
   import Character from './components/Character';
-  import allCharacters from '../../lib/chars';
 
   export default {
     name: 'app',
@@ -122,23 +123,10 @@
         this.emitSocket('PLAYERS_SHUFFLE');
       },
       addCharToPlayer(charName) {
-        // Find char object
-        const char = this.allCharacters.find(({name}) => name === charName);
-        // Add it to end of active player's characters array
-        this.players.find(({name}) => name === this.activePlayer).characters.push(char);
-        // Remove char from full roster
-        this.allCharacters = this.allCharacters.filter(({name}) => name !== charName);
-        // Jump to next player
-        this.setNextActivePlayer();
-      },
-      setNextActivePlayer() {
-        const playerIndex = this.players.findIndex(p => p.name === this.activePlayer);
-        // If last in array
-        this.activePlayer = playerIndex === this.playerCount - 1
-          // then jump to first player
-          ? this.players[0].name
-          // otherwise next index in array
-          : this.players[playerIndex + 1].name;
+        this.emitSocket('PLAYER_ADD_CHARACTER', {
+          charName,
+          playerName: this.playerName,
+        });
       },
       startDraft() {
         this.emitSocket('DRAFT_START');
@@ -154,6 +142,7 @@
       },
     },
     mounted() {
+      // Pull player name for this room from localstorage
       const history = JSON.parse(localStorage.getItem('smashcrowd'));
       // Restore player name for this room
       if (history && history[this.room]) {
@@ -162,30 +151,33 @@
     },
     computed: {
       draftAvailable() {
-        return this.roomState.players && this.roomState.players.length;
-      },
-      playerCount() {
-        return this.roomState.players && this.roomState.players.length;
+        return this.roomState.players.length;
       },
       // Player has already chosen name
       inputDisabled() {
         return this.roomState.players
-          && this.roomState.players.find(({ name }) => name === this.playerName);
+          .find(({ name }) => name === this.playerName);
       },
       ownedPlayer() {
         const player = this.roomState.players
-          && this.roomState.players.find(({ name }) => name === this.playerName);
+          .find(({ name }) => name === this.playerName);
 
         return player ? player.name : '';
-      }
+      },
+      isActivePlayer() {
+        return this.playerName === this.roomState.activePlayer;
+      },
     },
     data() {
       return {
         playerName: '',
-        allCharacters: allCharacters.chars,
-
         room: 'awesome-superb-penguin',
-        roomState: {},
+        roomState: {
+          players: [],
+          characters: [],
+          activePlayer: '',
+          draftStarted: false,
+        },
       };
     },
     components: {
