@@ -136,10 +136,19 @@ io.on('connection', socket => {
    * from a prior player (if there was one), before regenerating player area.
    */
   socket.on('pick-player', playerId => {
+    serverLog(`${client.getLabel()} looking for ${playerId}`, true);
     const player = board.getPlayerById(playerId);
 
-    serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
-    setClientPlayer(client, player);
+    if (player && !player.getClientId()) {
+      serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
+      setClientPlayer(client, player);
+    }
+    else if (player) {
+      serverLog(`${playerId} already occupied, not assigned`, true);
+    }
+    else {
+      serverLog(`${playerId} does not exist, not assigned`, true);
+    }
   });
 
   /**

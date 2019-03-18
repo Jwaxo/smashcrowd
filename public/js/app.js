@@ -9,8 +9,18 @@ $(function() {
   playerFormSetup(true);
   boardSetup(true);
 
+  /**
+   * We've been registered as a new connection.
+   */
   socket.on('set-client', newClient => {
     client = newClient;
+    const playerId = parseInt(localStorage.getItem(client.playerStorage));
+
+    // Check for a playerId cookie for this specific game board. Since cookies
+    // are strings, this will return TRUE even if '0'.
+    if (playerId !== null) {
+      socket.emit('pick-player', playerId);
+    }
   });
 
   socket.on('rebuild-players', html => {
@@ -184,12 +194,12 @@ $(function() {
   function playerSetup(initial = false) {
     if (client.playerId !== null) {
       const $player = $('.player[data-player-id="' + client.playerId + '"]');
-      setPlayerCurrent($player);
+      setPlayerCurrent($player, client.playerId);
     }
 
     $('.player-picker').unbind('click').click(element => {
       const playerId = $(element.currentTarget).data('player-pick-id');
-      socket.emit('pick-player', playerId);
+      pickPlayer(playerId);
     });
 
     $('.player .character').unbind('click').click(element => {
@@ -247,12 +257,21 @@ $(function() {
     }
   }
 
+  function pickPlayer(playerId) {
+    localStorage.setItem(client.playerStorage, playerId);
+    socket.emit('pick-player', playerId);
+  }
+
   /**
    * Does some setup for if a player is current, since the browser is holding
    * client information.
    * @param $player
+   *   jQuery object of the player box.
+   * @param {integer} playerId
+   *   The player ID.
    */
-  function setPlayerCurrent($player) {
+  function setPlayerCurrent($player, playerId) {
+    localStorage.setItem(client.playerStorage, playerId);
     $player.addClass('player--current');
     $player.find('.player-picker').addClass('hollow').html('This is you');
   }
@@ -264,6 +283,6 @@ $(function() {
   function removePlayerCurrent($player) {
     $player.removeClass('player--current');
     $player.find('.player-picker').removeClass('hollow').html('Be This Player');
-
   }
+
 });

@@ -8,6 +8,7 @@ class Client {
     this.color = null;
     this.player = null;
     this.playerId = null;
+    this.playerStorage = '';
 
     this.setGameId(gameId);
 
@@ -60,6 +61,8 @@ class Client {
     else {
       this.playerId = null;
     }
+
+    this.updatePlayerStorage();
   }
   getPlayer() {
     return this.player
@@ -81,11 +84,18 @@ class Client {
 
   setGameId(gameId) {
     this.gameId = gameId;
+    this.updatePlayerStorage();
   }
   getGameId() {
     return this.gameId;
   }
 
+  updatePlayerStorage() {
+    return this.playerStorage = 'smashcrowd-' + this.getGameId();
+  }
+  getPlayerCookie() {
+    return this.playerStorage;
+  }
 
 }
 
