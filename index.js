@@ -37,12 +37,7 @@ const board = new Board(1, {'draftType': 'snake'});
 serverLog(`New game board generated with ID ${board.getGameId()}`, true);
 
 // Load characters from the character data file.
-const charData = require('./lib/chars.json');
-
-// Process characters.
-for (let i = 0; i < charData.chars.length; i++) {
-  board.addCharacter(new Character(i, charData.chars[i]));
-}
+board.buildAllCharacters(require('./lib/chars.json'));
 
 // Do basic server setup stuff.
 app.use(express.static(__dirname + '/public'));
@@ -136,18 +131,20 @@ io.on('connection', socket => {
    * from a prior player (if there was one), before regenerating player area.
    */
   socket.on('pick-player', playerId => {
-    serverLog(`${client.getLabel()} looking for ${playerId}`, true);
-    const player = board.getPlayerById(playerId);
+    if (playerId !== null) {
+      serverLog(`${client.getLabel()} looking for ${playerId}`, true);
+      const player = board.getPlayerById(playerId);
 
-    if (player && !player.getClientId()) {
-      serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
-      setClientPlayer(client, player);
-    }
-    else if (player) {
-      serverLog(`${playerId} already occupied, not assigned`, true);
-    }
-    else {
-      serverLog(`${playerId} does not exist, not assigned`, true);
+      if (player && !player.getClientId()) {
+        serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
+        setClientPlayer(client, player);
+      }
+      else if (player) {
+        serverLog(`${playerId} already occupied, not assigned`, true);
+      }
+      else {
+        serverLog(`${playerId} does not exist, not assigned`, true);
+      }
     }
   });
 

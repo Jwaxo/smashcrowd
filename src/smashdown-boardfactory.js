@@ -1,6 +1,9 @@
 /**
  * Information and methods used for a drafting board.
  */
+
+const Character = require('./smashdown-characterfactory.js');
+
 class Board {
   constructor(boardId, options) {
     this.boardId = boardId;
@@ -281,6 +284,14 @@ class Board {
     }
 
     return returnValue;
+  }
+
+  buildAllCharacters(charData) {
+    // Start by adding the "no pick" option.
+    // Process characters from library.
+    for (let i = 1; i < charData.chars.length; i++) {
+      this.addCharacter(new Character(i, charData.chars[i]));
+    }
   }
 
   /**
