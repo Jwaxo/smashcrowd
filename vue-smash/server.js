@@ -1,8 +1,11 @@
+/* eslint-disable no-console */
+const path = require('path');
 const _ = require('lodash');
 
 const express = require('express');
 const http = require('http');
 const socketio = require('socket.io');
+const history = require('connect-history-api-fallback');
 
 const app = express();
 const server = http.Server(app);
@@ -12,13 +15,14 @@ const characters = require('./lib/chars').chars;
 
 const PORT = 3000;
 
-// Express stuff
-app.use(express.static(__dirname + '/public'));
+// Express serving static, built version of Vue app
+const staticMiddleware = express.static(path.join(__dirname, 'dist'));
+app.use(staticMiddleware);
+app.use(history());
+app.use(staticMiddleware);
+// `app.use(staticMiddleware)` is included twice per:
+// https://github.com/bripkens/connect-history-api-fallback/blob/master/examples/static-files-and-index-rewrite/README.md#configuring-the-middleware
 
-// @TODO: change to serve vue build dir
-app.get('/', function(req, res){
-  res.send('<h1>Hello world</h1>');
-});
 server.listen(PORT, function(){
   console.log(`Listening on *:${PORT}`);
 });
