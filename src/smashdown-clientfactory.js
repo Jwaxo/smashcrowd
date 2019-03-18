@@ -2,12 +2,14 @@
  * Information and methods used for an individual user connection.
  */
 class Client {
-  constructor(socket) {
+  constructor(socket, gameId) {
     this.id = 0;
     this.socket = socket;
     this.color = null;
     this.player = null;
     this.playerId = null;
+
+    this.setGameId(gameId);
 
     return this;
   }
@@ -76,6 +78,14 @@ class Client {
     }
     return label;
   }
+
+  setGameId(gameId) {
+    this.gameId = gameId;
+  }
+  getGameId() {
+    return this.gameId;
+  }
+
 
 }
 

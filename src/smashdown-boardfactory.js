@@ -18,6 +18,8 @@ class Board {
     this.playersPickOrder = [];
     this.characters = [];
 
+    this.gameId = this.generateGameId();
+
     /**
      * The types of drafts currently able to pick.
      * @todo: create a draftfactory, then plugin different draft types.
@@ -310,6 +312,10 @@ class Board {
     this.characters = [];
   }
 
+  getGameId() {
+    return this.gameId;
+  }
+
   resetAll() {
     // Currently players get erased when we reset the board, since we don't have a
     // way to remove a single player. Eventually we should reset this by just running
@@ -320,6 +326,11 @@ class Board {
     this.resetGameRound();
     this.resetPick();
     this.setStatus('new');
+    this.gameId = this.generateGameId();
+  }
+
+  generateGameId() {
+    return Math.random().toString(36).replace('0.', '');
   }
 
 }

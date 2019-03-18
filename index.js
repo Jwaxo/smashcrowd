@@ -34,6 +34,8 @@ const console_colors = [ 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'g
 // Currently we only run one board at a time, so set the ID to 1.
 const board = new Board(1, {'draftType': 'snake'});
 
+serverLog(`New game board generated with ID ${board.getGameId()}`, true);
+
 // Load characters from the character data file.
 const charData = require('./lib/chars.json');
 
@@ -75,7 +77,7 @@ io.on('connection', socket => {
 
   const randomColor = Math.floor(Math.random() * (console_colors.length));
 
-  const client = new Client(socket);
+  const client = new Client(socket, board.getGameId());
   const clientId = clients.push(client);
   client.setId(clientId);
   client.setColor(chalk[console_colors[randomColor]]);
@@ -495,6 +497,7 @@ function advanceGame() {
  */
 function resetAll(boardData) {
   board.resetAll();
+  const gameId = board.getGameId();
 
   if (boardData.draftType) {
     board.setDraftType(boardData.draftType);
@@ -505,6 +508,7 @@ function resetAll(boardData) {
 
   clients.forEach(client => {
     client.setPlayer(null);
+    client.setGameId(board.getGameId());
     setClientInfoSingle(client);
     serverLog(`Wiping player info for ${client.getLabel()}`);
   });
@@ -512,6 +516,8 @@ function resetAll(boardData) {
   regenerateBoardInfo();
   regeneratePlayers();
   regenerateCharacters();
+
+  serverLog(`New game board generated with ID ${gameId}`);
 }
 
 /**
