@@ -14,15 +14,15 @@
   flex: 0 0 auto;
   height: rem-calc(50px);
   position: relative;
-  transition: width .25s;
+  transition: width 0.25s;
   width: rem-calc(90px);
-  &:nth-child(3n+1) {
+  &:nth-child(3n + 1) {
     background-color: red;
   }
-  &:nth-child(3n+2) {
+  &:nth-child(3n + 2) {
     background-color: blue;
   }
-  &:nth-child(3n+3) {
+  &:nth-child(3n + 3) {
     background-color: green;
   }
 
@@ -32,7 +32,7 @@
 
   .character-grid--disabled & {
     cursor: default;
-    opacity: .5;
+    opacity: 0.5;
   }
 }
 

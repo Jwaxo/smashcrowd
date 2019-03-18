@@ -9,8 +9,7 @@
 @import 'characters';
 @import 'players';
 
-
- //Global styles
+//Global styles
 @include foundation-global-styles;
 @include foundation-forms;
 @include foundation-typography;
@@ -63,8 +62,8 @@
 @include foundation-float-classes;
 @include foundation-flex-classes;
 @include foundation-visibility-classes;
- @include foundation-prototype-classes;
+@include foundation-prototype-classes;
 
- //Motion UI
+//Motion UI
 //@include motion-ui-transitions;
 //@include motion-ui-animations;

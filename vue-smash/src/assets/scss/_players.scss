@@ -15,7 +15,7 @@
 }
 
 .player {
-  transition: border-width .25s, border-color .25s, height .25s;
+  transition: border-width 0.25s, border-color 0.25s, height 0.25s;
 
   &.player--current {
     border-width: rem-calc(4px);
@@ -34,9 +34,8 @@
 }
 
 .player-roster {
-
   &.player-roster--empty {
-   @include add-character();
+    @include add-character();
   }
 
   .character {

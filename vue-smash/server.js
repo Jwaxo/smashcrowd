@@ -23,7 +23,7 @@ app.use(staticMiddleware);
 // `app.use(staticMiddleware)` is included twice per:
 // https://github.com/bripkens/connect-history-api-fallback/blob/master/examples/static-files-and-index-rewrite/README.md#configuring-the-middleware
 
-server.listen(PORT, function(){
+server.listen(PORT, function() {
   console.log(`Listening on *:${PORT}`);
 });
 
@@ -47,9 +47,7 @@ io.sockets.on('connection', socket => {
       };
     }
     // Join and emit back to current socket the room state
-    socket
-      .join(room)
-      .emit('ROOM_STATE', state[room]);
+    socket.join(room).emit('ROOM_STATE', state[room]);
   });
   /**
    * Add player and inform everyone
@@ -68,7 +66,7 @@ io.sockets.on('connection', socket => {
   /**
    * Shuffle players and inform everyone
    */
-  socket.on('PLAYERS_SHUFFLE', ({room}) => {
+  socket.on('PLAYERS_SHUFFLE', ({ room }) => {
     state[room].players = _.shuffle(state[room].players);
 
     io.sockets.in(room).emit('ROOM_STATE', state[room]);
@@ -96,7 +94,7 @@ io.sockets.on('connection', socket => {
    *
    * Add char to player
    */
-  socket.on('PLAYER_ADD_CHARACTER', ({ room, payload}) => {
+  socket.on('PLAYER_ADD_CHARACTER', ({ room, payload }) => {
     const { charName, playerName } = payload;
     const characters = state[room].characters;
 
@@ -110,14 +108,16 @@ io.sockets.on('connection', socket => {
     state[room].characters = characters.filter(({ name }) => name !== charName);
 
     // Set next active player
-    const playerIndex = state[room].players
-      .findIndex(({ name }) => name === state[room].activePlayer);
+    const playerIndex = state[room].players.findIndex(
+      ({ name }) => name === state[room].activePlayer
+    );
     // If last in array
-    state[room].activePlayer = playerIndex === state[room].players.length - 1
-      // then jump to first player
-      ? state[room].players[0].name
-      // otherwise next index in array
-      : state[room].players[playerIndex + 1].name;
+    state[room].activePlayer =
+      playerIndex === state[room].players.length - 1
+        ? // then jump to first player
+          state[room].players[0].name
+        : // otherwise next index in array
+          state[room].players[playerIndex + 1].name;
 
     io.sockets.in(room).emit('ROOM_STATE', state[room]);
   });
