@@ -156,7 +156,13 @@ io.on('connection', socket => {
    */
   socket.on('add-character', charId => {
     const player = client.getPlayer();
-    const character = board.getDraftType() !== 'free' ? board.getCharacter(charId) : new Character(charId, charData.chars[charId]);
+    let character = board.getCharacter(charId);
+
+    // If we're playing with Free pick, build a new character with this info so
+    // that we don't disrupt the board.
+    if (board.getDraftType === 'free' || charId === 999) {
+      character = new Character(charId, board.charData.chars[charId]);
+    }
 
     if (board.getDraftRound() < 1) {
       serverLog(`${client.getLabel()} tried to add ${character.getName()} but drafting has not started.`);
@@ -180,22 +186,28 @@ io.on('connection', socket => {
 
       player.addCharacter(character);
 
-      if (board.getDraftType() === 'free') {
-        advanceFreePick(client);
-      }
-      else {
-        character.setPlayer(player.getId());
-
-        updateCharacters({
+      if (board.getDraftType() !== 'free') {
+        // By default we'll only be disabling the character selection until
+        // processing has finished and the client has been updated.
+        const characterUpdateData = {
           'allDisabled': false,
-          'chars' : [
+        };
+
+        // If the player didn't pick the "sit out" option, remove it from the roster.
+        if (charId !== 999) {
+          character.setPlayer(player.getId());
+
+          characterUpdateData.chars = [
             {
-              'charId' : charId,
+              'charId': charId,
               'disabled': true,
             },
-          ],
-        });
-        advanceDraft();
+          ];
+        }
+        advanceDraft(characterUpdateData);
+      }
+      else {
+        advanceFreePick(client);
       }
     }
   });
@@ -419,7 +431,7 @@ function advanceFreePick(client) {
 /**
  * Move to the next active player and do any additional processing.
  */
-function advanceDraft() {
+function advanceDraft(characterUpdateData) {
 
   const prevPlayer = board.getActivePlayer();
   const updatedPlayers = [];
@@ -458,6 +470,10 @@ function advanceDraft() {
 
     // We only need to change active state if the player changes.
     if (prevPlayer !== currentPlayer) {
+      // Make sure the characters stay disabled, since this player is no longer
+      // active.
+      characterUpdateData.allDisabled = true;
+
       prevPlayer.setActive(false);
       currentPlayer.setActive(true);
 
@@ -484,6 +500,8 @@ function advanceDraft() {
 
       updatePlayersInfo(updatedPlayers);
     }
+
+    updateCharacters(characterUpdateData);
   }
 }
 

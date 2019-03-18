@@ -18,6 +18,7 @@ class Board {
     this.status = 'new';
     this.nextPlayerId = 0;
 
+    this.charData = {};
     this.players = [];
     this.playersPickOrder = [];
     this.characters = [];
@@ -293,27 +294,30 @@ class Board {
    * @param charData
    */
   buildAllCharacters(charData) {
+    this.charData = charData;
     // Process characters from library.
-    for (let i = 0; i < charData.chars.length; i++) {
-      this.addCharacter(new Character(i, charData.chars[i]));
+    for (let i = 0; i < this.charData.chars.length; i++) {
+      this.addCharacter(i, new Character(i, this.charData.chars[i]));
     }
 
     // End by adding the "no pick" option, for when users wish to/are forced to
     // sit out.
-    this.addCharacter(new Character(999, {
+    this.charData.chars[999] = {
       'name': 'None',
       'image': 'images/cross.png',
-    }))
+    };
+    this.addCharacter(999, new Character(999, this.charData.chars[999]));
   }
 
   /**
    * Add a character to the characters array.
    *
-   * @param character
+   * @param {integer} charId
+   * @param {Character} character
    * @returns {number} Index of the character.
    */
-  addCharacter(character) {
-    return this.characters.push(character) - 1;
+  addCharacter(charId, character) {
+    this.characters[charId] = character;
   }
   updateCharacter(charId, data) {
     for (option in data) {
