@@ -221,15 +221,20 @@ io.on('connection', socket => {
 
     // The user is marking a winner of a round.
     if (board.getGameRound() === charRound) {
-      clickedPlayer.addStat('game_score');
-      clickedPlayer.setCharacterState(character_index, 'win');
-      board.getPlayers().forEach(eachPlayer => {
-        if (eachPlayer.getId() !== playerId) {
-          eachPlayer.addStat('lost_rounds');
-          eachPlayer.setCharacterState(character_index, 'loss');
-        }
-      });
-      advanceGame();
+      if (charId !== 999) {
+        clickedPlayer.addStat('game_score');
+        clickedPlayer.setCharacterState(character_index, 'win');
+        board.getPlayers().forEach(eachPlayer => {
+          if (eachPlayer.getId() !== playerId) {
+            eachPlayer.addStat('lost_rounds');
+            eachPlayer.setCharacterState(character_index, 'loss');
+          }
+        });
+        advanceGame();
+      }
+      else {
+        serverLog(`${client.getLabel()} tried to mark a non-player as winner!`);
+      }
     }
     // The user is removing a character from their roster.
     else if (board.getDraftType() === 'free' && clientPlayer.getId() === playerId) {
@@ -240,6 +245,7 @@ io.on('connection', socket => {
         regenerateBoardInfo();
       }
 
+      advanceFreePick(client);
       regeneratePlayers();
     }
   });
@@ -580,7 +586,7 @@ function regenerateBoardInfo() {
  *   Whether or not the "Add Player" form should also be regenerated. Only needed
  *   when starting a new draft or setting up a new game.
  */
-function regeneratePlayers(regenerateForm) {
+function regeneratePlayers(regenerateForm = false) {
   // The player listing is unique to each client, so we need to rebuild it and
   // send it out individually.
   clients.forEach(client => {
