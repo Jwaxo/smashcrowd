@@ -2,12 +2,15 @@
  * Information and methods used for an individual user connection.
  */
 class Client {
-  constructor(socket) {
+  constructor(socket, gameId) {
     this.id = 0;
     this.socket = socket;
     this.color = null;
     this.player = null;
     this.playerId = null;
+    this.playerStorage = '';
+
+    this.setGameId(gameId);
 
     return this;
   }
@@ -58,6 +61,8 @@ class Client {
     else {
       this.playerId = null;
     }
+
+    this.updatePlayerStorage();
   }
   getPlayer() {
     return this.player
@@ -75,6 +80,21 @@ class Client {
       label = this.color(`Client ${this.id}`);
     }
     return label;
+  }
+
+  setGameId(gameId) {
+    this.gameId = gameId;
+    this.updatePlayerStorage();
+  }
+  getGameId() {
+    return this.gameId;
+  }
+
+  updatePlayerStorage() {
+    return this.playerStorage = 'smashcrowd-' + this.getGameId();
+  }
+  getPlayerCookie() {
+    return this.playerStorage;
   }
 
 }
