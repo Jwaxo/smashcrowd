@@ -26,7 +26,7 @@
     {% if board.getStatus('new') %}
       <button id="randomize" class="randomize button" title="Randomizes the player order. This option will disappear after picking has begun.">Shuffle Players</button>
       <button id="start_picking" class="start-draft button" title="Begin the drafting process.">Start Draft</button>
-    {% elseif board.getStatus('draft-complete') %}
+    {% elseif not board.getTotalRounds() or board.getStatus('draft-complete') %}
       <button id="start_game" class="start-game button" title="Begin going through rounds.">Start Game</button>
     {% endif %}
   </div>

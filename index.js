@@ -259,12 +259,11 @@ io.on('connection', socket => {
 
     regenerateBoardInfo();
     regenerateCharacters();
-    regeneratePlayers();
+    regeneratePlayers(true);
     setStatusAll('The draft has begun!', 'success');
   });
 
   socket.on('start-game', () => {
-    // @todo: check to see if all character lists are equal before starting.
     const players = board.getPlayers();
 
     const mismatchedChars = board.eachPlayer((player, compareObject) => {
@@ -277,6 +276,11 @@ io.on('connection', socket => {
     if (!mismatchedChars) {
 
       serverLog(`${client.getLabel()} started the game.`);
+      if (!board.getTotalRounds()) {
+        // This had no total rounds initially, so set based off of the total
+        // characters of any given player.
+        board.setTotalRounds(board.getPlayers()[0].getCharacterCount());
+      }
 
       players.forEach(player => {
         player.setActive(false);
@@ -538,7 +542,7 @@ function resetAll(boardData) {
   });
 
   regenerateBoardInfo();
-  regeneratePlayers();
+  regeneratePlayers(true);
   regenerateCharacters();
 
   serverLog(`New game board generated with ID ${gameId}`);
