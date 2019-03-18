@@ -3,6 +3,7 @@
  */
 
 const Character = require('./smashdown-characterfactory.js');
+const fs = require('fs');
 
 class Board {
   constructor(boardId, options) {
@@ -286,12 +287,23 @@ class Board {
     return returnValue;
   }
 
+  /**
+   * Generally only ran at the creation of a board, creates all of the options
+   * for picking a character.
+   * @param charData
+   */
   buildAllCharacters(charData) {
-    // Start by adding the "no pick" option.
     // Process characters from library.
-    for (let i = 1; i < charData.chars.length; i++) {
+    for (let i = 0; i < charData.chars.length; i++) {
       this.addCharacter(new Character(i, charData.chars[i]));
     }
+
+    // End by adding the "no pick" option, for when users wish to/are forced to
+    // sit out.
+    this.addCharacter(new Character(999, {
+      'name': 'None',
+      'image': 'images/cross.png',
+    }))
   }
 
   /**

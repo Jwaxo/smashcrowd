@@ -74,8 +74,9 @@ the SCSS only gets recompiled when the server is started.
 
 ### Planned features/Todo
 
-* Persistent player assignment using cookies
 * A "sit the game out" box for games with more players than rounds dictate.
+  * Tied in with this, option to set number of players per match.
+* Character images compiled with SCSS and assigned.
 * Player boxes shake when they become active.
 * Remove players (hahahaha)
 * Multiple drafts per server.

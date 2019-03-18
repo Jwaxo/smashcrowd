@@ -1,11 +1,14 @@
 /**
  * Information and methods used for an individual user connection.
  */
+
+const fs = require('fs');
+
 class Character {
   constructor(charId, data) {
     this.charId = charId;
-    this.name = data.name;
-    this.image = data.image;
+    this.setName(data.name);
+    this.setImage(data.image);
     this.player = null;
     this.state = null;
 
@@ -26,7 +29,18 @@ class Character {
     return this.name;
   }
 
+  /**
+   * Sets the image for the character. If said image does not exist in the file
+   * system in a publicly-accessible folder, it is set to null.
+   *
+   * @param {string} image
+   */
   setImage(image) {
+    if (image) {
+      if (!fs.existsSync('public/' + image)) {
+        image = null;
+      }
+    }
     this.image = image;
   }
   getImage() {
