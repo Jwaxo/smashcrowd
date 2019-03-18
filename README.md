@@ -77,6 +77,8 @@ the SCSS only gets recompiled when the server is started.
 * Persistent player assignment using cookies
 * A "sit the game out" box for games with more players than rounds dictate.
 * Player boxes shake when they become active.
+* Remove players (hahahaha)
+* Multiple drafts per server.
 * Persistent storage via MySQL (or other DB)
 * Game options:
   * Re-orderable roster
@@ -92,4 +94,3 @@ the SCSS only gets recompiled when the server is started.
 * Dynamic player creation.
 * Player label customization.
 * Drag-and-drop arrangement.
-* Multiple drafts per server.
