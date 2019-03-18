@@ -8,7 +8,7 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "fmt": "prettier --write '**/*.{js,scss,css}'"
+    "fmt": "prettier --write '**/*.{js,scss,css,vue}'"
   },
   "dependencies": {
     "connect-history-api-fallback": "^1.6.0",
