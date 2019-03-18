@@ -37,12 +37,7 @@ const board = new Board(1, {'draftType': 'snake'});
 serverLog(`New game board generated with ID ${board.getGameId()}`, true);
 
 // Load characters from the character data file.
-const charData = require('./lib/chars.json');
-
-// Process characters.
-for (let i = 0; i < charData.chars.length; i++) {
-  board.addCharacter(new Character(i, charData.chars[i]));
-}
+board.buildAllCharacters(require('./lib/chars.json'));
 
 // Do basic server setup stuff.
 app.use(express.static(__dirname + '/public'));
@@ -136,18 +131,20 @@ io.on('connection', socket => {
    * from a prior player (if there was one), before regenerating player area.
    */
   socket.on('pick-player', playerId => {
-    serverLog(`${client.getLabel()} looking for ${playerId}`, true);
-    const player = board.getPlayerById(playerId);
+    if (playerId !== null) {
+      serverLog(`${client.getLabel()} looking for ${playerId}`, true);
+      const player = board.getPlayerById(playerId);
 
-    if (player && !player.getClientId()) {
-      serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
-      setClientPlayer(client, player);
-    }
-    else if (player) {
-      serverLog(`${playerId} already occupied, not assigned`, true);
-    }
-    else {
-      serverLog(`${playerId} does not exist, not assigned`, true);
+      if (player && !player.getClientId()) {
+        serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
+        setClientPlayer(client, player);
+      }
+      else if (player) {
+        serverLog(`${playerId} already occupied, not assigned`, true);
+      }
+      else {
+        serverLog(`${playerId} does not exist, not assigned`, true);
+      }
     }
   });
 
@@ -159,7 +156,13 @@ io.on('connection', socket => {
    */
   socket.on('add-character', charId => {
     const player = client.getPlayer();
-    const character = board.getDraftType() !== 'free' ? board.getCharacter(charId) : new Character(charId, charData.chars[charId]);
+    let character = board.getCharacter(charId);
+
+    // If we're playing with Free pick, build a new character with this info so
+    // that we don't disrupt the board.
+    if (board.getDraftType === 'free' || charId === 999) {
+      character = new Character(charId, board.charData.chars[charId]);
+    }
 
     if (board.getDraftRound() < 1) {
       serverLog(`${client.getLabel()} tried to add ${character.getName()} but drafting has not started.`);
@@ -183,22 +186,28 @@ io.on('connection', socket => {
 
       player.addCharacter(character);
 
-      if (board.getDraftType() === 'free') {
-        advanceFreePick(client);
-      }
-      else {
-        character.setPlayer(player.getId());
-
-        updateCharacters({
+      if (board.getDraftType() !== 'free') {
+        // By default we'll only be disabling the character selection until
+        // processing has finished and the client has been updated.
+        const characterUpdateData = {
           'allDisabled': false,
-          'chars' : [
+        };
+
+        // If the player didn't pick the "sit out" option, remove it from the roster.
+        if (charId !== 999) {
+          character.setPlayer(player.getId());
+
+          characterUpdateData.chars = [
             {
-              'charId' : charId,
+              'charId': charId,
               'disabled': true,
             },
-          ],
-        });
-        advanceDraft();
+          ];
+        }
+        advanceDraft(characterUpdateData);
+      }
+      else {
+        advanceFreePick(client);
       }
     }
   });
@@ -212,15 +221,20 @@ io.on('connection', socket => {
 
     // The user is marking a winner of a round.
     if (board.getGameRound() === charRound) {
-      clickedPlayer.addStat('game_score');
-      clickedPlayer.setCharacterState(character_index, 'win');
-      board.getPlayers().forEach(eachPlayer => {
-        if (eachPlayer.getId() !== playerId) {
-          eachPlayer.addStat('lost_rounds');
-          eachPlayer.setCharacterState(character_index, 'loss');
-        }
-      });
-      advanceGame();
+      if (charId !== 999) {
+        clickedPlayer.addStat('game_score');
+        clickedPlayer.setCharacterState(character_index, 'win');
+        board.getPlayers().forEach(eachPlayer => {
+          if (eachPlayer.getId() !== playerId) {
+            eachPlayer.addStat('lost_rounds');
+            eachPlayer.setCharacterState(character_index, 'loss');
+          }
+        });
+        advanceGame();
+      }
+      else {
+        serverLog(`${client.getLabel()} tried to mark a non-player as winner!`);
+      }
     }
     // The user is removing a character from their roster.
     else if (board.getDraftType() === 'free' && clientPlayer.getId() === playerId) {
@@ -231,6 +245,7 @@ io.on('connection', socket => {
         regenerateBoardInfo();
       }
 
+      advanceFreePick(client);
       regeneratePlayers();
     }
   });
@@ -250,12 +265,11 @@ io.on('connection', socket => {
 
     regenerateBoardInfo();
     regenerateCharacters();
-    regeneratePlayers();
+    regeneratePlayers(true);
     setStatusAll('The draft has begun!', 'success');
   });
 
   socket.on('start-game', () => {
-    // @todo: check to see if all character lists are equal before starting.
     const players = board.getPlayers();
 
     const mismatchedChars = board.eachPlayer((player, compareObject) => {
@@ -268,6 +282,11 @@ io.on('connection', socket => {
     if (!mismatchedChars) {
 
       serverLog(`${client.getLabel()} started the game.`);
+      if (!board.getTotalRounds()) {
+        // This had no total rounds initially, so set based off of the total
+        // characters of any given player.
+        board.setTotalRounds(board.getPlayers()[0].getCharacterCount());
+      }
 
       players.forEach(player => {
         player.setActive(false);
@@ -422,7 +441,7 @@ function advanceFreePick(client) {
 /**
  * Move to the next active player and do any additional processing.
  */
-function advanceDraft() {
+function advanceDraft(characterUpdateData) {
 
   const prevPlayer = board.getActivePlayer();
   const updatedPlayers = [];
@@ -461,6 +480,10 @@ function advanceDraft() {
 
     // We only need to change active state if the player changes.
     if (prevPlayer !== currentPlayer) {
+      // Make sure the characters stay disabled, since this player is no longer
+      // active.
+      characterUpdateData.allDisabled = true;
+
       prevPlayer.setActive(false);
       currentPlayer.setActive(true);
 
@@ -487,6 +510,8 @@ function advanceDraft() {
 
       updatePlayersInfo(updatedPlayers);
     }
+
+    updateCharacters(characterUpdateData);
   }
 }
 
@@ -523,7 +548,7 @@ function resetAll(boardData) {
   });
 
   regenerateBoardInfo();
-  regeneratePlayers();
+  regeneratePlayers(true);
   regenerateCharacters();
 
   serverLog(`New game board generated with ID ${gameId}`);
@@ -561,7 +586,7 @@ function regenerateBoardInfo() {
  *   Whether or not the "Add Player" form should also be regenerated. Only needed
  *   when starting a new draft or setting up a new game.
  */
-function regeneratePlayers(regenerateForm) {
+function regeneratePlayers(regenerateForm = false) {
   // The player listing is unique to each client, so we need to rebuild it and
   // send it out individually.
   clients.forEach(client => {

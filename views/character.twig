@@ -5,10 +5,15 @@
 {% set characterClasses = [
   'character',
   (isDisabled ? 'character--disabled' : ''),
-  (isActive ? 'character--active' : ''),
+  (isActive and character.getCharId() != 999 ? 'character--active' : ''),
   (character.getState() ? 'character--' ~ character.getState() : ''),
 ]|join(' ')|trim %}
 
-<div class="{{ characterClasses }}" data-character-round="{{ characterRound ? characterRound : 0 }}" data-character-id="{{ character.getCharId() }}" style="background-image: url('{{ character.getImage() }}')">
+{% set characterStyles = [
+  (character.getImage() ? 'background-image: url(' ~ character.getImage() ~ ')' : ''),
+  (character.getImage() ? 'background-color: #FFFFFF' : ''),
+]|join('; ')|trim %}
+
+<div class="{{ characterClasses }}" data-character-round="{{ characterRound ? characterRound : 0 }}" data-character-id="{{ character.getCharId() }}" style="{{ characterStyles }}">
   <span class="character-name">{{ character.getName() }}</span>
 </div>

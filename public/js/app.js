@@ -14,12 +14,12 @@ $(function() {
    */
   socket.on('set-client', newClient => {
     client = newClient;
-    const playerId = parseInt(localStorage.getItem(client.playerStorage));
+    const playerId = localStorage.getItem(client.playerStorage);
 
     // Check for a playerId cookie for this specific game board. Since cookies
     // are strings, this will return TRUE even if '0'.
     if (playerId !== null) {
-      socket.emit('pick-player', playerId);
+      socket.emit('pick-player', parseInt(playerId));
     }
   });
 

@@ -29,6 +29,7 @@
     "config": "^3.0.1",
     "express": "^4.16.4",
     "foundation-sites": "^6.5.3",
+    "fs": "0.0.1-security",
     "jquery": "^3.3.1",
     "motion-ui": "^2.0.3",
     "socket.io": "^2.2.0",
