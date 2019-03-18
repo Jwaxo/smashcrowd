@@ -74,8 +74,6 @@ the SCSS only gets recompiled when the server is started.
 
 ### Planned features/Todo
 
-* A "sit the game out" box for games with more players than rounds dictate.
-  * Tied in with this, option to set number of players per match.
 * Character images compiled with SCSS and assigned.
 * Player boxes shake when they become active.
 * Remove players (hahahaha)
@@ -92,6 +90,5 @@ the SCSS only gets recompiled when the server is started.
 * User Profiles
 * User and character stat-tracking
 * Trades
-* Dynamic player creation.
 * Player label customization.
 * Drag-and-drop arrangement.
