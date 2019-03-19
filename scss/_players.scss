@@ -61,7 +61,18 @@
     }
 
     &.character--win {
-      border: rem-calc(3px) solid map-get($foundation-palette, success);
+      border: rem-calc(3px) solid #ff0000; // Has to match the logo color exactly.
+      position: relative;
+      &:after {
+        background: url('../images/emblem-small-red.png') center center transparent;
+        bottom: 0;
+        content: '';
+        display: block;
+        height: rem-calc(32px);
+        position: absolute;
+        right: 0;
+        width: rem-calc(32px);
+      }
 
       &.character--disabled {
         opacity: .75;
