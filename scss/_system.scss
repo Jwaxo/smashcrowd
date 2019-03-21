@@ -2,6 +2,10 @@
  * Styles defining how various system parts display.
  */
 
+body {
+  background: url('../images/emblem-light.png') right bottom transparent;
+}
+
 .grid-container {
   margin-bottom: rem-calc(170px);
 }
