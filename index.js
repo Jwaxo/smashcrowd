@@ -54,8 +54,15 @@ app.get('/', function(req, res) {
   });
 });
 
-// Build the sass.
+// Build the sass and start to watch for style or JS changes.
 sass();
+gulp.watch(['scss/*.scss'], () => {
+  sass();
+});
+gulp.watch(['index.js', 'src/*.js', 'views/*.twig', 'public/js/app.js'], () => {
+  console.log('Detected change to source code, rebuilding what we can.');
+  resetAll();
+});
 
 // Listen at the port.
 server.listen(port, () => {
@@ -750,6 +757,7 @@ function cleanClient(client) {
  * Build out the Sass located in scss/app.scss. Outputs to public/css.
  */
 function sass() {
+  console.log('Rendering SCSS...');
   return gulp.src('scss/app.scss')
     .pipe($.sass({
       includePaths: sassPaths,
@@ -759,5 +767,5 @@ function sass() {
     .pipe($.postcss([
       autoprefixer({ browsers: ['last 2 versions', 'ie >= 9'] })
     ]))
-    .pipe(gulp.dest('public/css'))
+    .pipe(gulp.dest('public/css'));
 }
