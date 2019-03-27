@@ -420,7 +420,7 @@ function setClientPlayer(client, player) {
     'roster_html': renderPlayerRoster(player),
   });
 
-  setClientInfoSingle(client);
+  setClientInfoSingle(client, true);
 
   updateCharactersSingle(client, {allDisabled: !player.isActive});
   updatePlayersInfo(updatedPlayers);
@@ -571,7 +571,7 @@ function resetAll(boardData) {
   clients.forEach(client => {
     client.setPlayer(null);
     client.setGameId(board.getGameId());
-    setClientInfoSingle(client);
+    setClientInfoSingle(client, true);
     serverLog(`Wiping player info for ${client.getLabel()}`);
   });
 
@@ -656,11 +656,13 @@ function regeneratePlayers(regenerateForm = false) {
  *
  * @param {Client} socketClient
  *   The Client object with socket information attached.
+ * @param {Boolean} isUpdate
+ *   If this is the initial client setting or a later update.
  */
-function setClientInfoSingle(socketClient) {
+function setClientInfoSingle(socketClient, isUpdate = false) {
   const client = cleanClient(socketClient);
   // Make sure to clean client before sending it.
-  socketClient.getSocket().emit('set-client', client);
+  socketClient.getSocket().emit('set-client', client, isUpdate);
 }
 
 /**
