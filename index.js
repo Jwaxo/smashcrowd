@@ -333,10 +333,10 @@ io.on('connection', socket => {
     }
   });
 
-  // Reset the entire game board, players, characters, and all.
+  // Reset the entire game board, characters, and others. Keeps players.
   socket.on('reset', data => {
     serverLog(`${client.getLabel()} requested a server reset.`);
-    resetAll(data);
+    resetGame(data);
   });
 
   // Shuffles the players to a random order.
@@ -557,8 +557,8 @@ function advanceGame() {
 /**
  * Set all options back to defaults.
  */
-function resetAll(boardData) {
-  board.resetAll();
+function resetGame(boardData) {
+  board.resetGame();
   const gameId = board.getGameId();
 
   if (boardData.draftType) {

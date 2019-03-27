@@ -75,6 +75,7 @@ class Board {
     return this.currentDraftRound;
   }
   resetDraftRound() {
+    this.getActivePlayer().setActive(false);
     this.currentDraftRound = 0;
   }
 
@@ -88,6 +89,7 @@ class Board {
     return this.currentGameRound;
   }
   resetGameRound() {
+    this.getActivePlayer().setActive(false);
     this.currentGameRound = 0;
   }
 
@@ -372,11 +374,11 @@ class Board {
     return this.gameId;
   }
 
-  resetAll() {
+  resetGame() {
     // Currently players get erased when we reset the board, since we don't have a
     // way to remove a single player. Eventually we should reset this by just running
     // resetPlayers().
-    this.dropAllPlayers();
+    this.resetPlayers();
     this.resetCharacters();
     this.resetDraftRound();
     this.resetGameRound();
