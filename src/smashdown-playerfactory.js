@@ -1,5 +1,5 @@
 /**
- * Information and methods used for an individual user connection.
+ * Information and methods used for a player on the board.
  */
 class Player {
   constructor(name) {

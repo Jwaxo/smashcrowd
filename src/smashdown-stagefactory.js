@@ -1,25 +1,24 @@
 /**
- * Information and methods used for a character representation.
+ * Information and methods used for a single level in the game.
  */
 
 const fs = require('fs');
 
-class Character {
-  constructor(charId, data) {
-    this.charId = charId;
+class Stage {
+  constructor(stageId, data) {
+    this.stageId = stageId;
     this.setName(data.name);
     this.setImage(data.image);
-    this.player = null;
     this.state = null;
 
     return this;
   }
 
-  setCharId(charId) {
-    this.charId = charId;
+  setStageId(stageId) {
+    this.stageId = stageId;
   }
-  getCharId() {
-    return this.charId;
+  getStageId() {
+    return this.stageId;
   }
 
   setName(name) {
@@ -30,7 +29,7 @@ class Character {
   }
 
   /**
-   * Sets the image for the character. If said image does not exist in the file
+   * Sets the image for the stage. If said image does not exist in the file
    * system in a publicly-accessible folder, it is set to null.
    *
    * @param {string} image
@@ -47,13 +46,6 @@ class Character {
     return this.image
   }
 
-  setPlayer(playerId) {
-    this.player = playerId;
-  }
-  getPlayer() {
-    return this.player;
-  }
-
   setState(state) {
     this.state = state;
   }
@@ -63,4 +55,4 @@ class Character {
 
 }
 
-module.exports = Character;
+module.exports = Stage;

@@ -19,6 +19,9 @@ const Client = require('./src/smashdown-clientfactory.js');
 const Player = require('./src/smashdown-playerfactory.js');
 const Character = require('./src/smashdown-characterfactory.js');
 const Board = require('./src/smashdown-boardfactory.js');
+const Stage = require('./src/smashdown-stagefactory.js');
+
+const levels = require('./lib/levels.json');
 
 const io = socketio(server);
 
@@ -38,6 +41,7 @@ serverLog(`New game board generated with ID ${board.getGameId()}`, true);
 
 // Load characters from the character data file.
 board.buildAllCharacters(require('./lib/chars.json'));
+// board.buildAllStages(require('./lib/levels.json'));
 
 // Do basic server setup stuff.
 app.use(express.static(__dirname + '/public'));
