@@ -3,6 +3,8 @@
  */
 
 .player {
+  border-color: $dark-gray;
+  position: relative;
   transition: border-width .25s, border-color .25s, height .25s, padding .25s;
 
   &.player--current {
@@ -14,6 +16,12 @@
 
   &:not(.player--current) {
     padding: rem-calc(3px);
+  }
+
+  &.player--owned:not(.player--current) {
+    .close-button {
+      display: none;
+    }
   }
 
   h4 {

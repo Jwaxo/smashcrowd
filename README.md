@@ -98,4 +98,5 @@ the SCSS only gets recompiled when the server is started.
 * Trades
 * Player label customization.
 * Drag-and-drop arrangement.
+* Cursor becomes Smash Bros hand when over characters.
 * Level pick-and-ban.
