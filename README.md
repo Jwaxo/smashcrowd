@@ -75,10 +75,7 @@ the SCSS only gets recompiled when the server is started.
 ### Planned features/Todo
 
 * Bug reporting and feature requesting link.
-* Character images compiled with SCSS and assigned.
 * Player boxes shake when they become active.
-* Remove players (hahahaha)
-* Put Smash emblem on winners.
 * Multiple drafts per server.
 * Persistent storage via MySQL (or other DB)
 * Game options:
