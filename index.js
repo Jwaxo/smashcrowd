@@ -54,8 +54,11 @@ app.get('/', function(req, res) {
   });
 });
 
-// Build the sass.
+// Build the sass and start to watch for style or JS changes.
 sass();
+gulp.watch(['scss/*.scss'], () => {
+  sass();
+});
 
 // Listen at the port.
 server.listen(port, () => {
@@ -250,6 +253,31 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('player-remove-click', (playerId) => {
+    const clickedPlayer = board.getPlayerById(playerId);
+    const isCurrentPlayer = client.getPlayerId() === playerId;
+
+    // First make sure that either the client's player and the clicked playerId
+    // match, or the clicked player is unowned.
+    if (isCurrentPlayer || !clickedPlayer.getClientId()) {
+
+      // First remove the player from the client.
+      if (isCurrentPlayer) {
+        client.setPlayer(null);
+      }
+      board.dropPlayerById(playerId);
+      regeneratePlayers();
+
+      serverLog(`${client.getLabel()} removed player ${clickedPlayer.getName()}`);
+    }
+    else {
+      // Since remove buttons should be automatically hidden, this person is
+      // trying a little too hard.
+      serverLog(`${client.getLabel()} tried to remove a player owned by someone else.`);
+    }
+
+  });
+
   socket.on('start-draft', () => {
     serverLog(`${client.getLabel()} started the draft.`);
     board.advanceDraftRound();
@@ -305,10 +333,10 @@ io.on('connection', socket => {
     }
   });
 
-  // Reset the entire game board, players, characters, and all.
+  // Reset the entire game board, characters, and others. Keeps players.
   socket.on('reset', data => {
     serverLog(`${client.getLabel()} requested a server reset.`);
-    resetAll(data);
+    resetGame(data);
   });
 
   // Shuffles the players to a random order.
@@ -392,7 +420,7 @@ function setClientPlayer(client, player) {
     'roster_html': renderPlayerRoster(player),
   });
 
-  setClientInfoSingle(client);
+  setClientInfoSingle(client, true);
 
   updateCharactersSingle(client, {allDisabled: !player.isActive});
   updatePlayersInfo(updatedPlayers);
@@ -529,8 +557,8 @@ function advanceGame() {
 /**
  * Set all options back to defaults.
  */
-function resetAll(boardData) {
-  board.resetAll();
+function resetGame(boardData) {
+  board.resetGame();
   const gameId = board.getGameId();
 
   if (boardData.draftType) {
@@ -543,7 +571,7 @@ function resetAll(boardData) {
   clients.forEach(client => {
     client.setPlayer(null);
     client.setGameId(board.getGameId());
-    setClientInfoSingle(client);
+    setClientInfoSingle(client, true);
     serverLog(`Wiping player info for ${client.getLabel()}`);
   });
 
@@ -628,11 +656,13 @@ function regeneratePlayers(regenerateForm = false) {
  *
  * @param {Client} socketClient
  *   The Client object with socket information attached.
+ * @param {Boolean} isUpdate
+ *   If this is the initial client setting or a later update.
  */
-function setClientInfoSingle(socketClient) {
+function setClientInfoSingle(socketClient, isUpdate = false) {
   const client = cleanClient(socketClient);
   // Make sure to clean client before sending it.
-  socketClient.getSocket().emit('set-client', client);
+  socketClient.getSocket().emit('set-client', client, isUpdate);
 }
 
 /**
@@ -750,6 +780,7 @@ function cleanClient(client) {
  * Build out the Sass located in scss/app.scss. Outputs to public/css.
  */
 function sass() {
+  console.log('Rendering SCSS...');
   return gulp.src('scss/app.scss')
     .pipe($.sass({
       includePaths: sassPaths,
@@ -759,5 +790,5 @@ function sass() {
     .pipe($.postcss([
       autoprefixer({ browsers: ['last 2 versions', 'ie >= 9'] })
     ]))
-    .pipe(gulp.dest('public/css'))
+    .pipe(gulp.dest('public/css'));
 }

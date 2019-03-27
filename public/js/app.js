@@ -10,16 +10,19 @@ $(function() {
   boardSetup(true);
 
   /**
-   * We've been registered as a new connection.
+   * We've been registered as a new connection, or are updating a current one.
    */
-  socket.on('set-client', newClient => {
+  socket.on('set-client', (newClient, isUpdate) => {
     client = newClient;
-    const playerId = localStorage.getItem(client.playerStorage);
 
-    // Check for a playerId cookie for this specific game board. Since cookies
-    // are strings, this will return TRUE even if '0'.
-    if (playerId !== null) {
-      socket.emit('pick-player', parseInt(playerId));
+    if (!isUpdate) {
+      const playerId = localStorage.getItem(client.playerStorage);
+
+      // Check for a playerId cookie for this specific game board. Since cookies
+      // are strings, this will return TRUE even if '0'.
+      if (playerId !== null) {
+        socket.emit('pick-player', parseInt(playerId));
+      }
     }
   });
 
@@ -62,6 +65,7 @@ $(function() {
   socket.on('set-status', html => {
     const statusContainer = $('#status_container');
     statusContainer.append(html);
+    statusContainer.last().foundation();
     $('.status').delay(5000).fadeOut(300);
   });
 
@@ -200,6 +204,11 @@ $(function() {
     $('.player-picker').unbind('click').click(element => {
       const playerId = $(element.currentTarget).data('player-pick-id');
       pickPlayer(playerId);
+    });
+
+    $('.player-close').unbind('click').click(element => {
+      const $player = $(element.currentTarget).closest('.player');
+      socket.emit('player-remove-click', $player.data('player-id'));
     });
 
     $('.player .character').unbind('click').click(element => {

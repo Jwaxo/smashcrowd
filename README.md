@@ -74,12 +74,15 @@ the SCSS only gets recompiled when the server is started.
 
 ### Planned features/Todo
 
-* Character images compiled with SCSS and assigned.
+* Bug reporting and feature requesting link.
 * Player boxes shake when they become active.
-* Remove players (hahahaha)
 * Multiple drafts per server.
 * Persistent storage via MySQL (or other DB)
 * Game options:
+  * Character limiting options: "None", "Per-Player", "Per-Board"
+  * Squad-strike
+    * Winner gets to keep a character
+    * Optional life tracking, where SmashDown says how many lives this character currently has?
   * Re-orderable roster
   * Players per round with rotating sit out player
   * More styles of drafting:
@@ -92,3 +95,5 @@ the SCSS only gets recompiled when the server is started.
 * Trades
 * Player label customization.
 * Drag-and-drop arrangement.
+* Cursor becomes Smash Bros hand when over characters.
+* Level pick-and-ban.

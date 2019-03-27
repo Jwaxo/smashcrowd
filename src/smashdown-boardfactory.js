@@ -75,6 +75,7 @@ class Board {
     return this.currentDraftRound;
   }
   resetDraftRound() {
+    this.getActivePlayer().setActive(false);
     this.currentDraftRound = 0;
   }
 
@@ -88,6 +89,7 @@ class Board {
     return this.currentGameRound;
   }
   resetGameRound() {
+    this.getActivePlayer().setActive(false);
     this.currentGameRound = 0;
   }
 
@@ -170,6 +172,19 @@ class Board {
   getPlayersPickOrder() {
     return this.playersPickOrder;
   }
+  /**
+   * Searches the players array for the player with the matching ID.
+   *
+   * @param {integer} playerId
+   *    The ID to look for.
+   * @returns {integer|null}
+   */
+  getPlayerById(playerId) {
+    const player = this.players.find(player => {
+      return player.getId() === playerId;
+    });
+    return player ? player : null;
+  }
   getPlayerByPickOrder(currentPick) {
     return this.playersPickOrder[currentPick];
   }
@@ -178,10 +193,42 @@ class Board {
       player.setCharacters([]);
     });
   }
+
+  /**
+   * Removes a player from the game, taking care of minutia to ensure nothing
+   * breaks.
+   *
+   * @param {integer} playerId
+   */
+  dropPlayerById(playerId) {
+    const playerIndex = this.players.findIndex(player => {
+      return player.getId() === playerId;
+    });
+    const playerPickIndex = this.playersPickOrder.findIndex(player => {
+      return player.getId() === playerId;
+    });
+
+    const droppedPlayer = this.players[playerIndex];
+
+    // If this is the active player, we need to either advance the game or draft
+    // round to allow game to continue.
+    if (droppedPlayer.isActive) {
+      if (this.getStatus('draft')) {
+        this.advanceDraftRound();
+      }
+      else if (this.getStatus('game')) {
+        this.advanceGameRound();
+      }
+    }
+
+    this.players.splice(playerIndex, 1);
+    this.playersPickOrder.splice(playerPickIndex, 1);
+  }
   dropAllPlayers() {
     this.players = [];
     this.playersPickOrder = [];
   }
+
   reversePlayersPick() {
     this.playersPickOrder.reverse();
   }
@@ -223,22 +270,6 @@ class Board {
     return activePlayer;
   }
 
-  /**
-   * Searches the players array for the player with the matching ID.
-   *
-   * @param {integer|null} playerId
-   *    The ID to look for.
-   */
-  getPlayerById(playerId) {
-    let player = null;
-    for (let i = 0; i < this.players.length; i++) {
-      if (this.players[i].getId() === playerId) {
-        player = this.players[i];
-        break;
-      }
-    }
-    return player;
-  }
 
   /**
    * Easy way to run functions for all players on the board with a break and return
@@ -343,11 +374,11 @@ class Board {
     return this.gameId;
   }
 
-  resetAll() {
+  resetGame() {
     // Currently players get erased when we reset the board, since we don't have a
     // way to remove a single player. Eventually we should reset this by just running
     // resetPlayers().
-    this.dropAllPlayers();
+    this.resetPlayers();
     this.resetCharacters();
     this.resetDraftRound();
     this.resetGameRound();
