@@ -62,6 +62,7 @@ $(function() {
   socket.on('set-status', html => {
     const statusContainer = $('#status_container');
     statusContainer.append(html);
+    statusContainer.last().foundation();
     $('.status').delay(5000).fadeOut(300);
   });
 
@@ -200,6 +201,11 @@ $(function() {
     $('.player-picker').unbind('click').click(element => {
       const playerId = $(element.currentTarget).data('player-pick-id');
       pickPlayer(playerId);
+    });
+
+    $('.player-close').unbind('click').click(element => {
+      const $player = $(element.currentTarget).closest('.player');
+      socket.emit('player-remove-click', $player.data('player-id'));
     });
 
     $('.player .character').unbind('click').click(element => {

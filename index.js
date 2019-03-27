@@ -59,10 +59,6 @@ sass();
 gulp.watch(['scss/*.scss'], () => {
   sass();
 });
-gulp.watch(['index.js', 'src/*.js', 'views/*.twig', 'public/js/app.js'], () => {
-  console.log('Detected change to source code, rebuilding what we can.');
-  resetAll();
-});
 
 // Listen at the port.
 server.listen(port, () => {
@@ -255,6 +251,31 @@ io.on('connection', socket => {
       advanceFreePick(client);
       regeneratePlayers();
     }
+  });
+
+  socket.on('player-remove-click', (playerId) => {
+    const clickedPlayer = board.getPlayerById(playerId);
+    const isCurrentPlayer = client.getPlayerId() === playerId;
+
+    // First make sure that either the client's player and the clicked playerId
+    // match, or the clicked player is unowned.
+    if (isCurrentPlayer || !clickedPlayer.getClientId()) {
+
+      // First remove the player from the client.
+      if (isCurrentPlayer) {
+        client.setPlayer(null);
+      }
+      board.dropPlayerById(playerId);
+      regeneratePlayers();
+
+      serverLog(`${client.getLabel()} removed player ${clickedPlayer.getName()}`);
+    }
+    else {
+      // Since remove buttons should be automatically hidden, this person is
+      // trying a little too hard.
+      serverLog(`${client.getLabel()} tried to remove a player owned by someone else.`);
+    }
+
   });
 
   socket.on('start-draft', () => {
