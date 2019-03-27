@@ -27,7 +27,7 @@ $(function() {
   });
 
   socket.on('rebuild-players', html => {
-    const playerContainer = $('#players_container');
+    const playerContainer = $('#players');
     playerContainer.html(html);
     playerSetup();
   });
@@ -39,9 +39,15 @@ $(function() {
   });
 
   socket.on('rebuild-characters', html => {
-    const charactersContainer = $('#characters_container');
+    const charactersContainer = $('#characters');
     charactersContainer.html(html);
     characterSetup();
+  });
+
+  socket.on('rebuild-stages', html => {
+    const stagesContainer = $('#stages');
+    stagesContainer.html(html);
+    stagesSetup();
   });
 
   socket.on('rebuild-chat', html => {
@@ -188,7 +194,23 @@ $(function() {
     });
 
     if (!initial) {
-      $('#characters_container').foundation();
+      $('#characters').foundation();
+    }
+  }
+
+  /**
+   * Needs to be run any time the stages grid gets recreated, so the jQuery
+   * events properly attach.
+   */
+  function stagesSetup(initial = false) {
+    $('.stages-grid:not(.stages-grid--disabled) .stage').unbind('click').click((element) => {
+      const stageId = $(element.currentTarget).data('stage-id');
+      socket.emit('pick-stage', stageId);
+      $('.stages-grid').addClass('stages-grid--disabled', true);
+    });
+
+    if (!initial) {
+      $('#stages').foundation();
     }
   }
 
@@ -218,7 +240,7 @@ $(function() {
     });
 
     if (!initial) {
-      $('#players_container').foundation();
+      $('#players').foundation();
     }
   }
 

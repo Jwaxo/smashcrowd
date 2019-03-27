@@ -1,0 +1,19 @@
+{#
+  Individual stage portraits. These are rendered both in a roster or in the
+  Game Round container, if stages are per-round.
+#}
+{% set stageClasses = [
+  'stage',
+  (isDisabled ? 'stage--disabled' : ''),
+  (isActive ? 'stage--active' : ''),
+  (character.getState() ? 'character--' ~ character.getState() : ''),
+]|join(' ')|trim %}
+
+{% set stageStyles = [
+  (stage.getImage() ? 'background-image: url(' ~ stage.getImage() ~ ')' : ''),
+  (stage.getImage() ? 'background-color: #FFFFFF' : ''),
+]|join('; ')|trim %}
+
+<div class="{{ stageClasses }}" data-stage-round="{{ stageRound ? stageRound : 0 }}" data-stage-id="{{ stage.getCharId() }}" style="{{ stageStyles }}">
+  <span class="stage-name">{{ stage.getName() }}</span>
+</div>

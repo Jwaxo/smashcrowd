@@ -11,6 +11,8 @@ class Stage {
     this.setImage(data.image);
     this.state = null;
 
+    this.players = [];
+
     return this;
   }
 
@@ -51,6 +53,13 @@ class Stage {
   }
   getState() {
     return this.state;
+  }
+
+  addPlayer(playerId) {
+    this.players.push(playerId);
+  }
+  setPlayers(players) {
+    this.players = players;
   }
 
 }

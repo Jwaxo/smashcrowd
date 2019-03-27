@@ -1,0 +1,41 @@
+/**
+ * Styles defining how stages render in the mockup stage selection.
+ */
+
+.stages-grid {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  margin-bottom: rem-calc(30px);
+
+  &.character-grid--hidden {
+    display: none;
+  }
+}
+
+.stage {
+  background-size: cover;
+  cursor: pointer;
+  flex: 0 0 auto;
+  height: rem-calc(100px);
+  overflow: hidden;
+  position: relative;
+  transition: width .25s;
+  width: rem-calc(180px);
+
+  &.stage--disabled,
+  .stage-grid--disabled & {
+    cursor: default;
+    opacity: .5;
+  }
+
+}
+
+.stage-name {
+  @include smashtext;
+
+  .stage--disabled &,
+  .stage-grid--disabled &{
+    cursor: default;
+  }
+}

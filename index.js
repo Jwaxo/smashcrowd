@@ -41,7 +41,7 @@ serverLog(`New game board generated with ID ${board.getGameId()}`, true);
 
 // Load characters from the character data file.
 board.buildAllCharacters(require('./lib/chars.json'));
-// board.buildAllStages(require('./lib/levels.json'));
+board.buildAllStages(require('./lib/levels.json'));
 
 // Do basic server setup stuff.
 app.use(express.static(__dirname + '/public'));
