@@ -11,7 +11,8 @@ class Stage {
     this.setImage(data.image);
     this.state = null;
 
-    this.players = [];
+    this.players = {};
+    this.maxPlayers = 12; // Arbitrarily set based off of how many different positions we've manually created in the stylesheet.
 
     return this;
   }
@@ -56,14 +57,34 @@ class Stage {
   }
 
   addPlayer(playerId) {
-    this.players.push(playerId);
+    // Players are stored in one of twelve random positions, for fun placement of
+    // "chosen" tokens.
+    let openPositions = [];
+
+    // Loop through the players and assign empty slots to the open positions array.
+    for (let i = 0; i < this.maxPlayers; i++) {
+      if (!this.players.hasOwnProperty(i)) {
+        openPositions.push(i);
+      }
+    }
+
+    const newPlayerIndex = openPositions[Math.floor(Math.random() * Math.floor(openPositions.length))];
+
+    this.players[newPlayerIndex] = playerId;
   }
   dropPlayer(playerId) {
-    const index = this.players.indexOf(playerId);
-    this.players.splice(index, 1);
+    for (let i = 0; i < this.maxPlayers; i++) {
+      if (this.players.hasOwnProperty(i) && this.players[i] === playerId) {
+        delete this.players[i];
+        break;
+      }
+    }
+  }
+  getPlayers() {
+    return this.players;
   }
   getPlayerCount() {
-    return this.players.length;
+    return Object.keys(this.players).length;
   }
   setPlayers(players) {
     this.players = players;

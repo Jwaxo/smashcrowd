@@ -5,8 +5,8 @@
 {% set stageClasses = [
   'stage',
   (isDisabled ? 'stage--disabled' : ''),
-  (isActive ? 'stage--active' : ''),
-  (character.getState() ? 'character--' ~ character.getState() : ''),
+  (player.hasStage(stage) ? 'stage--active' : ''),
+  (stage.getState() ? 'stage--' ~ stage.getState() : ''),
 ]|join(' ')|trim %}
 
 {% set stageStyles = [
@@ -15,6 +15,12 @@
 ]|join('; ')|trim %}
 
 <div class="{{ stageClasses }}" data-stage-round="{{ stageRound ? stageRound : 0 }}" data-stage-id="{{ stage.getId() }}" style="{{ stageStyles }}">
-  <span class="stage-count">{{ stage.getPlayerCount() }}</span>
+  {% for player in stage.getPlayers()|keys %}
+    {% set tokenClasses = [
+      'stage-token',
+      'stage-token--' ~ player,
+    ]|join(' ')|trim %}
+    <span class="{{ tokenClasses }}"></span>
+  {% endfor %}
   <span class="stage-name">{{ stage.getName() }}</span>
 </div>

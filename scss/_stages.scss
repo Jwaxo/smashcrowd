@@ -29,6 +29,9 @@
     opacity: .5;
   }
 
+  &.stage--active {
+    border: rem-calc(2px) solid red;
+  }
 }
 
 .stage-name {
@@ -38,4 +41,12 @@
   .stage-grid--disabled &{
     cursor: default;
   }
+}
+
+.stage-token {
+  background: url('../images/emblem-small-red.png') center center transparent;
+  display: block;
+  height: rem-calc(32px);
+  position: absolute;
+  width: rem-calc(32px);
 }

@@ -10,7 +10,9 @@
 <div class="cell">
   <div class="{{ stagesGridClasses }}">
     {% for stage in board.getStages() %}
-      {% include 'stage.twig' %}
+      {% include 'stage.twig' with {
+        player: client.getPlayer(),
+      } %}
     {% endfor %}
   </div>
 </div>

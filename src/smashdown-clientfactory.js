@@ -65,7 +65,7 @@ class Client {
     this.updatePlayerStorage();
   }
   getPlayer() {
-    return this.player
+    return this.player;
   }
   getPlayerId() {
     return this.playerId;
