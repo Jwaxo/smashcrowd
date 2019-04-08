@@ -330,6 +330,8 @@ io.on('connection', socket => {
       // We only need to regenerate characters on game start, not every round,
       // since we want to hide them.
       regenerateCharacters();
+      // Same for stages; they get disabled when the game starts.
+      regenerateStages();
 
       setStatusAll('The game has begun!', 'success');
     }
@@ -549,13 +551,7 @@ function advanceDraft(characterUpdateData) {
 }
 
 /**
- * Moves the game to the next phase, and sends commands resulting from changes therein.
- *
- * Currently there are four stages:
- * 1. Pre-Draft, where players can be made and stages can be voted on.
- * 2. Draft, where characters are chosen, either by round or freely.
- * 3. Game, where rounds are played and winners marked.
- * 4. Post-Game, where results can be viewed.
+ * Advances the game to the next round.
  */
 function advanceGame() {
   const round = board.advanceGameRound();
@@ -566,7 +562,6 @@ function advanceGame() {
   // Go through all players and update their rosters.
   regeneratePlayers();
   regenerateBoardInfo();
-  regenerateStages();
 }
 
 /**
