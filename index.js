@@ -90,6 +90,7 @@ io.on('connection', socket => {
   setClientInfoSingle(client);
   regeneratePlayers();
   regenerateCharacters();
+  regenerateStages();
   regenerateChatSingle(socket);
 
   // Set a default status for a connection if there are no players.
@@ -547,6 +548,15 @@ function advanceDraft(characterUpdateData) {
   }
 }
 
+/**
+ * Moves the game to the next phase, and sends commands resulting from changes therein.
+ *
+ * Currently there are four stages:
+ * 1. Pre-Draft, where players can be made and stages can be voted on.
+ * 2. Draft, where characters are chosen, either by round or freely.
+ * 3. Game, where rounds are played and winners marked.
+ * 4. Post-Game, where results can be viewed.
+ */
 function advanceGame() {
   const round = board.advanceGameRound();
   if (round > board.getTotalRounds()) {
@@ -556,6 +566,7 @@ function advanceGame() {
   // Go through all players and update their rosters.
   regeneratePlayers();
   regenerateBoardInfo();
+  regenerateStages();
 }
 
 /**
@@ -582,6 +593,7 @@ function resetGame(boardData) {
   regenerateBoardInfo();
   regeneratePlayers(true);
   regenerateCharacters();
+  regenerateStages();
 
   serverLog(`New game board generated with ID ${gameId}`);
 }
@@ -649,6 +661,15 @@ function regeneratePlayers(regenerateForm = false) {
  function regenerateChatSingle(socket) {
   Twig.renderFile('./views/chat-container.twig', {chatHistory}, (error, html) => {
     socket.emit('rebuild-chat', html);
+  });
+}
+
+/**
+ * Renders the character select screen and updates all clients with new char info.
+ */
+function regenerateStages() {
+  Twig.renderFile('./views/stages-container.twig', {board}, (error, html) => {
+    io.sockets.emit('rebuild-stages', html);
   });
 }
 

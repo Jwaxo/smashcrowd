@@ -8,7 +8,7 @@
   justify-content: center;
   margin-bottom: rem-calc(30px);
 
-  &.character-grid--hidden {
+  &.stages-grid--hidden {
     display: none;
   }
 }
@@ -24,7 +24,7 @@
   width: rem-calc(180px);
 
   &.stage--disabled,
-  .stage-grid--disabled & {
+  .stages-grid--disabled & {
     cursor: default;
     opacity: .5;
   }
