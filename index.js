@@ -431,6 +431,8 @@ function setClientPlayer(client, player) {
 
   updateCharactersSingle(client, {allDisabled: !player.isActive});
   updatePlayersInfo(updatedPlayers);
+
+  regenerateStages();
 }
 
 /**
@@ -660,11 +662,15 @@ function regeneratePlayers(regenerateForm = false) {
 }
 
 /**
- * Renders the character select screen and updates all clients with new char info.
+ * Renders the stage select screen and votes.
  */
 function regenerateStages() {
-  Twig.renderFile('./views/stages-container.twig', {board}, (error, html) => {
-    io.sockets.emit('rebuild-stages', html);
+  // The stage listing is unique to each client to show which votes are yours, so
+  // we also need to update them whenever it changes.
+  clients.forEach(client => {
+    Twig.renderFile('./views/stages-container.twig', {board, client}, (error, html) => {
+      client.getSocket().emit('rebuild-stages', html);
+    });
   });
 }
 

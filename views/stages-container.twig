@@ -4,7 +4,7 @@
 #}
 {% set stagesGridClasses = [
   'stages-grid',
-  (not board.getStatus(['new', 'draft', 'draft-commplete',]) ? 'stages-grid--disabled' : ''),
+  (board.getStatus(['game']) or client.getPlayerId() is null ? 'stages-grid--disabled' : ''),
 ]|join(' ')|trim %}
 
 <div class="cell">
