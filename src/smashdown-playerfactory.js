@@ -5,6 +5,7 @@ class Player {
   constructor(name) {
     this.name = name;
     this.characters = [];
+    this.stages = [];
     this.clientId = 0;
     this.isActive = false;
     this.playerId = null;
@@ -53,6 +54,31 @@ class Player {
   }
   setCharacterState(characterIndex, value) {
     this.characters[characterIndex].setState(value);
+  }
+
+  addStage(stage) {
+    this.stages.push(stage);
+    stage.addPlayer(this.playerId);
+    return this.stages;
+  }
+  setStages(stages) {
+    this.stages = stages;
+  }
+  hasStage(stage) {
+  return this.stages.indexOf(stage) !== -1;
+  }
+  getStages() {
+    return this.stages;
+  }
+  getStageCount() {
+    return this.stages.length;
+  }
+  dropStage(stage) {
+    const index = this.stages.indexOf(stage);
+    if (index !== -1) {
+      this.stages.splice(index, 1);
+      stage.dropPlayer(this.playerId);
+    }
   }
 
   setSortOrder(order) {

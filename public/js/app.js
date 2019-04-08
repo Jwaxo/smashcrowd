@@ -205,7 +205,7 @@ $(function() {
   function stagesSetup(initial = false) {
     $('.stages-grid:not(.stages-grid--disabled) .stage').unbind('click').click((element) => {
       const stageId = $(element.currentTarget).data('stage-id');
-      socket.emit('pick-stage', stageId);
+      socket.emit('click-stage', stageId);
       $('.stages-grid').addClass('stages-grid--disabled', true);
     });
 

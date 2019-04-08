@@ -16,10 +16,10 @@ class Stage {
     return this;
   }
 
-  setStageId(stageId) {
+  setId(stageId) {
     this.stageId = stageId;
   }
-  getStageId() {
+  getId() {
     return this.stageId;
   }
 
@@ -57,6 +57,13 @@ class Stage {
 
   addPlayer(playerId) {
     this.players.push(playerId);
+  }
+  dropPlayer(playerId) {
+    const index = this.players.indexOf(playerId);
+    this.players.splice(index, 1);
+  }
+  getPlayerCount() {
+    return this.players.length;
   }
   setPlayers(players) {
     this.players = players;

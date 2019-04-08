@@ -258,7 +258,7 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('player-remove-click', (playerId) => {
+  socket.on('player-remove-click', playerId => {
     const clickedPlayer = board.getPlayerById(playerId);
     const isCurrentPlayer = client.getPlayerId() === playerId;
 
@@ -281,6 +281,22 @@ io.on('connection', socket => {
       serverLog(`${client.getLabel()} tried to remove a player owned by someone else.`);
     }
 
+  });
+
+  socket.on('click-stage', stageId => {
+    const player = client.getPlayer();
+    const stage = board.getStage(stageId);
+
+    if (!player.hasStage(stage)) {
+      serverLog(`${client.getLabel()} voting for stage ${stage.getName()}`);
+      player.addStage(stage);
+    }
+    else {
+      serverLog(`${client.getLabel()} dropping vote for stage ${stage.getName()}`);
+      player.dropStage(stage);
+    }
+
+    regenerateStages();
   });
 
   socket.on('start-draft', () => {

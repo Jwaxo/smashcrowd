@@ -76,6 +76,7 @@ the SCSS only gets recompiled when the server is started.
 
 * Bug reporting and feature requesting link.
 * Simple stage voting.
+* Stage and roster shuffling.
 * Player boxes shake when they become active.
 * Multiple drafts per server.
 * Persistent storage via MySQL (or other DB)

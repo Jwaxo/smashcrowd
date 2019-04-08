@@ -15,10 +15,10 @@ class Character {
     return this;
   }
 
-  setCharId(charId) {
+  setId(charId) {
     this.charId = charId;
   }
-  getCharId() {
+  getId() {
     return this.charId;
   }
 
