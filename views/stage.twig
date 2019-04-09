@@ -20,7 +20,7 @@
       'stage-token',
       'stage-token--' ~ player,
     ]|join(' ')|trim %}
-    <span class="{{ tokenClasses }}"></span>
+    <span class="{{ tokenClasses }}"><span class="stage-token-inner"></span></span>
   {% endfor %}
   <span class="stage-name">{{ stage.getName() }}</span>
 </div>

@@ -44,9 +44,113 @@
 }
 
 .stage-token {
-  background: url('../images/emblem-small-red.png') center center transparent;
+  border: rem-calc(2px) solid $black;
+  border-radius: 50%;
+  box-sizing: content-box;
+  box-shadow: rem-calc(2px 2px 6px) $black;
   display: block;
   height: rem-calc(32px);
   position: absolute;
   width: rem-calc(32px);
+
+  .stage-token-inner {
+    background: url('../images/emblem-small-red.png') center center $white;
+    border-radius: 50%;
+    display: block;
+    height: 100%;
+    width: 100%;
+  }
+
+  // Locations for the 12 possible token positions. These were generated using
+  // output from random.org
+  &.stage-token--0 {
+    left: rem-calc(4px);
+    top: rem-calc(59px);
+
+    .stage-token-inner {
+      transform: rotate(21deg);
+    }
+  }
+  &.stage-token--1 {
+    left: rem-calc(62px);
+    top: rem-calc(31px);
+
+    .stage-token-inner {
+      transform: rotate(289deg);
+    }
+  }
+  &.stage-token--2 {
+    left: rem-calc(23px);
+    top: rem-calc(8px);
+
+    .stage-token-inner {
+      transform: rotate(7deg);
+    }
+  }
+  &.stage-token--3 {
+    left: rem-calc(46px);
+    top: rem-calc(47px);
+    transform: rotate(195deg);
+  }
+  &.stage-token--4 {
+    left: rem-calc(58px);
+    top: rem-calc(53px);
+    transform: rotate(154deg);
+  }
+  &.stage-token--5 {
+    left: rem-calc(82px);
+    top: rem-calc(12px);
+
+    .stage-token-inner {
+      transform: rotate(131deg);
+    }
+  }
+  &.stage-token--6 {
+    left: rem-calc(33px);
+    top: rem-calc(21px);
+
+    .stage-token-inner {
+      transform: rotate(264deg);
+    }
+  }
+  &.stage-token--7 {
+    left: rem-calc(29px);
+    top: rem-calc(3px);
+
+    .stage-token-inner {
+      transform: rotate(22deg);
+    }
+  }
+  &.stage-token--8 {
+    left: rem-calc(9px);
+    top: rem-calc(22px);
+
+    .stage-token-inner {
+      transform: rotate(127deg);
+    }
+  }
+  &.stage-token--9 {
+    left: rem-calc(83px);
+    top: rem-calc(10px);
+
+    .stage-token-inner {
+      transform: rotate(168deg);
+    }
+  }
+  &.stage-token--10 {
+    left: rem-calc(115px);
+    top: rem-calc(29px);
+
+    .stage-token-inner {
+      transform: rotate(170deg);
+    }
+  }
+  &.stage-token--11 {
+    left: rem-calc(69px);
+    top: rem-calc(15px);
+
+    .stage-token-inner {
+      transform: rotate(119deg);
+    }
+  }
 }
