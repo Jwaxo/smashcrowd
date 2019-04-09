@@ -5,7 +5,7 @@
 {% set stageClasses = [
   'stage',
   (isDisabled ? 'stage--disabled' : ''),
-  (player.hasStage(stage) ? 'stage--active' : ''),
+  (player and player.hasStage(stage) ? 'stage--active' : ''),
   (stage.getState() ? 'stage--' ~ stage.getState() : ''),
 ]|join(' ')|trim %}
 

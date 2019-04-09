@@ -90,12 +90,18 @@
   &.stage-token--3 {
     left: rem-calc(46px);
     top: rem-calc(47px);
-    transform: rotate(195deg);
+
+    .stage-token-inner {
+      transform: rotate(195deg);
+    }
   }
   &.stage-token--4 {
     left: rem-calc(58px);
     top: rem-calc(53px);
-    transform: rotate(154deg);
+
+    .stage-token-inner {
+      transform: rotate(154deg);
+    }
   }
   &.stage-token--5 {
     left: rem-calc(82px);
