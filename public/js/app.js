@@ -150,6 +150,22 @@ $(function() {
   });
 
   /**
+   * Updates the stage select area with new rendered stage info.
+   *
+   * @params {string} html
+   *   The replacement HTML with new stage data.
+   * @params {int} stageId
+   *   The ID of the stage to replace.
+   */
+  socket.on('update-stage', (html, stageId) => {
+    const stagesGrid = $('.stages-grid');
+    const stage = stagesGrid.find('[data-stage-id="' + stageId + '"]');
+    stage.replaceWith(html);
+    stage.foundation();
+    stagesGrid.removeClass('stages-grid--disabled');
+  });
+
+  /**
    * Updates the system and chat box.
    *
    * @params {string} html

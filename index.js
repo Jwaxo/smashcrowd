@@ -296,7 +296,7 @@ io.on('connection', socket => {
       player.dropStage(stage);
     }
 
-    regenerateStages();
+    updateStageInfo(stage);
   });
 
   socket.on('start-draft', () => {
@@ -715,6 +715,21 @@ function setClientInfoSingle(socketClient, isUpdate = false) {
  */
 function updatePlayersInfo(players) {
   io.sockets.emit('update-players', players);
+}
+
+/**
+ * Sends an array of stages with changed data to inform clients without needing
+ * to completely rebuild the stage area.
+ *
+ * @param {Stage} stage
+ */
+function updateStageInfo(stage) {
+  clients.forEach(client => {
+    const player = client.getPlayer();
+    Twig.renderFile('./views/stage.twig', {stage, player}, (error, html) => {
+      client.getSocket().emit('update-stage', html, stage.getId());
+    });
+  });
 }
 
 /**
