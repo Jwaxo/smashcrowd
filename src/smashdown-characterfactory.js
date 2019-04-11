@@ -1,5 +1,5 @@
 /**
- * Information and methods used for an individual user connection.
+ * Information and methods used for a character representation.
  */
 
 const fs = require('fs');
@@ -15,10 +15,10 @@ class Character {
     return this;
   }
 
-  setCharId(charId) {
+  setId(charId) {
     this.charId = charId;
   }
-  getCharId() {
+  getId() {
     return this.charId;
   }
 

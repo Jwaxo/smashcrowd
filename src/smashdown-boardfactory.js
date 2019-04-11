@@ -3,6 +3,7 @@
  */
 
 const Character = require('./smashdown-characterfactory.js');
+const Stage = require('./smashdown-stagefactory.js');
 const fs = require('fs');
 
 class Board {
@@ -19,9 +20,11 @@ class Board {
     this.nextPlayerId = 0;
 
     this.charData = {};
+    this.levelData = {};
     this.players = [];
     this.playersPickOrder = [];
     this.characters = [];
+    this.stages = [];
 
     this.gameId = this.generateGameId();
 
@@ -368,6 +371,51 @@ class Board {
   }
   dropAllCharacters() {
     this.characters = [];
+  }
+
+  /**
+   * Generally only ran at the creation of a board, creates all of the options
+   * for picking a stage.
+   * @param levelData
+   */
+  buildAllStages(levelData) {
+    this.levelData = levelData;
+    // Process characters from library.
+    for (let i = 0; i < this.levelData.levels.length; i++) {
+      this.addStage(i, new Stage(i, this.levelData.levels[i]));
+    }
+
+  }
+
+  /**
+   * Add a character to the characters array.
+   *
+   * @param {integer} stageId
+   * @param {Stage} stage
+   * @returns {number} Index of the character.
+   */
+  addStage(stageId, stage) {
+    this.stages[stageId] = stage;
+  }
+  updateStage(stageId, data) {
+    for (option in data) {
+      this.stages[stageId][option] = data[option];
+    }
+  }
+  getStages() {
+    return this.stages;
+  }
+  getStage(stageId) {
+    return this.stages[stageId];
+  }
+  resetStages() {
+    this.stages.forEach(stage => {
+      stage.setState(null);
+      stage.setPlayers([]);
+    });
+  }
+  dropAllStages() {
+    this.stages = [];
   }
 
   getGameId() {

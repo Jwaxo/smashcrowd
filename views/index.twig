@@ -27,11 +27,24 @@
     {% include 'form-add-player.twig' %}
   </div>
 
-  <div id="characters_container" class="grid-x grid-margin-x">
-    {% include 'characters-container.twig' %}
+  <ul class="tabs" data-tabs id="selection-tabs">
+    <li class="tabs-title is-active"><a href="#characters" aria-selected="true">Characters</a></li>
+    <li class="tabs-title"><a data-tabs-target="stages" href="#stages">Stages</a></li>
+  </ul>
+
+  <div class="tabs-content" data-tabs-content="selection-tabs">
+
+    <div id="characters" class="grid-x grid-margin-x tabs-panel is-active">
+      {% include 'characters-container.twig' %}
+    </div>
+
+    <div id="stages" class="grid-x grid-margin-x tabs-panel">
+      {% include 'stages-container.twig' %}
+    </div>
+
   </div>
 
-  <div id="players_container">
+  <div id="players">
     {% include 'players-container.twig' %}
   </div>
 

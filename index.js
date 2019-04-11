@@ -19,6 +19,9 @@ const Client = require('./src/smashdown-clientfactory.js');
 const Player = require('./src/smashdown-playerfactory.js');
 const Character = require('./src/smashdown-characterfactory.js');
 const Board = require('./src/smashdown-boardfactory.js');
+const Stage = require('./src/smashdown-stagefactory.js');
+
+const levels = require('./lib/levels.json');
 
 const io = socketio(server);
 
@@ -38,6 +41,7 @@ serverLog(`New game board generated with ID ${board.getGameId()}`, true);
 
 // Load characters from the character data file.
 board.buildAllCharacters(require('./lib/chars.json'));
+board.buildAllStages(require('./lib/levels.json'));
 
 // Do basic server setup stuff.
 app.use(express.static(__dirname + '/public'));
@@ -86,6 +90,7 @@ io.on('connection', socket => {
   setClientInfoSingle(client);
   regeneratePlayers();
   regenerateCharacters();
+  regenerateStages();
   regenerateChatSingle(socket);
 
   // Set a default status for a connection if there are no players.
@@ -253,7 +258,7 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('player-remove-click', (playerId) => {
+  socket.on('player-remove-click', playerId => {
     const clickedPlayer = board.getPlayerById(playerId);
     const isCurrentPlayer = client.getPlayerId() === playerId;
 
@@ -276,6 +281,22 @@ io.on('connection', socket => {
       serverLog(`${client.getLabel()} tried to remove a player owned by someone else.`);
     }
 
+  });
+
+  socket.on('click-stage', stageId => {
+    const player = client.getPlayer();
+    const stage = board.getStage(stageId);
+
+    if (!player.hasStage(stage)) {
+      serverLog(`${client.getLabel()} voting for stage ${stage.getName()}`);
+      player.addStage(stage);
+    }
+    else {
+      serverLog(`${client.getLabel()} dropping vote for stage ${stage.getName()}`);
+      player.dropStage(stage);
+    }
+
+    updateStageInfo(stage);
   });
 
   socket.on('start-draft', () => {
@@ -325,6 +346,8 @@ io.on('connection', socket => {
       // We only need to regenerate characters on game start, not every round,
       // since we want to hide them.
       regenerateCharacters();
+      // Same for stages; they get disabled when the game starts.
+      regenerateStages();
 
       setStatusAll('The game has begun!', 'success');
     }
@@ -424,6 +447,8 @@ function setClientPlayer(client, player) {
 
   updateCharactersSingle(client, {allDisabled: !player.isActive});
   updatePlayersInfo(updatedPlayers);
+
+  regenerateStages();
 }
 
 /**
@@ -543,6 +568,9 @@ function advanceDraft(characterUpdateData) {
   }
 }
 
+/**
+ * Advances the game to the next round.
+ */
 function advanceGame() {
   const round = board.advanceGameRound();
   if (round > board.getTotalRounds()) {
@@ -578,6 +606,7 @@ function resetGame(boardData) {
   regenerateBoardInfo();
   regeneratePlayers(true);
   regenerateCharacters();
+  regenerateStages();
 
   serverLog(`New game board generated with ID ${gameId}`);
 }
@@ -649,6 +678,19 @@ function regeneratePlayers(regenerateForm = false) {
 }
 
 /**
+ * Renders the stage select screen and votes.
+ */
+function regenerateStages() {
+  // The stage listing is unique to each client to show which votes are yours, so
+  // we also need to update them whenever it changes.
+  clients.forEach(client => {
+    Twig.renderFile('./views/stages-container.twig', {board, client}, (error, html) => {
+      client.getSocket().emit('rebuild-stages', html);
+    });
+  });
+}
+
+/**
  * Sends client info to that client.
  *
  * Since Clients contain socket information, we need to remove that prior to
@@ -673,6 +715,21 @@ function setClientInfoSingle(socketClient, isUpdate = false) {
  */
 function updatePlayersInfo(players) {
   io.sockets.emit('update-players', players);
+}
+
+/**
+ * Sends an array of stages with changed data to inform clients without needing
+ * to completely rebuild the stage area.
+ *
+ * @param {Stage} stage
+ */
+function updateStageInfo(stage) {
+  clients.forEach(client => {
+    const player = client.getPlayer();
+    Twig.renderFile('./views/stage.twig', {stage, player}, (error, html) => {
+      client.getSocket().emit('update-stage', html, stage.getId());
+    });
+  });
 }
 
 /**

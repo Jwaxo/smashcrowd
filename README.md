@@ -75,6 +75,8 @@ the SCSS only gets recompiled when the server is started.
 ### Planned features/Todo
 
 * Bug reporting and feature requesting link.
+* Simple stage voting.
+* Stage and roster shuffling.
 * Player boxes shake when they become active.
 * Multiple drafts per server.
 * Persistent storage via MySQL (or other DB)
@@ -92,6 +94,8 @@ the SCSS only gets recompiled when the server is started.
   * Game title
 * User Profiles
 * User and character stat-tracking
+  * Save match outcomes with other registered players, regardless of whether a 'proper' roster was made and stored (requires other player consent)
+  * Some sort of automated analysis. If one player constantly wins against a single other player, but doesn't win ever against anyone else, they have a lower score.
 * Trades
 * Player label customization.
 * Drag-and-drop arrangement.

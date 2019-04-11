@@ -1,0 +1,18 @@
+{#
+  The main character container and select screen. This is passed dynamically to
+  clients when they connect or when a character is moved.
+#}
+{% set stagesGridClasses = [
+  'stages-grid',
+  (board.getStatus(['game']) or client.getPlayerId() is null ? 'stages-grid--disabled' : ''),
+]|join(' ')|trim %}
+
+<div class="cell">
+  <div class="{{ stagesGridClasses }}">
+    {% for stage in board.getStages() %}
+      {% include 'stage.twig' with {
+        player: client.getPlayer(),
+      } %}
+    {% endfor %}
+  </div>
+</div>

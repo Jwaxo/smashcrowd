@@ -1,0 +1,12 @@
+/**
+ * Contain all styles that directly override a Foundation style here.
+ */
+
+.tabs-content {
+  background: none;
+  border: none;
+}
+
+.tabs-panel {
+  padding: rem-calc(15px 0 0);
+}
