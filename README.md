@@ -76,6 +76,10 @@ the SCSS only gets recompiled when the server is started.
 
 * Bug reporting and feature requesting link.
 * Simple stage voting.
+  * Your token is a different color.
+  * Option for anonymous voting or registered.
+  * Remove stage votes when a player is deleted...
+  * Display which stages have most votes
 * Stage and roster shuffling.
 * Player boxes shake when they become active.
 * Multiple drafts per server.

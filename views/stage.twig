@@ -15,10 +15,11 @@
 ]|join('; ')|trim %}
 
 <div class="{{ stageClasses }}" data-stage-round="{{ stageRound ? stageRound : 0 }}" data-stage-id="{{ stage.getId() }}" style="{{ stageStyles }}">
-  {% for player in stage.getPlayers()|keys %}
+  {% for slot in stage.getPlayers()|keys %}
     {% set tokenClasses = [
       'stage-token',
-      'stage-token--' ~ player,
+      'stage-token--slot' ~ slot,
+      'stage-token--player' ~ stage.getPlayers()[slot],
     ]|join(' ')|trim %}
     <span class="{{ tokenClasses }}"><span class="stage-token-inner"></span></span>
   {% endfor %}

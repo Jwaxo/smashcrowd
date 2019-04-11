@@ -5,6 +5,7 @@
 {% set playerClasses = [
   'card',
   'player',
+  'player--player' ~ player.getId(),
   (player.isActive ? 'player--active' : ''),
   (player.getClientId() ? 'player--owned' : ''),
   (client.getPlayerId() == player.getId() ? 'player--current' : ''),
