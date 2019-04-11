@@ -43,7 +43,7 @@
 }
 
 .character-name {
-  @include smashtext;
+  @include smashtext-label;
 
   .character-grid--disabled & {
     cursor: default;
