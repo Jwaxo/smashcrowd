@@ -161,8 +161,8 @@ $(function() {
     const stagesGrid = $('.stages-grid');
     const stage = stagesGrid.find('[data-stage-id="' + stageId + '"]');
     stage.replaceWith(html);
-    stage.foundation();
     stagesGrid.removeClass('stages-grid--disabled');
+    stagesSetup();
   });
 
   /**
