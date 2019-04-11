@@ -57,30 +57,7 @@
     width: 100%;
   }
 
-  &.stage-token--player0 .stage-token-inner {
-    background-color: map-get($player-main-palette, 1);
-  }
-  &.stage-token--player1 .stage-token-inner {
-    background-color: map-get($player-main-palette, 2);
-  }
-  &.stage-token--player2 .stage-token-inner {
-    background-color: map-get($player-main-palette, 3);
-  }
-  &.stage-token--player3 .stage-token-inner {
-    background-color: map-get($player-main-palette, 4);
-  }
-  &.stage-token--player4 .stage-token-inner {
-    background-color: map-get($player-main-palette, 5);
-  }
-  &.stage-token--player5 .stage-token-inner {
-    background-color: map-get($player-main-palette, 6);
-  }
-  &.stage-token--player6 .stage-token-inner {
-    background-color: map-get($player-main-palette, 7);
-  }
-  &.stage-token--player7 .stage-token-inner {
-    background-color: map-get($player-main-palette, 8);
-  }
+  @include map-apply('&.stage-token--player', $player-main-palette, 'background-color', ' .stage-token-inner');
 
   // Locations for the 12 possible token positions. These were generated using
   // output from random.org

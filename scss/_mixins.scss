@@ -1,7 +1,25 @@
 /**
- * Various useful functions and styles for reapplication.
+ * Various useful styles for reapplication.
  */
 
+/**
+ * Applies all values in a map over a selector.
+ *
+ * Example usage: map-apply('&.player--player', $player-main-palette, 'color'.
+ * This would output '&.player--player1 { color: blue }', or similar, for each
+ * player in the player-main-palette.
+ */
+@mixin map-apply($selector, $map, $property, $additional-selector: '') {
+  @each $option, $value in $map {
+    #{$selector}#{$option}#{$additional-selector} {
+      #{$property}: $value;
+    }
+  }
+}
+
+/**
+ * Converts font to the bold Smash Text.
+ */
 @mixin smashtext() {
   color: white;
   font-family: 'Open Sans', 'Work Sans', sans-serif;
@@ -10,6 +28,9 @@
   text-transform: uppercase;
 }
 
+/**
+ * Creates a small label to appear in a character portrait or stage image.
+ */
 @mixin smashtext-label() {
   @include smashtext;
 
