@@ -76,15 +76,20 @@ the SCSS only gets recompiled when the server is started.
 
 * Bug reporting and feature requesting link.
 * Simple stage voting.
-  * Your token is a different color.
   * Option for anonymous voting or registered.
   * Remove stage votes when a player is deleted...
   * Display which stages have most votes
+  * Ban/vote against
+* User Profiles
+  * User and character stat-tracking
+  * Player label customization.
 * Stage and roster shuffling.
 * Player boxes shake when they become active.
 * Multiple drafts per server.
+  * Can set them up like Discord channels, where "rooms" you're in show up on the side.
 * Persistent storage via MySQL (or other DB)
 * Game options:
+  * "Score Card" style, used just for tracking games/characters.
   * Character limiting options: "None", "Per-Player", "Per-Board"
   * Squad-strike
     * Winner gets to keep a character
@@ -96,12 +101,10 @@ the SCSS only gets recompiled when the server is started.
     * Linear
     * Auction?
   * Game title
-* User Profiles
-* User and character stat-tracking
+* Extra stat options
   * Save match outcomes with other registered players, regardless of whether a 'proper' roster was made and stored (requires other player consent)
   * Some sort of automated analysis. If one player constantly wins against a single other player, but doesn't win ever against anyone else, they have a lower score.
 * Trades
-* Player label customization.
 * Drag-and-drop arrangement.
 * Cursor becomes Smash Bros hand when over characters.
 * Level pick-and-ban.
