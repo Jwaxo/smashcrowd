@@ -31,7 +31,7 @@
 }
 
 .stage-name {
-  @include smashtext;
+  @include smashtext-label;
 
   .stage--disabled &,
   .stage-grid--disabled &{

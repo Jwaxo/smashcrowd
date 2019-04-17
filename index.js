@@ -287,16 +287,18 @@ io.on('connection', socket => {
     const player = client.getPlayer();
     const stage = board.getStage(stageId);
 
-    if (!player.hasStage(stage)) {
-      serverLog(`${client.getLabel()} voting for stage ${stage.getName()}`);
-      player.addStage(stage);
-    }
-    else {
-      serverLog(`${client.getLabel()} dropping vote for stage ${stage.getName()}`);
-      player.dropStage(stage);
-    }
+    if (player !== null) {
+      if (!player.hasStage(stage)) {
+        serverLog(`${client.getLabel()} voting for stage ${stage.getName()}`);
+        player.addStage(stage);
+      }
+      else {
+        serverLog(`${client.getLabel()} dropping vote for stage ${stage.getName()}`);
+        player.dropStage(stage);
+      }
 
-    updateStageInfo(stage);
+      updateStageInfo(stage);
+    }
   });
 
   socket.on('start-draft', () => {
