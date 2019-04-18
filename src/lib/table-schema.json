@@ -1,8 +1,49 @@
 {
   "system" : {
-
+    "key": {
+      "type": "VARCHAR(32)",
+      "not_null": true,
+      "primary": true
+    },
+    "value": {
+      "type": "VARCHAR(255)"
+    }
   },
   "boards" : {
-
+    "id": {
+      "type": "INT",
+      "increment": true,
+      "primary": true
+    },
+    "name": {
+      "type": "VARCHAR(255)",
+      "not_null": true
+    },
+    "draft_type": {
+      "type": "TINYINT",
+      "not_null": true
+    },
+    "status": {
+      "type": "TINYINT",
+      "not_null": true
+    },
+    "current_pick": {
+      "type": "TINYINT",
+      "not_null": true,
+      "default": 0
+    },
+    "total_rounds": {
+      "type": "INT"
+    },
+    "current_draft_round": {
+      "type": "INT",
+      "not_null": true,
+      "default": 0
+    },
+    "current_game_round": {
+      "type": "INT",
+      "not_null": true,
+      "default": 0
+    }
   }
 }
