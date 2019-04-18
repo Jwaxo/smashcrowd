@@ -18,14 +18,16 @@ const Character = require('./src/factories/smashcrowd-characterfactory.js');
 const Board = require('./src/factories/smashcrowd-boardfactory.js');
 const Stage = require('./src/factories/smashcrowd-stagefactory.js');
 
+const clients = [];
+const chatHistory = [];
+const app = express();
+const server = http.Server(app);
+const io = socketio(server);
+let console_colors = {};
+
 module.exports = config => {
-  const clients = [];
-  const chatHistory = [];
   const port = config.get('server.port');
-  const console_colors = config.get('server.console_colors');
-  const app = express();
-  const server = http.Server(app);
-  const io = socketio(server);
+  console_colors = config.get('server.console_colors')
 
   // Currently we only run one board at a time, so set the ID to 1.
   const board = new Board(1, config.get('server.default_board'));
@@ -75,9 +77,9 @@ module.exports = config => {
 
     // Generate everything just in case the connections existed before the server.
     setClientInfoSingle(client);
-    regeneratePlayers();
-    regenerateCharacters();
-    regenerateStages();
+    regeneratePlayers(board);
+    regenerateCharacters(board);
+    regenerateStages(board);
     regenerateChatSingle(socket);
 
     // Set a default status for a connection if there are no players.
@@ -106,7 +108,7 @@ module.exports = config => {
         // If the client doesn't yet have a player, assume they want this one for
         // now.
         serverLog(`${client.getLabel()} automatically taking control of player ${player.getName()}`);
-        setClientPlayer(client, player);
+        setClientPlayer(board, client, player);
         client.setPlayer(player);
       }
 
@@ -116,7 +118,7 @@ module.exports = config => {
         }
       });
 
-      regeneratePlayers(false);
+      regeneratePlayers(board, false);
     });
 
     /**
@@ -132,7 +134,7 @@ module.exports = config => {
 
         if (player && !player.getClientId()) {
           serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
-          setClientPlayer(client, player);
+          setClientPlayer(board, client, player);
         }
         else if (player) {
           serverLog(`${playerId} already occupied, not assigned`, true);
@@ -199,10 +201,10 @@ module.exports = config => {
               },
             ];
           }
-          advanceDraft(characterUpdateData);
+          advanceDraft(board, characterUpdateData);
         }
         else {
-          advanceFreePick(client);
+          advanceFreePick(board, client);
         }
       }
     });
@@ -225,7 +227,7 @@ module.exports = config => {
               eachPlayer.setCharacterState(character_index, 'loss');
             }
           });
-          advanceGame();
+          advanceGame(board);
         }
         else {
           serverLog(`${client.getLabel()} tried to mark a non-player as winner!`);
@@ -237,11 +239,11 @@ module.exports = config => {
         // If the draft was marked complete, uncomplete it!
         if (board.getStatus() === 'draft-complete') {
           board.setStatus('draft');
-          regenerateBoardInfo();
+          regenerateBoardInfo(board);
         }
 
-        advanceFreePick(client);
-        regeneratePlayers();
+        advanceFreePick(board, client);
+        regeneratePlayers(board);
       }
     });
 
@@ -258,7 +260,7 @@ module.exports = config => {
           client.setPlayer(null);
         }
         board.dropPlayerById(playerId);
-        regeneratePlayers();
+        regeneratePlayers(board);
 
         serverLog(`${client.getLabel()} removed player ${clickedPlayer.getName()}`);
       }
@@ -301,9 +303,9 @@ module.exports = config => {
         board.getPlayerByPickOrder(0).setActive(true);
       }
 
-      regenerateBoardInfo();
-      regenerateCharacters();
-      regeneratePlayers(true);
+      regenerateBoardInfo(board);
+      regenerateCharacters(board);
+      regeneratePlayers(board, true);
       setStatusAll('The draft has begun!', 'success');
     });
 
@@ -330,13 +332,13 @@ module.exports = config => {
           player.setActive(false);
         });
 
-        advanceGame();
+        advanceGame(board);
 
         // We only need to regenerate characters on game start, not every round,
         // since we want to hide them.
-        regenerateCharacters();
+        regenerateCharacters(board);
         // Same for stages; they get disabled when the game starts.
-        regenerateStages();
+        regenerateStages(board);
 
         setStatusAll('The game has begun!', 'success');
       }
@@ -348,7 +350,7 @@ module.exports = config => {
     // Reset the entire game board, characters, and others. Keeps players.
     socket.on('reset', data => {
       serverLog(`${client.getLabel()} requested a server reset.`);
-      resetGame(data);
+      resetGame(board, data);
     });
 
     // Shuffles the players to a random order.
@@ -359,7 +361,7 @@ module.exports = config => {
 
       setStatusSingle(client, 'Players shuffled!');
 
-      regeneratePlayers();
+      regeneratePlayers(board);
     });
 
     // Be sure to remove the client from the list of clients when they disconnect.
@@ -375,450 +377,453 @@ module.exports = config => {
       serverLog(`${client.getLabel()} disconnected.`, noPlayer);
       client.setPlayer(null);
 
-      regeneratePlayers();
+      regeneratePlayers(board);
+    });
+  });
+};
+
+/**
+ * Creates a simple message for displaying to the server, with timestamp.
+ *
+ * @param {string} message
+ *   The message to set. This can have chalk.js formatting, which will be stripped
+ *   prior to sending to clients.
+ * @param {boolean} serverOnly
+ *   If the message should not be broadcast in the clientside chat.
+ */
+function serverLog(message, serverOnly = false) {
+  const date = new Date();
+  const timestamp = date.toLocaleString("en-US");
+  const log = `${timestamp}: ${message}`;
+
+  if (!serverOnly) {
+    updateChat(log);
+  }
+
+  console.log(log);
+}
+
+/**
+ * Set a Client's Player, then updates the HTML of all clients to match.
+ *
+ * Note that this does not spark a regeneratePlayers, which allows us to do a few
+ * transition animations and such.
+ *
+ * @param {Board} board
+ * @param {Client} client
+ * @param {Player} player
+ */
+function setClientPlayer(board, client, player) {
+  const updatedPlayers = [];
+
+  // First remove the current client's player so it's empty again.
+  if (client.getPlayerId() !== null) {
+    const prevPlayer = client.getPlayer();
+    serverLog(`Removing ${client.getColor()(`Client ${client.getId()}`)} from player ${prevPlayer.getName()}`, true);
+    client.setPlayer(null);
+
+    updatedPlayers.push({
+      'playerId': prevPlayer.getId(),
+      'clientId': 0,
+    });
+  }
+
+  client.setPlayer(player);
+
+  updatedPlayers.push({
+    'playerId': player.getId(),
+    'clientId': client.getId(),
+    'roster_html': renderPlayerRoster(board, player),
+  });
+
+  setClientInfoSingle(client, true);
+
+  updateCharactersSingle(client, {allDisabled: !player.isActive});
+  updatePlayersInfo(updatedPlayers);
+
+  regenerateStages(board);
+}
+
+/**
+ * Since free pick doesn't have a nice, easy draft count of rounds, we need to
+ * track how many characters each player has added, and update the board info/
+ * state if they've all picked.
+ *
+ * @params {Client} client
+ *  The client that just picked.
+ * @params {Player} player
+ *  The player that just picked.
+ */
+function advanceFreePick(board, client) {
+  const updatedPlayers = [];
+  const player = client.getPlayer();
+
+  player.setActive((!board.getTotalRounds() || player.getCharacterCount() < board.getTotalRounds()));
+
+  // Disable/Enable picking for this user.
+  updateCharactersSingle(client, {allDisabled: !player.isActive});
+
+  updatedPlayers.push({
+    'playerId': player.getId(),
+    'isActive': player.isActive,
+    'roster_html': renderPlayerRoster(board, player),
+  });
+
+  updatePlayersInfo(updatedPlayers);
+
+  // If any single player is not yet ready, don't update the board info.
+  const draftComplete = !board.eachPlayer([board.getTotalRounds()], (player, totalRounds) => {
+    if (player.getCharacterCount() < totalRounds) {
+      return true;
+    }
+  });
+
+  if (draftComplete) {
+    board.setStatus('draft-complete');
+    regenerateBoardInfo(board);
+  }
+}
+
+/**
+ * Move to the next active player and do any additional processing.
+ */
+function advanceDraft(board, characterUpdateData) {
+
+  const prevPlayer = board.getActivePlayer();
+  const updatedPlayers = [];
+
+  if (board.getDraftRound() === 1 && board.getPick() === 0) {
+    // If this is the first pick of the game, tell clients so that we can update
+    // the interface.
+    setStatusAll('Character drafting has begun!', 'success');
+  }
+
+  // This boolean tells us if the most recent pick ended the round.
+  // If players count goes evenly into current pick, we have reached a new round.
+  const newRound = (board.advancePick() % board.getPlayersCount() === 0);
+
+  // If our round is new and the pre-advance current round equals the total, end!
+  if (newRound && board.getDraftRound() === board.getTotalRounds()) {
+    serverLog(`Drafting is now complete!`);
+    io.sockets.emit('draft-complete');
+    board.getActivePlayer().setActive(false);
+    board.setStatus('draft-complete');
+    regenerateBoardInfo(board);
+    regeneratePlayers(board);
+    regenerateCharacters(board);
+  }
+  else {
+    // On with the draft!
+    if (newRound) {
+      serverLog(`Round ${board.getDraftRound()} completed.`);
+      board.advanceDraftRound();
+      board.reversePlayersPick();
+      board.resetPick();
+    }
+
+    const currentPlayer = board.getPlayerByPickOrder(board.getPick());
+    const currentClient = clients[currentPlayer.getClientId() - 1];
+
+    // We only need to change active state if the player changes.
+    if (prevPlayer !== currentPlayer) {
+      // Make sure the characters stay disabled, since this player is no longer
+      // active.
+      characterUpdateData.allDisabled = true;
+
+      prevPlayer.setActive(false);
+      currentPlayer.setActive(true);
+
+      updatedPlayers.push({
+        'playerId': currentPlayer.getId(),
+        'isActive': true,
+      });
+      setStatusSingle(currentClient, 'It is your turn! Please choose your next character.', 'primary');
+    }
+
+    // If we're at a new round in snake draft we need to regenerate the player
+    // area entirely so that they reorder. Otherwise just update stuff!
+    if (newRound && board.getDraftType() === 'snake') {
+      setStatusSingle(currentClient, 'With the new round, it is once again your turn! Choose wisely.', 'primary');
+      regenerateBoardInfo(board);
+      regeneratePlayers(board);
+    }
+    else {
+      updatedPlayers.push({
+        'playerId': prevPlayer.getId(),
+        'isActive': prevPlayer.isActive,
+        'roster_html': renderPlayerRoster(board, prevPlayer),
+      });
+
+      updatePlayersInfo(updatedPlayers);
+    }
+
+    updateCharacters(characterUpdateData);
+  }
+}
+
+/**
+ * Advances the game to the next round.
+ */
+function advanceGame(board) {
+  const round = board.advanceGameRound();
+  if (round > board.getTotalRounds()) {
+    board.setStatus('game-complete');
+  }
+
+  // Go through all players and update their rosters.
+  regeneratePlayers(board);
+  regenerateBoardInfo(board);
+}
+
+/**
+ * Set all options back to defaults.
+ */
+function resetGame(board, boardData) {
+  board.resetGame();
+  const gameId = board.getGameId();
+
+  if (boardData.draftType) {
+    board.setDraftType(boardData.draftType);
+  }
+  if (boardData.totalRounds) {
+    board.setTotalRounds(boardData.totalRounds);
+  }
+
+  clients.forEach(client => {
+    client.setPlayer(null);
+    client.setGameId(board.getGameId());
+    setClientInfoSingle(client, true);
+    serverLog(`Wiping player info for ${client.getLabel()}`);
+  });
+
+  regenerateBoardInfo(board);
+  regeneratePlayers(board, true);
+  regenerateCharacters(board);
+  regenerateStages(board);
+
+  serverLog(`New game board generated with ID ${gameId}`);
+}
+
+/**
+ * Twig renders out the list of characters in a given player's roster.
+ *
+ * @param {Board} board
+ * @param {Player} player
+ * @returns {string}
+ */
+function renderPlayerRoster(board, player) {
+  let rendered = '';
+
+  Twig.renderFile('./views/player-roster.twig', {player, board}, (error, html) => {
+    rendered = html;
+  });
+
+  return rendered;
+}
+
+/**
+ * Renders the board info and updates all clients with new board info.
+ */
+function regenerateBoardInfo(board) {
+  Twig.renderFile('./views/board-data.twig', {board}, (error, html) => {
+    io.sockets.emit('rebuild-boardInfo', html);
+  });
+}
+
+/**
+ * Renders the players and updates all clients with new player info.
+ *
+ * @param {Board} board
+ * @param {boolean} regenerateForm
+ *   Whether or not the "Add Player" form should also be regenerated. Only needed
+ *   when starting a new draft or setting up a new game.
+ */
+function regeneratePlayers(board, regenerateForm = false) {
+  // The player listing is unique to each client, so we need to rebuild it and
+  // send it out individually.
+  clients.forEach(client => {
+    Twig.renderFile('./views/players-container.twig', {board, client}, (error, html) => {
+      client.getSocket().emit('rebuild-players', html);
     });
   });
 
-  /**
-   * Creates a simple message for displaying to the server, with timestamp.
-   *
-   * @param {string} message
-   *   The message to set. This can have chalk.js formatting, which will be stripped
-   *   prior to sending to clients.
-   * @param {boolean} serverOnly
-   *   If the message should not be broadcast in the clientside chat.
-   */
-  function serverLog(message, serverOnly = false) {
-    const date = new Date();
-    const timestamp = date.toLocaleString("en-US");
-    const log = `${timestamp}: ${message}`;
-
-    if (!serverOnly) {
-      updateChat(log);
-    }
-
-    console.log(log);
+  if (regenerateForm) {
+    Twig.renderFile('./views/form-add-player.twig', {board}, (error, html) => {
+      io.sockets.emit('rebuild-player-form', html);
+    })
   }
+}
 
-  /**
-   * Set a Client's Player, then updates the HTML of all clients to match.
-   *
-   * Note that this does not spark a regeneratePlayers, which allows us to do a few
-   * transition animations and such.
-   *
-   * @param {Client} client
-   * @param {Player} player
-   */
-  function setClientPlayer(client, player) {
-    const updatedPlayers = [];
+/**
+ * Renders the character select screen and updates all clients with new char info.
+ */
+function regenerateCharacters(board) {
+  Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
+    io.sockets.emit('rebuild-characters', html);
+  });
+}
 
-    // First remove the current client's player so it's empty again.
-    if (client.getPlayerId() !== null) {
-      const prevPlayer = client.getPlayer();
-      serverLog(`Removing ${client.getColor()(`Client ${client.getId()}`)} from player ${prevPlayer.getName()}`, true);
-      client.setPlayer(null);
+/**
+ * Renders the players and updates all clients with new player info.
+ */
+function regenerateChatSingle(socket) {
+  Twig.renderFile('./views/chat-container.twig', {chatHistory}, (error, html) => {
+    socket.emit('rebuild-chat', html);
+  });
+}
 
-      updatedPlayers.push({
-        'playerId': prevPlayer.getId(),
-        'clientId': 0,
-      });
-    }
-
-    client.setPlayer(player);
-
-    updatedPlayers.push({
-      'playerId': player.getId(),
-      'clientId': client.getId(),
-      'roster_html': renderPlayerRoster(player),
+/**
+ * Renders the stage select screen and votes.
+ */
+function regenerateStages(board) {
+  // The stage listing is unique to each client to show which votes are yours, so
+  // we also need to update them whenever it changes.
+  clients.forEach(client => {
+    Twig.renderFile('./views/stages-container.twig', {board, client}, (error, html) => {
+      client.getSocket().emit('rebuild-stages', html);
     });
+  });
+}
 
-    setClientInfoSingle(client, true);
+/**
+ * Sends client info to that client.
+ *
+ * Since Clients contain socket information, we need to remove that prior to
+ * passing, or else the whole app will crash.
+ *
+ * @param {Client} socketClient
+ *   The Client object with socket information attached.
+ * @param {Boolean} isUpdate
+ *   If this is the initial client setting or a later update.
+ */
+function setClientInfoSingle(socketClient, isUpdate = false) {
+  const client = cleanClient(socketClient);
+  // Make sure to clean client before sending it.
+  socketClient.getSocket().emit('set-client', client, isUpdate);
+}
 
-    updateCharactersSingle(client, {allDisabled: !player.isActive});
-    updatePlayersInfo(updatedPlayers);
+/**
+ * Sends an array of players with changed data to inform clients without needing
+ * to completely rebuild the player area.
+ *
+ * @param {Array} players
+ */
+function updatePlayersInfo(players) {
+  io.sockets.emit('update-players', players);
+}
 
-    regenerateStages();
-  }
-
-  /**
-   * Since free pick doesn't have a nice, easy draft count of rounds, we need to
-   * track how many characters each player has added, and update the board info/
-   * state if they've all picked.
-   *
-   * @params {Client} client
-   *  The client that just picked.
-   * @params {Player} player
-   *  The player that just picked.
-   */
-  function advanceFreePick(client) {
-    const updatedPlayers = [];
+/**
+ * Sends an array of stages with changed data to inform clients without needing
+ * to completely rebuild the stage area.
+ *
+ * @param {Stage} stage
+ */
+function updateStageInfo(stage) {
+  clients.forEach(client => {
     const player = client.getPlayer();
-
-    player.setActive((!board.getTotalRounds() || player.getCharacterCount() < board.getTotalRounds()));
-
-    // Disable/Enable picking for this user.
-    updateCharactersSingle(client, {allDisabled: !player.isActive});
-
-    updatedPlayers.push({
-      'playerId': player.getId(),
-      'isActive': player.isActive,
-      'roster_html': renderPlayerRoster(player),
+    Twig.renderFile('./views/stage.twig', {stage, player}, (error, html) => {
+      client.getSocket().emit('update-stage', html, stage.getId());
     });
+  });
+}
 
-    updatePlayersInfo(updatedPlayers);
+/**
+ * Sends character select data with changed info to one client.
+ *
+ * @see updateCharacters().
+ *
+ * @param {Client} client
+ * @param {Object} character_data
+ */
+function updateCharactersSingle(client, character_data) {
+  client.socket.emit('update-characters', character_data);
+}
 
-    // If any single player is not yet ready, don't update the board info.
-    const draftComplete = !board.eachPlayer([board.getTotalRounds()], (player, totalRounds) => {
-      if (player.getCharacterCount() < totalRounds) {
-        return true;
-      }
-    });
+/**
+ * Sends character select data with changed data to all clients.
+ *
+ * Used to inform clients without needing to completely rebuild the character area.
+ *
+ * @param {Object} character_data
+ *   {boolean} allDisabled
+ *     If the character select sheet should be disabled or enabled.
+ *   {Array} chars
+ *     An array of objects describing characters by their ID and how to update
+ *     them. Current allowed properties:
+ *     - {integer} charId: the ID of the character to update.
+ *     - {boolean} disabled: whether or not the character should be removed from
+ *       the list.
+ */
+function updateCharacters(character_data) {
+  io.sockets.emit('update-characters', character_data);
+}
 
-    if (draftComplete) {
-      board.setStatus('draft-complete');
-      regenerateBoardInfo();
-    }
-  }
+/**
+ * Sends a status message to all users.
+ *
+ * @param {string} status
+ *   The message to send.
+ * @param {string} type
+ *   The type of message. Uses Foundation's callout styles: https://foundation.zurb.com/sites/docs/callout.html
+ */
+function setStatusAll(status, type = 'secondary') {
+  Twig.renderFile('./views/status-message.twig', {status, type}, (error, html) => {
+    io.sockets.emit('set-status', html);
+  });
+}
 
-  /**
-   * Move to the next active player and do any additional processing.
-   */
-  function advanceDraft(characterUpdateData) {
-
-    const prevPlayer = board.getActivePlayer();
-    const updatedPlayers = [];
-
-    if (board.getDraftRound() === 1 && board.getPick() === 0) {
-      // If this is the first pick of the game, tell clients so that we can update
-      // the interface.
-      setStatusAll('Character drafting has begun!', 'success');
-    }
-
-    // This boolean tells us if the most recent pick ended the round.
-    // If players count goes evenly into current pick, we have reached a new round.
-    const newRound = (board.advancePick() % board.getPlayersCount() === 0);
-
-    // If our round is new and the pre-advance current round equals the total, end!
-    if (newRound && board.getDraftRound() === board.getTotalRounds()) {
-      serverLog(`Drafting is now complete!`);
-      io.sockets.emit('draft-complete');
-      board.getActivePlayer().setActive(false);
-      board.setStatus('draft-complete');
-      regenerateBoardInfo();
-      regeneratePlayers();
-      regenerateCharacters();
-    }
-    else {
-      // On with the draft!
-      if (newRound) {
-        serverLog(`Round ${board.getDraftRound()} completed.`);
-        board.advanceDraftRound();
-        board.reversePlayersPick();
-        board.resetPick();
-      }
-
-      const currentPlayer = board.getPlayerByPickOrder(board.getPick());
-      const currentClient = clients[currentPlayer.getClientId() - 1];
-
-      // We only need to change active state if the player changes.
-      if (prevPlayer !== currentPlayer) {
-        // Make sure the characters stay disabled, since this player is no longer
-        // active.
-        characterUpdateData.allDisabled = true;
-
-        prevPlayer.setActive(false);
-        currentPlayer.setActive(true);
-
-        updatedPlayers.push({
-          'playerId': currentPlayer.getId(),
-          'isActive': true,
-        });
-        setStatusSingle(currentClient, 'It is your turn! Please choose your next character.', 'primary');
-      }
-
-      // If we're at a new round in snake draft we need to regenerate the player
-      // area entirely so that they reorder. Otherwise just update stuff!
-      if (newRound && board.getDraftType() === 'snake') {
-        setStatusSingle(currentClient, 'With the new round, it is once again your turn! Choose wisely.', 'primary');
-        regenerateBoardInfo();
-        regeneratePlayers();
-      }
-      else {
-        updatedPlayers.push({
-          'playerId': prevPlayer.getId(),
-          'isActive': prevPlayer.isActive,
-          'roster_html': renderPlayerRoster(prevPlayer),
-        });
-
-        updatePlayersInfo(updatedPlayers);
-      }
-
-      updateCharacters(characterUpdateData);
-    }
-  }
-
-  /**
-   * Advances the game to the next round.
-   */
-  function advanceGame() {
-    const round = board.advanceGameRound();
-    if (round > board.getTotalRounds()) {
-      board.setStatus('game-complete');
-    }
-
-    // Go through all players and update their rosters.
-    regeneratePlayers();
-    regenerateBoardInfo();
-  }
-
-  /**
-   * Set all options back to defaults.
-   */
-  function resetGame(boardData) {
-    board.resetGame();
-    const gameId = board.getGameId();
-
-    if (boardData.draftType) {
-      board.setDraftType(boardData.draftType);
-    }
-    if (boardData.totalRounds) {
-      board.setTotalRounds(boardData.totalRounds);
-    }
-
-    clients.forEach(client => {
-      client.setPlayer(null);
-      client.setGameId(board.getGameId());
-      setClientInfoSingle(client, true);
-      serverLog(`Wiping player info for ${client.getLabel()}`);
-    });
-
-    regenerateBoardInfo();
-    regeneratePlayers(true);
-    regenerateCharacters();
-    regenerateStages();
-
-    serverLog(`New game board generated with ID ${gameId}`);
-  }
-
-  /**
-   * Twig renders out the list of characters in a given player's roster.
-   *
-   * @param {Player} player
-   * @returns {string}
-   */
-  function renderPlayerRoster(player) {
-    let rendered = '';
-
-    Twig.renderFile('./views/player-roster.twig', {player, board}, (error, html) => {
-      rendered = html;
-    });
-
-    return rendered;
-  }
-
-  /**
-   * Renders the board info and updates all clients with new board info.
-   */
-  function regenerateBoardInfo() {
-    Twig.renderFile('./views/board-data.twig', {board}, (error, html) => {
-      io.sockets.emit('rebuild-boardInfo', html);
-    });
-  }
-
-  /**
-   * Renders the players and updates all clients with new player info.
-   *
-   * @param {boolean} regenerateForm
-   *   Whether or not the "Add Player" form should also be regenerated. Only needed
-   *   when starting a new draft or setting up a new game.
-   */
-  function regeneratePlayers(regenerateForm = false) {
-    // The player listing is unique to each client, so we need to rebuild it and
-    // send it out individually.
-    clients.forEach(client => {
-      Twig.renderFile('./views/players-container.twig', {board, client}, (error, html) => {
-        client.getSocket().emit('rebuild-players', html);
-      });
-    });
-
-    if (regenerateForm) {
-      Twig.renderFile('./views/form-add-player.twig', {board}, (error, html) => {
-        io.sockets.emit('rebuild-player-form', html);
-      })
-    }
-  }
-
-  /**
-   * Renders the character select screen and updates all clients with new char info.
-   */
-  function regenerateCharacters() {
-    Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
-      io.sockets.emit('rebuild-characters', html);
-    });
-  }
-
-  /**
-   * Renders the players and updates all clients with new player info.
-   */
-  function regenerateChatSingle(socket) {
-    Twig.renderFile('./views/chat-container.twig', {chatHistory}, (error, html) => {
-      socket.emit('rebuild-chat', html);
-    });
-  }
-
-  /**
-   * Renders the stage select screen and votes.
-   */
-  function regenerateStages() {
-    // The stage listing is unique to each client to show which votes are yours, so
-    // we also need to update them whenever it changes.
-    clients.forEach(client => {
-      Twig.renderFile('./views/stages-container.twig', {board, client}, (error, html) => {
-        client.getSocket().emit('rebuild-stages', html);
-      });
-    });
-  }
-
-  /**
-   * Sends client info to that client.
-   *
-   * Since Clients contain socket information, we need to remove that prior to
-   * passing, or else the whole app will crash.
-   *
-   * @param {Client} socketClient
-   *   The Client object with socket information attached.
-   * @param {Boolean} isUpdate
-   *   If this is the initial client setting or a later update.
-   */
-  function setClientInfoSingle(socketClient, isUpdate = false) {
-    const client = cleanClient(socketClient);
-    // Make sure to clean client before sending it.
-    socketClient.getSocket().emit('set-client', client, isUpdate);
-  }
-
-  /**
-   * Sends an array of players with changed data to inform clients without needing
-   * to completely rebuild the player area.
-   *
-   * @param {Array} players
-   */
-  function updatePlayersInfo(players) {
-    io.sockets.emit('update-players', players);
-  }
-
-  /**
-   * Sends an array of stages with changed data to inform clients without needing
-   * to completely rebuild the stage area.
-   *
-   * @param {Stage} stage
-   */
-  function updateStageInfo(stage) {
-    clients.forEach(client => {
-      const player = client.getPlayer();
-      Twig.renderFile('./views/stage.twig', {stage, player}, (error, html) => {
-        client.getSocket().emit('update-stage', html, stage.getId());
-      });
-    });
-  }
-
-  /**
-   * Sends character select data with changed info to one client.
-   *
-   * @see updateCharacters().
-   *
-   * @param {Client} client
-   * @param {Object} character_data
-   */
-  function updateCharactersSingle(client, character_data) {
-    client.socket.emit('update-characters', character_data);
-  }
-
-  /**
-   * Sends character select data with changed data to all clients.
-   *
-   * Used to inform clients without needing to completely rebuild the character area.
-   *
-   * @param {Object} character_data
-   *   {boolean} allDisabled
-   *     If the character select sheet should be disabled or enabled.
-   *   {Array} chars
-   *     An array of objects describing characters by their ID and how to update
-   *     them. Current allowed properties:
-   *     - {integer} charId: the ID of the character to update.
-   *     - {boolean} disabled: whether or not the character should be removed from
-   *       the list.
-   */
-  function updateCharacters(character_data) {
-    io.sockets.emit('update-characters', character_data);
-  }
-
-  /**
-   * Sends a status message to all users.
-   *
-   * @param {string} status
-   *   The message to send.
-   * @param {string} type
-   *   The type of message. Uses Foundation's callout styles: https://foundation.zurb.com/sites/docs/callout.html
-   */
-  function setStatusAll(status, type = 'secondary') {
+/**
+ * Sends a status message to a single user.
+ *
+ * @param {Client} client
+ *   The client object to target.
+ * @param {string} status
+ *   The message to send.
+ * @param {string} type
+ *   The type of message. Uses Foundation's callout styles: https://foundation.zurb.com/sites/docs/callout.html
+ */
+function setStatusSingle(client, status, type = 'secondary') {
+  if (client && client.socket) {
     Twig.renderFile('./views/status-message.twig', {status, type}, (error, html) => {
-      io.sockets.emit('set-status', html);
+      client.socket.emit('set-status', html);
     });
   }
+}
 
-  /**
-   * Sends a status message to a single user.
-   *
-   * @param {Client} client
-   *   The client object to target.
-   * @param {string} status
-   *   The message to send.
-   * @param {string} type
-   *   The type of message. Uses Foundation's callout styles: https://foundation.zurb.com/sites/docs/callout.html
-   */
-  function setStatusSingle(client, status, type = 'secondary') {
-    if (client && client.socket) {
-      Twig.renderFile('./views/status-message.twig', {status, type}, (error, html) => {
-        client.socket.emit('set-status', html);
-      });
-    }
-  }
+/**
+ * Adds a new line item to the chat box.
+ *
+ * @param {string} message
+ *   The message to add. This is expected to be formatted using chalk.js for
+ *   console formatting; it will be stripped.
+ */
+function updateChat(message) {
+  // Define how console colors look so we can remove them from the HTML.
+  message = stripAnsi(message);
 
-  /**
-   * Adds a new line item to the chat box.
-   *
-   * @param {string} message
-   *   The message to add. This is expected to be formatted using chalk.js for
-   *   console formatting; it will be stripped.
-   */
-  function updateChat(message) {
-    // Define how console colors look so we can remove them from the HTML.
-    message = stripAnsi(message);
+  chatHistory.unshift(message);
 
-    chatHistory.unshift(message);
+  Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
+    io.sockets.emit('update-chat', html);
+  });
+}
 
-    Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
-      io.sockets.emit('update-chat', html);
-    });
-  }
+/**
+ * Removes socket from Client objects without updating the actual object via ref.
+ *
+ * Socket connections can't hold themselves, so we need to remove the socket
+ * info from the client before sending it.
+ *
+ * Note that the cloned client also has no functions, only properties. It is,
+ * essentially, static.
+ * @param client
+ * @returns {{}}
+ */
+function cleanClient(client) {
+  let safeClient = {};
 
-  /**
-   * Removes socket from Client objects without updating the actual object via ref.
-   *
-   * Socket connections can't hold themselves, so we need to remove the socket
-   * info from the client before sending it.
-   *
-   * Note that the cloned client also has no functions, only properties. It is,
-   * essentially, static.
-   * @param client
-   * @returns {{}}
-   */
-  function cleanClient(client) {
-    let safeClient = {};
+  Object.assign(safeClient, client);
+  safeClient.socket = null;
 
-    Object.assign(safeClient, client);
-    safeClient.socket = null;
-
-    return safeClient;
-  }
-};
+  return safeClient;
+}
