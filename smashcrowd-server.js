@@ -1,3 +1,7 @@
+/**
+ * @file
+ * Defines overall server and socket functionality of Smashcrowd.
+ */
 
 const Twig = require('twig');
 const express = require('express');
@@ -14,7 +18,7 @@ const Character = require('./src/factories/smashcrowd-characterfactory.js');
 const Board = require('./src/factories/smashcrowd-boardfactory.js');
 const Stage = require('./src/factories/smashcrowd-stagefactory.js');
 
-module.exports = (config) => {
+module.exports = config => {
   const clients = [];
   const chatHistory = [];
   const port = config.get('server.port');
@@ -817,4 +821,4 @@ module.exports = (config) => {
 
     return safeClient;
   }
-}
+};

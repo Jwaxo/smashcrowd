@@ -24,8 +24,21 @@ players in Super Smash Bros Ultimate.
 SmashCrowd was created with Node.js v8.11.2 and NPM v6.8.0 (if that matters).
 To get it running on your own server:
 
+1. `cp config/default.json config/production.json`  
+   Any variables you don't define in `production.json` will be automatically
+   read from `default.json`
+1. `vim config/production.json`
+1. Update the file so that the "database.connection" information matches your database.  
+   If you require assistance setting up a MySQL server and database, follow
+   [these](https://dev.mysql.com/doc/mysql-getting-started/en/) instructions, or
+   see your website host for additional information.
+1. `export NODE_ENV=production`  
+   This tells the config module that you need to read from `production.json`.
+   You can also add this to your bash profile if you need to make the variable
+   permanent.
 1. `npm install`
-2. `node index.js`
+   If you do not yet have a database set up, this may take a while.
+1. `node .`
 
 It should be that simple. Then connect to `127.0.0.1:8080` in your browser and
 you should see the SmashCrowd main page.

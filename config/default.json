@@ -1,8 +1,12 @@
 {
-  "storage": {
-    "db" : "example",
-    "user" : "user",
-    "pass" : "password"
+  "database": {
+    "connection": {
+      "host": "localhost",
+      "database": "example",
+      "user": "user",
+      "password": "password"
+    },
+    "table_prefix": ""
   },
   "server": {
     "port" : 8080,
