@@ -11,10 +11,14 @@ db.connect(error => {
   console.log("Database connected!");
 });
 
-require('./smashcrowd-updates')(config, db);
+// This needs to be synchronous to ensure that the server only starts running once
+// everything else is complete.
+require('./smashcrowd-updates')(config, db)
+  .then(() => {
 
-// We silo all of the main server logic to a separate file.
-require('./smashcrowd-server')(config);
+    // We silo all of the main server logic to a separate file.
+    require('./smashcrowd-server')(config);
 
-// Build the sass and start to watch for style or JS changes.
-require('./smashcrowd-sass')();
+    // Build the sass and start to watch for style or JS changes.
+    require('./smashcrowd-sass')();
+  });

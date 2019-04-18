@@ -26,21 +26,23 @@ module.exports = (config, db_connection) => {
   db = db_connection;
 
   const tableSchema = require('./src/lib/table-schema.json');
-
-  // The "system" table is required in the table-schema definition, so check for
-  // that table's existence.
-  db.query("SHOW TABLES LIKE 'system'", (error, results) => {
-    if (results.length === 0) {
-      // We don't have the basic system table, so install everything!
-      install(tableSchema);
-    }
-    else {
-      for (let update in updates()) {
-        console.log (`Running update ${update}`);
+  return new Promise((resolve, reject) => {
+    // The "system" table is required in the table-schema definition, so check for
+    // that table's existence.
+    db.query("SHOW TABLES LIKE 'system'", (error, results) => {
+      if (results.length === 0) {
+        // We don't have the basic system table, so install everything!
+        install(tableSchema);
+        resolve();
       }
-    }
+      else {
+        for (let update in updates()) {
+          console.log (`Running update ${update}`);
+        }
+        resolve();
+      }
+    });
   });
-
 };
 
 /**
@@ -111,7 +113,9 @@ async function install(tableSchema) {
 
   console.log("Finished creating tables.");
 
-  return postTables();
+  postTables();
+
+  return true;
 }
 
 /**
