@@ -2,7 +2,7 @@
 const config = require('config');
 const mysql = require('mysql');
 
-var db = mysql.createConnection(config.get("database.connection"));
+const db = mysql.createConnection(config.get("database.connection"));
 
 db.connect(error => {
   if (error) {
@@ -11,9 +11,13 @@ db.connect(error => {
   console.log("Database connected!");
 });
 
+const SmashCrowd = require('./src/factories/smashcrowd-smashcrowdfactory');
+
+const crowd = new SmashCrowd(db, config);
+
 // This needs to be synchronous to ensure that the server only starts running once
 // everything else is complete.
-require('./smashcrowd-updates')(config, db)
+require('./smashcrowd-updates')(crowd)
   .then(() => {
 
     // We silo all of the main server logic to a separate file.

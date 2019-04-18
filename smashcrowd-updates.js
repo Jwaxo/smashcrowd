@@ -20,10 +20,14 @@
  */
 
 let db = {};
+let config = {};
+let SmashCrowd = {};
 
-module.exports = (config, db_connection) => {
+module.exports = (crowd) => {
 
-  db = db_connection;
+  SmashCrowd = crowd;
+  db = SmashCrowd.db;
+  config = SmashCrowd.config;
 
   const tableSchema = require('./src/lib/table-schema.json');
   return new Promise((resolve, reject) => {
@@ -32,10 +36,20 @@ module.exports = (config, db_connection) => {
     db.query("SHOW TABLES LIKE 'system'", (error, results) => {
       if (results.length === 0) {
         // We don't have the basic system table, so install everything!
-        install(tableSchema);
-        resolve();
+        install(tableSchema)
+          .then(() => {
+            console.log("Finished creating tables.");
+
+            postTablesInstall();
+            SmashCrowd.setupSystemAll();
+
+            resolve();
+          });
       }
       else {
+        SmashCrowd.setupSystemAll();
+        console.log(SmashCrowd.system.update_schema);
+
         for (let update in updates()) {
           console.log (`Running update ${update}`);
         }
@@ -72,6 +86,7 @@ async function install(tableSchema) {
       const columns = [];
       const primaries = [];
       for (let columnname in table) {
+        // Go through each column and formulate a SQL query to create the rest.
         const column = table[columnname];
         let columnstring = `\`${columnname}\` ${column.type}`;
 
@@ -97,7 +112,11 @@ async function install(tableSchema) {
     }
     const table_create = db.query(query);
 
+    // Now form an array of promises for each CREATE TABLE query, so we can know
+    // when it's all over.
     tablePromises.push(new Promise((resolve, reject) => {
+      // We do this with custom handlers in order to handle each table creation
+      // individually, instead of waiting for all of them.
       table_create
         .on('error', error => {
           reject(error);
@@ -110,12 +129,6 @@ async function install(tableSchema) {
 
   }
   await Promise.all(tablePromises);
-
-  console.log("Finished creating tables.");
-
-  postTables();
-
-  return true;
 }
 
 /**
@@ -124,8 +137,11 @@ async function install(tableSchema) {
  * This is where things such as default rows in tables, etc, should be set up.
  * This should also match the results that occur from running all of the updates.
  */
-function postTables() {
-
+function postTablesInstall() {
+  // Set the update values for various tables.
+  // This should be converted to a new type of function that the factory can run
+  // for inserts.
+  db.query("INSERT INTO `system` VALUES ('update_schema', '0000')");
 }
 
 function updates() {
