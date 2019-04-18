@@ -2,8 +2,8 @@
  * Information and methods used for a drafting board.
  */
 
-const Character = require('./smashdown-characterfactory.js');
-const Stage = require('./smashdown-stagefactory.js');
+const Character = require('./smashcrowd-characterfactory.js');
+const Stage = require('./smashcrowd-stagefactory.js');
 const fs = require('fs');
 
 class Board {

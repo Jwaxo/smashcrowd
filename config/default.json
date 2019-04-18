@@ -1,3 +1,29 @@
 {
-  "storage": "local"
+  "storage": {
+    "db" : "example",
+    "user" : "user",
+    "pass" : "password"
+  },
+  "server": {
+    "port" : 8080,
+    "console_colors": [
+      "red",
+      "green",
+      "yellow",
+      "blue",
+      "magenta",
+      "cyan",
+      "gray",
+      "bgRed",
+      "bgGreen",
+      "bgYellow",
+      "bgBlue",
+      "bgMagenta",
+      "bgCyan",
+      "bgWhite"
+    ],
+    "default_board": {
+      "draftType": "snake"
+    }
+  }
 }
