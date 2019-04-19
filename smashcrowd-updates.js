@@ -139,15 +139,35 @@ async function install(tableSchema) {
  */
 function postTablesInstall() {
   // Set the update values for various tables.
-  // This should be converted to a new type of function that the factory can run
-  // for inserts.
-  db.query("INSERT INTO `system` VALUES ('update_schema', '0000')");
+  SmashCrowd.dbInsert('system', {
+    'key': 'update_schema',
+    'value': '0000',
+  })
+    .then(() => {
+      console.log('Systems table configured!');
+      SmashCrowd.setupSystemAll()
+        .then(() => {
+          resolve();
+        })
+    });
 }
 
+/**
+ * Updates to run for systems that already have SmashCrowd installed.
+ *
+ * Updates should generally be direct database changes, and should go in order
+ * from 0001 to the most recent update.
+ * Any updates made here should be reflected in postTablesInstall and in the
+ * table-schema.json, so that fresh installs are identical to updated installs.
+ *
+ * @returns {Object}
+ */
 function updates() {
-  return {
-    "0001" : () => {
-      console.log('This is the first update.');
-    },
-  };
+  // An example of what this might look like once we have updates.
+  // return {
+  //   "0001" : () => {
+  //     console.log('This is the first update.');
+  //   },
+  // }
+  return {};
 }

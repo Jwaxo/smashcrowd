@@ -81,8 +81,43 @@ class Smashcrowd {
     });
   }
 
-  async dbInsert(table, values) {
+  /**
+   * Inserts one or more rows into a given table.
+   *
+   * @param {string} table
+   * @param {Object/Array} fieldvalues
+   *   Either an object built such that "[field]: [value]", or an array of such
+   *   objects.
+   * @returns {Promise<*>}
+   */
+  async dbInsert(table, fieldvalues) {
+    const fields = [];
+    const values = [];
 
+    // Just in case an object was passed to us, put it in an array.
+    if (!Array.isArray(fieldvalues)) {
+      fieldvalues = [fieldvalues];
+    }
+
+    // All new rows should have the same properties, so grab them from the first.
+    for (let field in fieldvalues[0]) {
+      fields.push(`\`${field}\``);
+    }
+
+    // Finally build our array of value strings out of just the values of each row.
+    fieldvalues.forEach((row) => {
+      values.push(Object.values(row).join('","'));
+    });
+
+    return new Promise(resolve => {
+      this.db.query(`INSERT INTO ?? (${fields.join(',')}) VALUES ("${values.join('"),("')}")`, [table], (error, results) => {
+        if (error) {
+          throw error;
+        }
+
+        resolve();
+      })
+    })
   }
 
   /**
