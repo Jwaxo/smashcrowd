@@ -19,6 +19,9 @@
       "type": "VARCHAR(255)",
       "not_null": true
     },
+    "owner": {
+      "type": "INT"
+    },
     "draft_type": {
       "type": "TINYINT",
       "not_null": true
@@ -44,6 +47,93 @@
       "type": "INT",
       "not_null": true,
       "default": 0
+    }
+  },
+  "characters" : {
+    "id": {
+      "type": "INT",
+      "increment": true,
+      "primary": true
+    },
+    "name": {
+      "type": "VARCHAR(255)",
+      "not_null": true
+    },
+    "image": {
+      "type": "VARCHAR(255)"
+    }
+  },
+  "stages": {
+    "id": {
+      "type": "INT",
+      "increment": true,
+      "primary": true
+    },
+    "name": {
+      "type": "VARCHAR(255)",
+      "not_null": true
+    },
+    "image": {
+      "type": "VARCHAR(255)"
+    }
+  },
+  "users": {
+    "id": {
+      "type": "INT",
+      "incremenet": true,
+      "primary": true
+    },
+    "username": {
+      "type": "VARCHAR(32)",
+      "not_null": true
+    },
+    "label": {
+      "type": "VARCHAR(32)"
+    },
+    "email": {
+      "type": "VARCHAR(320)",
+      "not_null": true
+    },
+    "password": {
+      "type": "VARCHAR(127)",
+      "not_null": true
+    },
+    "avatar": {
+      "type": "VARCHAR(255)"
+    }
+  },
+  "character_users": {
+    "character_id": {
+      "type": "INT",
+      "not_null": true,
+      "primary": true
+    },
+    "user_id": {
+      "type": "INT",
+      "not_null": true,
+      "primary": true
+    },
+    "board_id": {
+      "type": "INT",
+      "not_null": true,
+      "primary": true
+    },
+    "roster_number": {
+      "type": "INT",
+      "not_null": true,
+      "primary": true
+    }
+  },
+  "board_users": {
+    "board_id": {
+      "type": "INT",
+      "not_null": true,
+      "primary": true
+    },
+    "user_id": {
+      "type": "INT",
+      "not_null": true,
+      "primary": true
     }
   }
 }
