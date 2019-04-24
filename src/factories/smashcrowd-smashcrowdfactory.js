@@ -14,6 +14,7 @@ class Smashcrowd {
     this.db = db;
     this.config = config;
     this.system = {};
+    this.characters = [];
     this.dbDiffString = this.constructor.constructDbDiffString(config.get('database.connection'));
   }
 
@@ -184,7 +185,7 @@ class Smashcrowd {
    * Selects all of the rows in the `system` table and saves them to the property.
    * @returns {Promise<*>}
    */
-  async setupSystemAll() {
+  async setupSystem() {
     return await this.dbSelect('system')
       .then((results) => {
         results.forEach(result => {
@@ -205,6 +206,48 @@ class Smashcrowd {
       value = null;
     }
     return value;
+  }
+
+  /**
+   * Set characters in SmashCrowd iterator. This is mostly used by boards as a
+   * reference, so the DB doesn't have to be pinged.
+   *
+   * @param {Array} character_data
+   *   Optional character data, if you already have it. Saves a DB query.
+   * @returns {Promise<Array>}
+   */
+  async setupCharacters(character_data = null) {
+    if (character_data == null) {
+      await this.dbSelect('characters')
+        .then((results) => {
+          results.forEach(result => {
+            this.characters.push({
+              'id': result.id,
+              'name': result.name,
+              'image': result.image,
+            });
+          });
+        });
+    }
+    else {
+      this.characters = character_data;
+    }
+    return this.characters;
+  }
+  getCharacters() {
+    return this.characters;
+  }
+
+  /**
+   * Run all setup functions and return a single Promise, which fulfills when all done.
+   *
+   * @returns {Promise<any[]>}
+   */
+  async setupAll() {
+    return Promise.all([
+      this.setupSystem(),
+      this.setupCharacters(),
+    ])
   }
 
 }

@@ -27,10 +27,11 @@ const crowd = new SmashCrowd(db, config);
 // everything else is complete.
 require('./smashcrowd-updates')(crowd)
   .then(() => {
+    crowd.setupAll().then(() => {
+      // We silo all of the main server logic to a separate file.
+      require('./smashcrowd-server')(crowd, config);
 
-    // We silo all of the main server logic to a separate file.
-    require('./smashcrowd-server')(config);
-
-    // Build the sass and start to watch for style or JS changes.
-    require('./smashcrowd-sass')();
+      // Build the sass and start to watch for style or JS changes.
+      require('./smashcrowd-sass')();
+    });
   });

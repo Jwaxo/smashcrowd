@@ -23,17 +23,19 @@ const chatHistory = [];
 const app = express();
 const server = http.Server(app);
 const io = socketio(server);
+let SmashCrowd;
 let console_colors = {};
 
-module.exports = config => {
+module.exports = (crowd, config) => {
   const port = config.get('server.port');
+  SmashCrowd = crowd;
   console_colors = config.get('server.console_colors')
 
   // Currently we only run one board at a time, so set the ID to 1.
   const board = new Board(1, config.get('server.default_board'));
 
   // Load characters from the character data file.
-  board.buildAllCharacters(require('./src/lib/chars.json'));
+  board.buildAllCharacters(SmashCrowd.getCharacters());
   board.buildAllStages(require('./src/lib/levels.json'));
 
   // Listen at the port.
@@ -158,7 +160,7 @@ module.exports = config => {
       // If we're playing with Free pick, build a new character with this info so
       // that we don't disrupt the board.
       if (board.getDraftType === 'free' || charId === 999) {
-        character = new Character(charId, board.charData.chars[charId]);
+        character = new Character(charId, board.charData[charId]);
       }
 
       if (board.getDraftRound() < 1) {

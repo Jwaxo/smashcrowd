@@ -325,22 +325,23 @@ class Board {
   /**
    * Generally only ran at the creation of a board, creates all of the options
    * for picking a character.
-   * @param charData
+   * @param {Array} charData
    */
   buildAllCharacters(charData) {
-    this.charData = charData;
-    // Process characters from library.
-    for (let i = 0; i < this.charData.chars.length; i++) {
-      this.addCharacter(i, new Character(i, this.charData.chars[i]));
+    // Process characters from library, ensuring we don't reference the property.
+    for (let i = 0; i < charData.length; i++) {
+      this.charData[i] = charData[i];
+      this.addCharacter(i, new Character(i, charData[i]));
     }
 
     // End by adding the "no pick" option, for when users wish to/are forced to
     // sit out.
-    this.charData.chars[999] = {
+    this.charData[999] = {
+      'id': '999',
       'name': 'None',
       'image': 'images/cross.png',
     };
-    this.addCharacter(999, new Character(999, this.charData.chars[999]));
+    this.addCharacter(999, new Character(999, this.charData[999]));
   }
 
   /**
@@ -354,7 +355,7 @@ class Board {
     this.characters[charId] = character;
   }
   updateCharacter(charId, data) {
-    for (option in data) {
+    for (let option in data) {
       this.characters[charId][option] = data[option];
     }
   }

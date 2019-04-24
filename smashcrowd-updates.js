@@ -42,7 +42,7 @@ module.exports = (crowd) => {
         SmashCrowd.dbQueries(diff.commands('drop').split(';'))
           .then(() => {
 
-            SmashCrowd.setupSystemAll()
+            SmashCrowd.setupSystem()
               .then(() => {
                 let update_schema = SmashCrowd.getSystemValue('update_schema');
                 if (update_schema == null) {
@@ -91,9 +91,13 @@ function postInstall() {
     'value': latest_update,
   })
     .then(() => {
-      console.log('Systems table configured!');
-      // Update system object with latest updates.
-      SmashCrowd.setupSystemAll();
+      console.log('Systems table configured.');
+    });
+
+  const character_data = require('./src/lib/chars.json');
+  SmashCrowd.dbInsert('characters', character_data.chars)
+    .then(() => {
+      console.log('All characters configured.');
     });
 }
 
