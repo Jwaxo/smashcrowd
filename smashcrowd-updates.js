@@ -145,10 +145,7 @@ function postTablesInstall() {
   })
     .then(() => {
       console.log('Systems table configured!');
-      SmashCrowd.setupSystemAll()
-        .then(() => {
-          resolve();
-        })
+      SmashCrowd.setupSystemAll();
     });
 }
 
