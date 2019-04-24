@@ -1,3 +1,11 @@
+/**
+ * @file
+ * index.js
+ *
+ * The main SmashCrowd app.
+ *
+ * For assistance with running, see README.md
+ */
 
 const config = require('config');
 const mysql = require('mysql');
