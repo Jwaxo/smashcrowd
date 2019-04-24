@@ -1,139 +1,356 @@
 {
-  "system" : {
-    "key": {
-      "type": "VARCHAR(32)",
-      "not_null": true,
-      "primary": true
-    },
-    "value": {
-      "type": "VARCHAR(255)"
-    }
-  },
-  "boards" : {
-    "id": {
-      "type": "INT",
-      "increment": true,
-      "primary": true
-    },
-    "name": {
-      "type": "VARCHAR(255)",
-      "not_null": true
-    },
-    "owner": {
-      "type": "INT"
-    },
-    "draft_type": {
-      "type": "TINYINT",
-      "not_null": true
-    },
-    "status": {
-      "type": "TINYINT",
-      "not_null": true
-    },
-    "current_pick": {
-      "type": "TINYINT",
-      "not_null": true,
-      "default": 0
-    },
-    "total_rounds": {
-      "type": "INT"
-    },
-    "current_draft_round": {
-      "type": "INT",
-      "not_null": true,
-      "default": 0
-    },
-    "current_game_round": {
-      "type": "INT",
-      "not_null": true,
-      "default": 0
-    }
-  },
-  "characters" : {
-    "id": {
-      "type": "INT",
-      "increment": true,
-      "primary": true
-    },
-    "name": {
-      "type": "VARCHAR(255)",
-      "not_null": true
-    },
-    "image": {
-      "type": "VARCHAR(255)"
-    }
-  },
-  "stages": {
-    "id": {
-      "type": "INT",
-      "increment": true,
-      "primary": true
-    },
-    "name": {
-      "type": "VARCHAR(255)",
-      "not_null": true
-    },
-    "image": {
-      "type": "VARCHAR(255)"
-    }
-  },
-  "users": {
-    "id": {
-      "type": "INT",
-      "incremenet": true,
-      "primary": true
-    },
-    "username": {
-      "type": "VARCHAR(32)",
-      "not_null": true
-    },
-    "label": {
-      "type": "VARCHAR(32)"
-    },
-    "email": {
-      "type": "VARCHAR(320)",
-      "not_null": true
-    },
-    "password": {
-      "type": "VARCHAR(127)",
-      "not_null": true
-    },
-    "avatar": {
-      "type": "VARCHAR(255)"
-    }
-  },
-  "character_users": {
-    "character_id": {
-      "type": "INT",
-      "not_null": true,
-      "primary": true
-    },
-    "user_id": {
-      "type": "INT",
-      "not_null": true,
-      "primary": true
-    },
-    "board_id": {
-      "type": "INT",
-      "not_null": true,
-      "primary": true
-    },
-    "roster_number": {
-      "type": "INT",
-      "not_null": true,
-      "primary": true
-    }
-  },
-  "board_users": {
-    "board_id": {
-      "type": "INT",
-      "not_null": true,
-      "primary": true
-    },
-    "user_id": {
-      "type": "INT",
-      "not_null": true,
-      "primary": true
-    }
-  }
+	"dialect": "mysql",
+	"sequences": [],
+	"tables": [
+		{
+			"name": "board_stages",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"board_id",
+						"user_id",
+						"stage_id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "board_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "user_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "stage_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "board_users",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"board_id",
+						"user_id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "board_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "user_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "boards",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": "auto_increment"
+				},
+				{
+					"name": "name",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				},
+				{
+					"name": "owner",
+					"nullable": true,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "draft_type",
+					"nullable": false,
+					"default_value": null,
+					"type": "tinyint(4)",
+					"extra": ""
+				},
+				{
+					"name": "status",
+					"nullable": false,
+					"default_value": null,
+					"type": "tinyint(4)",
+					"extra": ""
+				},
+				{
+					"name": "current_pick",
+					"nullable": false,
+					"default_value": "0",
+					"type": "tinyint(4)",
+					"extra": ""
+				},
+				{
+					"name": "total_rounds",
+					"nullable": true,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "current_draft_round",
+					"nullable": false,
+					"default_value": "0",
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "current_game_round",
+					"nullable": false,
+					"default_value": "0",
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "character_users",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"character_id",
+						"user_id",
+						"board_id",
+						"roster_number"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "character_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "user_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "board_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "roster_number",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "characters",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": "auto_increment"
+				},
+				{
+					"name": "name",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				},
+				{
+					"name": "image",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "stages",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": "auto_increment"
+				},
+				{
+					"name": "name",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				},
+				{
+					"name": "image",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "system",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"key"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "key",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(32)",
+					"extra": ""
+				},
+				{
+					"name": "value",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "users",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "username",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(32)",
+					"extra": ""
+				},
+				{
+					"name": "label",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(32)",
+					"extra": ""
+				},
+				{
+					"name": "email",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(320)",
+					"extra": ""
+				},
+				{
+					"name": "password",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(127)",
+					"extra": ""
+				},
+				{
+					"name": "avatar",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				}
+			]
+		}
+	]
 }

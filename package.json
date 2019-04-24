@@ -27,6 +27,7 @@
   "dependencies": {
     "chalk": "^2.4.2",
     "config": "^3.0.1",
+    "dbdiff": "^0.5.3",
     "express": "^4.16.4",
     "foundation-sites": "^6.5.3",
     "fs": "0.0.1-security",

@@ -14,6 +14,14 @@ class Smashcrowd {
     this.db = db;
     this.config = config;
     this.system = {};
+    this.dbDiffString = this.constructor.constructDbDiffString(config.get('database.connection'));
+  }
+
+  static constructDbDiffString(db_connection) {
+    return `mysql://${db_connection.user}:${db_connection.password}@${db_connection.host}/${db_connection.database}`;
+  }
+  getDbDiffString() {
+    return this.dbDiffString;
   }
 
   /**
@@ -116,8 +124,60 @@ class Smashcrowd {
         }
 
         resolve();
-      })
-    })
+      });
+    });
+  }
+
+  /**
+   * Updates one or more rows on a given table.
+   *
+   * @param {string} table
+   * @param {Object} fieldvalues
+   *   An object of matching field names and expected values.
+   * @param {string} where
+   *   A MySQL WHERE statement to tell you when to update to these values.
+   * @returns {Promise<*>}
+   */
+  async dbUpdate(table, fieldvalues, where) {
+    // Build our arrays of field and value strings out of each row.
+    const set = [];
+    for (let field in fieldvalues) {
+      set.push(`\`${field}\` = "${fieldvalues[field]}"`);
+    }
+
+    return new Promise(resolve => {
+      this.db.query(`UPDATE ?? SET ${set.join(',')} WHERE ${where}`, [table], (error, results) => {
+        if (error) {
+          throw error;
+        }
+
+        resolve(results);
+      });
+    });
+  }
+
+  /**
+   * Runs a series of queries, defined by normal MySQL strings.
+   *
+   * @param {Array} queries
+   *   An array of strings that match MySQL syntax.
+   * @returns {Promise<void>}
+   *   A Promise that resolves when all queries are complete.
+   */
+  async dbQueries(queries) {
+    for (const query of queries) {
+      if (query.trim()) {
+        await new Promise(resolve => {
+          this.db.query(query, [], (error, results) => {
+            if (error) {
+              throw error;
+            }
+
+            resolve();
+          });
+        });
+      }
+    }
   }
 
   /**
@@ -133,10 +193,18 @@ class Smashcrowd {
       });
   }
   setSystemValue(key, value) {
-
+    this.system[key] = value;
+    this.dbUpdate('system', {'value': value}, `\`key\` = "${key}"`);
   }
   getSystemValue(key) {
-    return this.system[key];
+    let value;
+    if (this.system.hasOwnProperty(key)) {
+      value = this.system[key];
+    }
+    else {
+      value = null;
+    }
+    return value;
   }
 
 }

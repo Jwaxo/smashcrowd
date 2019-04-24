@@ -6,7 +6,8 @@
       "user": "user",
       "password": "password"
     },
-    "table_prefix": ""
+    "table_prefix": "",
+    "export_path": "src/lib/table-schema.json"
   },
   "server": {
     "port" : 8080,
