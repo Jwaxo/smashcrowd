@@ -15,6 +15,8 @@ class Smashcrowd {
     this.config = config;
     this.system = {};
     this.characters = [];
+    this.stages = [];
+
     this.dbDiffString = this.constructor.constructDbDiffString(config.get('database.connection'));
   }
 
@@ -209,7 +211,7 @@ class Smashcrowd {
   }
 
   /**
-   * Set characters in SmashCrowd iterator. This is mostly used by boards as a
+   * Set characters in SmashCrowd main object. This is mostly used by boards as a
    * reference, so the DB doesn't have to be pinged.
    *
    * @param {Array} character_data
@@ -239,6 +241,36 @@ class Smashcrowd {
   }
 
   /**
+   * Set stages in SmashCrowd iterator. This is mostly used by boards as a
+   * reference, so the DB doesn't have to be pinged.
+   *
+   * @param {Array} stage_data
+   *   Optional stage data, if you already have it. Saves a DB query.
+   * @returns {Promise<Array>}
+   */
+  async setupStages(stage_data = null) {
+    if (stage_data == null) {
+      await this.dbSelect('stages')
+        .then((results) => {
+          results.forEach(result => {
+            this.stages.push({
+              'id': result.id,
+              'name': result.name,
+              'image': result.image,
+            });
+          });
+        });
+    }
+    else {
+      this.stages = stage_data;
+    }
+    return this.stages;
+  }
+  getStages() {
+    return this.stages;
+  }
+
+  /**
    * Run all setup functions and return a single Promise, which fulfills when all done.
    *
    * @returns {Promise<any[]>}
@@ -247,6 +279,7 @@ class Smashcrowd {
     return Promise.all([
       this.setupSystem(),
       this.setupCharacters(),
+      this.setupStages(),
     ])
   }
 

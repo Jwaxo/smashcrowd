@@ -36,7 +36,7 @@ module.exports = (crowd, config) => {
 
   // Load characters from the character data file.
   board.buildAllCharacters(SmashCrowd.getCharacters());
-  board.buildAllStages(require('./src/lib/levels.json'));
+  board.buildAllStages(SmashCrowd.getStages());
 
   // Listen at the port.
   server.listen(port, () => {

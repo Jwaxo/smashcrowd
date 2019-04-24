@@ -99,6 +99,12 @@ function postInstall() {
     .then(() => {
       console.log('All characters configured.');
     });
+
+  const stage_data = require('./src/lib/levels.json');
+  SmashCrowd.dbInsert('stages', stage_data.levels)
+    .then(() => {
+      console.log('All stages configured.');
+    });
 }
 
 /**

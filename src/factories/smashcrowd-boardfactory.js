@@ -330,8 +330,9 @@ class Board {
   buildAllCharacters(charData) {
     // Process characters from library, ensuring we don't reference the property.
     for (let i = 0; i < charData.length; i++) {
+      let char_id = charData[i].id;
       this.charData[i] = charData[i];
-      this.addCharacter(i, new Character(i, charData[i]));
+      this.addCharacter(char_id, new Character(char_id, charData[i]));
     }
 
     // End by adding the "no pick" option, for when users wish to/are forced to
@@ -377,29 +378,29 @@ class Board {
   /**
    * Generally only ran at the creation of a board, creates all of the options
    * for picking a stage.
-   * @param levelData
+   * @param {Array} levelData
    */
   buildAllStages(levelData) {
-    this.levelData = levelData;
     // Process characters from library.
-    for (let i = 0; i < this.levelData.levels.length; i++) {
-      this.addStage(i, new Stage(i, this.levelData.levels[i]));
+    for (let i = 0; i < levelData.length; i++) {
+      let stage_id = levelData[i].id;
+      this.levelData[i] = levelData[i];
+      this.addStage(stage_id, new Stage(stage_id, levelData[i]));
     }
-
   }
 
   /**
-   * Add a character to the characters array.
+   * Add a stage to the stages array.
    *
    * @param {integer} stageId
    * @param {Stage} stage
-   * @returns {number} Index of the character.
+   * @returns {number} Index of the stage.
    */
   addStage(stageId, stage) {
     this.stages[stageId] = stage;
   }
   updateStage(stageId, data) {
-    for (option in data) {
+    for (let option in data) {
       this.stages[stageId][option] = data[option];
     }
   }
