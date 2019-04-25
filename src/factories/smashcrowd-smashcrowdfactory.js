@@ -16,6 +16,7 @@ class Smashcrowd {
     this.system = {};
     this.characters = [];
     this.stages = [];
+    this.users = {};
 
     this.dbDiffString = this.constructor.constructDbDiffString(config.get('database.connection'));
   }
@@ -99,7 +100,7 @@ class Smashcrowd {
    * @param {Object/Array} fieldvalues
    *   Either an object built such that "[field]: [value]", or an array of such
    *   objects.
-   * @returns {Promise<*>}
+   * @returns {Promise<int>}
    */
   async dbInsert(table, fieldvalues) {
     const fields = [];
@@ -126,7 +127,7 @@ class Smashcrowd {
           throw error;
         }
 
-        resolve();
+        resolve(results.insertId);
       });
     });
   }
@@ -241,7 +242,7 @@ class Smashcrowd {
   }
 
   /**
-   * Set stages in SmashCrowd iterator. This is mostly used by boards as a
+   * Set stages in SmashCrowd main object. This is mostly used by boards as a
    * reference, so the DB doesn't have to be pinged.
    *
    * @param {Array} stage_data
@@ -271,6 +272,38 @@ class Smashcrowd {
   }
 
   /**
+   * Set players in SmashCrowd iterator. This is mostly used by boards as a
+   * reference, so the DB doesn't have to be pinged.
+   *
+   * @returns {Promise<Array>}
+   */
+  async setupUsers() {
+    await this.dbSelect('users')
+      .then(results => {
+        results.forEach(result => {
+          this.users[result.id] = result;
+        });
+      });
+    return this.users;
+  }
+  addUser(userData) {
+    // This will insert a user, but currently we don't have anything actually registering users.
+    return new Promise(resolve => {
+      this.dbInsert('users', userData)
+        .then(userId => {
+          this.users[userId] = userData;
+          this.users[userId].id = userId;
+
+          resolve(userId);
+        });
+    });
+
+  }
+  getUsers() {
+    return this.users;
+  }
+
+  /**
    * Run all setup functions and return a single Promise, which fulfills when all done.
    *
    * @returns {Promise<any[]>}
@@ -280,6 +313,7 @@ class Smashcrowd {
       this.setupSystem(),
       this.setupCharacters(),
       this.setupStages(),
+      this.setupUsers(),
     ])
   }
 

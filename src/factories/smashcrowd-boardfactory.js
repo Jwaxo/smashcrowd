@@ -434,10 +434,10 @@ class Board {
     this.resetGameRound();
     this.resetPick();
     this.setStatus('new');
-    this.gameId = this.generateGameId();
+    this.gameId = this.constructor.generateGameId();
   }
 
-  generateGameId() {
+  static generateGameId() {
     return Math.random().toString(36).replace('0.', '');
   }
 
