@@ -7,8 +7,8 @@
   'player',
   'player--player' ~ player.getId(),
   (player.isActive ? 'player--active' : ''),
-  (player.getClientId() ? 'player--owned' : ''),
-  (client.getPlayerId() == player.getId() ? 'player--current' : ''),
+  (player.getUserId() ? 'player--owned' : ''),
+  (client.getPlayerId(board.getId()) == player.getId() ? 'player--current' : ''),
 ]|join(' ')|trim %}
 
 <div class="cell small-6 medium-3 large-auto">
@@ -17,7 +17,7 @@
       <h4>{{ player.getName() }}</h4>
 
       <div class="player-picker-outer">
-        {% if client.getPlayerId() == player.getId() %}
+        {% if client.getPlayerId(board.getId()) == player.getId() %}
           <button class="player-picker button expanded hollow" data-player-pick-id="{{ player.getId() }}" tabindex="2">This is You</button>
         {% elseif not player.getClientId() %}
           <button class="player-picker button expanded" data-tooltip tabindex="2" title="Select this player to start picking characters for them." data-position="top" data-alignment="center" data-player-pick-id="{{ player.getId() }}">Be This Player</button>

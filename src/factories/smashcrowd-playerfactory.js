@@ -11,6 +11,7 @@ class Player {
     this.name = name;
     this.characters = [];
     this.stages = [];
+    this.userId = 0;
     this.clientId = 0;
     this.isActive = false;
     this.playerId = null;
@@ -27,6 +28,13 @@ class Player {
   }
   getId() {
     return this.playerId;
+  }
+
+  setUserId(userId) {
+    this.userId = userId;
+  }
+  getUserId() {
+    return this.userId;
   }
 
   setClientId(clientId) {

@@ -4,7 +4,7 @@
 #}
 {% set stagesGridClasses = [
   'stages-grid',
-  (board.checkStatus('game') or client.getPlayerId() is null ? 'stages-grid--disabled' : ''),
+  (board.checkStatus('game') or client.getPlayerId(board.getId()) is null ? 'stages-grid--disabled' : ''),
 ]|join(' ')|trim %}
 
 <div class="cell">
@@ -12,7 +12,7 @@
     {% for stage in board.getStages() %}
       {% if stage %}
         {% include 'stage.twig' with {
-          player: client.getPlayer(),
+          player: client.getPlayer(board.getId()),
         } %}
       {% endif %}
     {% endfor %}

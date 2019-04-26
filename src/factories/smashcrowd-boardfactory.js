@@ -36,6 +36,7 @@ class Board {
       'game-complete',
     ];
 
+    this.id = null;
     this.owner = 0;
     this.current_pick = 0;
     this.current_draft_round = 0;
@@ -52,10 +53,6 @@ class Board {
     this.players_pick_order = [];
     this.characters = [];
     this.stages = [];
-
-    for (let option in options) {
-      this[option] = options[option];
-    }
 
     // SmashCrowd.addBoard(this);
 
@@ -77,8 +74,11 @@ class Board {
     return new Promise(resolve => {
       SmashCrowd.loadBoard(boardId)
         .then(boardData => {
+
           for (let option in boardData) {
-            this[option] = boardData[option];
+            if (this.hasOwnProperty(option)) {
+              this[option] = boardData[option];
+            }
           }
 
           // @todo: For now, we set this to blank manually. Needs to be replaced
@@ -90,20 +90,21 @@ class Board {
           this.players_pick_order = [];
           this.characters = [];
           this.stages = [];
+
           resolve();
         });
     });
   }
 
   updateBoardRow(fieldvalues) {
-    SmashCrowd.dbUpdate('boards', fieldvalues, `id = "${this.getId()}`);
+    SmashCrowd.dbUpdate('boards', fieldvalues, `id = "${this.getId()}"`);
   }
 
   setId(boardId) {
-    this.boardId = boardId;
+    this.id = boardId;
   }
   getId() {
-    return this.boardId;
+    return this.id;
   }
 
   setName(name) {
@@ -197,7 +198,7 @@ class Board {
 
   setStatus(state) {
     if (typeof state === 'string') {
-      const found = this.statusTypes.findIndex(state);
+      const found = this.statusTypes.indexOf(state);
       if (found === undefined ) {
         throw "Tried to set nonexistent board status.";
       }

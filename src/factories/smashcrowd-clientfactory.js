@@ -7,15 +7,12 @@ const User = require('./smashcrowd-userfactory.js');
 let SmashCrowd;
 
 class Client {
-  constructor(socket, gameId, crowd) {
+  constructor(socket, crowd) {
     this.id = 0;
     this.socket = socket;
     this.color = null;
     this.player = null;
-    this.playerId = null;
-    this.playerStorage = '';
-
-    this.setGameId(gameId);
+    this.userId = null;
 
     SmashCrowd = crowd;
 
@@ -32,7 +29,9 @@ class Client {
   }
 
   setUser(userId) {
+    this.userId = userId;
     this.user.loadUser(userId);
+    this.user.setClientId(this.id);
   }
   getUser() {
     return this.user;
@@ -52,45 +51,10 @@ class Client {
     return this.color;
   }
 
-  /**
-   * Store a Player in the client's information. The client's info gets passed
-   * to the Player as well, but without passing the full object; this would cause
-   * recursion and an infinite call stack.
-   *
-   * @param {Player|null} player
-   *   The new player this client is assigned to. To remove a player from a client,
-   *   pass in `null`.
-   */
-  setPlayer(player) {
-    // If a player is already set, remove this client from it.
-    if (this.player) {
-      this.player.setClientId(0);
-    }
-
-    // Store the new player information and update said player, or just remove
-    // the ID if we're wiping the player info.
-    this.player = player;
-    if (player) {
-      this.playerId = player.getId();
-      this.player.setClientId(this.id);
-    }
-    else {
-      this.playerId = null;
-    }
-
-    this.updatePlayerStorage();
-  }
-  getPlayer() {
-    return this.player;
-  }
-  getPlayerId() {
-    return this.playerId;
-  }
-
-  getLabel() {
+  getLabel(boardId) {
     let label = '';
-    if (this.player) {
-      label = this.color(this.player.getName());
+    if (this.user.getLabel() !== 'anonymous') {
+      label = this.color(this.user.getLabel());
     }
     else {
       label = this.color(`Client ${this.id}`);
@@ -98,19 +62,11 @@ class Client {
     return label;
   }
 
-  setGameId(gameId) {
-    this.gameId = gameId;
-    this.updatePlayerStorage();
+  getPlayer(boardId) {
+    return this.user.getPlayer(boardId);
   }
-  getGameId() {
-    return this.gameId;
-  }
-
-  updatePlayerStorage() {
-    return this.playerStorage = 'smashcrowd-' + this.getGameId();
-  }
-  getPlayerCookie() {
-    return this.playerStorage;
+  getPlayerId(boardId) {
+    return this.user.getPlayerId(boardId);
   }
 
 }

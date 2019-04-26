@@ -12,6 +12,11 @@ class User {
     this.id = null;
     this.email = null;
     this.username = null;
+    this.label = '';
+
+    this.clientId = 0;
+    this.boards = {};
+    this.players= {}; // Organized by board ID.
 
     SmashCrowd = crowd;
 
@@ -40,6 +45,13 @@ class User {
     return this.userId;
   }
 
+  setClientId(clientId) {
+    this.clientId = clientId;
+  }
+  getClientId() {
+    return this.clientId;
+  }
+
   setEmail(email) {
     this.email = email;
   }
@@ -52,6 +64,91 @@ class User {
   }
   getUsername() {
     return this.username;
+  }
+
+
+
+  /**
+   * Store a Player in the users's information. The user's info gets passed
+   * to the Player as well, but without passing the full object; this would cause
+   * recursion and an infinite call stack.
+   *
+   * @param {number} boardId
+   *   The boardId that we need to add the player to for the user.
+   * @param {Player|null} player
+   *   The new player this user is assigned. To remove a player from a user,
+   *   pass in `null`.
+   */
+  setPlayer(boardId, player) {
+    // If a player is already set, remove this user from it.
+    if (this.hasPlayerAtBoard(boardId)) {
+      this.players[boardId].setUserId(0);
+      this.players[boardId].setClientId(0);
+    }
+
+    // Store the new player information and update said player, or just remove
+    // the ID if we're wiping the player info.
+    this.players[boardId] = player;
+    if (player) {
+      player.setUserId(this.id);
+      player.setClientId(this.clientId);
+    }
+
+    this.updatePlayerStorage();
+  }
+  getPlayer(boardId) {
+    if (this.hasPlayerAtBoard(boardId)) {
+      return this.players[boardId];
+    }
+    return null;
+  }
+  getPlayerId(boardId) {
+    if (this.hasPlayerAtBoard(boardId)) {
+      return this.players[boardId].getId();
+    }
+    return null;
+  }
+  hasPlayerAtBoard(boardId) {
+    let hasPlayer = false;
+    if (this.players.hasOwnProperty(boardId) && this.players[boardId] !== null) {
+      hasPlayer = true;
+    }
+    return hasPlayer;
+  }
+
+  updatePlayerStorage() {
+    return this.playerStorage = 'smashcrowd-' + this.getGameId();
+  }
+  getPlayerCookie() {
+    return this.playerStorage;
+  }
+
+  setGameId(gameId) {
+    this.gameId = gameId;
+    this.updatePlayerStorage();
+  }
+  getGameId() {
+    return this.gameId;
+  }
+
+  /**
+   * Return human-readible name. Users have a variety of ways to label themselves.
+   *
+   * By default we go with the "label" version of a username. If the user has
+   * a player and that player has a name, we prioritize that. If nothing else,
+   * we go with the base username of the user.
+   *
+   * @returns {string}
+   */
+  getLabel(boardId) {
+    let label = this.label;
+    if (!label) {
+      label = this.getUsername();
+    }
+    if (this.players.hasOwnProperty(boardId)) {
+      label = this.players[boardId].getName();
+    }
+    return label;
   }
 
   /**

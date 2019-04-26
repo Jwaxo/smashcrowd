@@ -73,15 +73,16 @@ module.exports = (crowd, config) => {
 
     const randomColor = Math.floor(Math.random() * (console_colors.length));
 
-    const client = new Client(socket, board.getGameId(), SmashCrowd);
+    const client = new Client(socket, SmashCrowd);
     const clientId = clients.push(client);
     client.setId(clientId);
     client.setColor(chalk[console_colors[randomColor]]);
 
     const user = client.getUser();
     user.loadUser(SmashCrowd.getAnonymousUserId());
+    user.setGameId(board.getGameId());
 
-    serverLog(`${client.getLabel()} assigned to socket ${socket.id}`, true);
+    serverLog(`${client.getLabel(board.getId())} assigned to socket ${socket.id}`, true);
 
     // Generate everything just in case the connections existed before the server.
     setClientInfoSingle(client);
@@ -91,7 +92,7 @@ module.exports = (crowd, config) => {
     regenerateChatSingle(socket);
 
     // Set a default status for a connection if there are no players.
-    if (!client.getPlayerId()) {
+    if (!user.getPlayerId(board.getId())) {
       if (board.getPlayersCount() === 0) {
         setStatusSingle(client, 'Add a player in order to start drafting!');
       }
@@ -107,21 +108,20 @@ module.exports = (crowd, config) => {
      * command to all sockets to regenerate the player area.
      */
     socket.on('add-player', name => {
-      serverLog(`${client.getLabel()} adding player ${name}`);
+      serverLog(`${client.getLabel(board.getId())} adding player ${name}`);
       const player = new Player(name, board);
 
       board.addPlayer(player);
 
-      if (!client.getPlayer()) {
+      if (!user.getPlayer(board.getId())) {
         // If the client doesn't yet have a player, assume they want this one for
         // now.
-        serverLog(`${client.getLabel()} automatically taking control of player ${player.getName()}`);
+        serverLog(`${client.getLabel(board.getId())} automatically taking control of player ${player.getName()}`);
         setClientPlayer(board, client, player);
-        client.setPlayer(player);
       }
 
       clients.forEach(client => {
-        if (!client.getPlayerId()) {
+        if (!client.getPlayerId(board.getId())) {
           setStatusSingle(client, 'Pick a player to draft.');
         }
       });
@@ -137,11 +137,11 @@ module.exports = (crowd, config) => {
      */
     socket.on('pick-player', playerId => {
       if (playerId !== null) {
-        serverLog(`${client.getLabel()} looking for ${playerId}`, true);
+        serverLog(`${client.getLabel(board.getId())} looking for ${playerId}`, true);
         const player = board.getPlayerById(playerId);
 
         if (player && !player.getClientId()) {
-          serverLog(`${client.getLabel()} taking control of player ${player.getName()}`);
+          serverLog(`${client.getLabel(board.getId())} taking control of player ${player.getName()}`);
           setClientPlayer(board, client, player);
         }
         else if (player) {
@@ -160,7 +160,7 @@ module.exports = (crowd, config) => {
      * character list, and advances the pick order.
      */
     socket.on('add-character', charId => {
-      const player = client.getPlayer();
+      const player = user.getPlayer(board.getId());
       let character = board.getCharacter(charId);
 
       // If we're playing with Free pick, build a new character with this info so
@@ -170,24 +170,24 @@ module.exports = (crowd, config) => {
       }
 
       if (board.getDraftRound() < 1) {
-        serverLog(`${client.getLabel()} tried to add ${character.getName()} but drafting has not started.`);
+        serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but drafting has not started.`);
         setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
       }
       if (player === null) {
-        serverLog(`${client.getLabel()} tried to add ${character.getName()} but does not have a player selected!`);
+        serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but does not have a player selected!`);
         setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
       }
       else if (board.getDraftType(true) !== 'free' && !player.isActive) {
-        serverLog(`${client.getLabel()} tried to add ${character.getName()} but it is not their turn.`);
+        serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but it is not their turn.`);
         setStatusSingle(client, 'It is not yet your turn! Please wait.', 'alert');
       }
       else if (board.getDraftType(true) === 'free' && !player.isActive) {
-        serverLog(`${client.getLabel()} tried to add ${character.getName()} but has already added maximum characters!`);
+        serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but has already added maximum characters!`);
         setStatusSingle(client, 'You have reached the maximum number of characters!', 'alert');
       }
       else {
         // We can add the character!
-        serverLog(`${client.getLabel()} adding character ${character.getName()}.`);
+        serverLog(`${client.getLabel(board.getId())} adding character ${character.getName()}.`);
 
         player.addCharacter(character);
 
@@ -220,7 +220,7 @@ module.exports = (crowd, config) => {
     socket.on('player-character-click', (charId, charRound, playerId) => {
       // We need to do different things depending upon the state of the board and
       // what type of draft we're running.
-      const clientPlayer = client.getPlayer();
+      const clientPlayer = user.getPlayer(board.getId());
       const clickedPlayer = board.getPlayerById(playerId);
       const character_index = charRound - 1;
 
@@ -238,7 +238,7 @@ module.exports = (crowd, config) => {
           advanceGame(board);
         }
         else {
-          serverLog(`${client.getLabel()} tried to mark a non-player as winner!`);
+          serverLog(`${client.getLabel(board.getId())} tried to mark a non-player as winner!`);
         }
       }
       // The user is removing a character from their roster.
@@ -257,7 +257,7 @@ module.exports = (crowd, config) => {
 
     socket.on('player-remove-click', playerId => {
       const clickedPlayer = board.getPlayerById(playerId);
-      const isCurrentPlayer = client.getPlayerId() === playerId;
+      const isCurrentPlayer = user.getPlayerId(board.getId()) === playerId;
 
       // First make sure that either the client's player and the clicked playerId
       // match, or the clicked player is unowned.
@@ -265,32 +265,32 @@ module.exports = (crowd, config) => {
 
         // First remove the player from the client.
         if (isCurrentPlayer) {
-          client.setPlayer(null);
+          user.setPlayer(board.getId(), null);
         }
         board.dropPlayerById(playerId);
         regeneratePlayers(board);
 
-        serverLog(`${client.getLabel()} removed player ${clickedPlayer.getName()}`);
+        serverLog(`${client.getLabel(board.getId())} removed player ${clickedPlayer.getName()}`);
       }
       else {
         // Since remove buttons should be automatically hidden, this person is
         // trying a little too hard.
-        serverLog(`${client.getLabel()} tried to remove a player owned by someone else.`);
+        serverLog(`${client.getLabel(board.getId())} tried to remove a player owned by someone else.`);
       }
 
     });
 
     socket.on('click-stage', stageId => {
-      const player = client.getPlayer();
+      const player = user.getPlayer(board.getId());
       const stage = board.getStage(stageId);
 
       if (player !== null) {
         if (!player.hasStage(stage)) {
-          serverLog(`${client.getLabel()} voting for stage ${stage.getName()}`);
+          serverLog(`${client.getLabel(board.getId())} voting for stage ${stage.getName()}`);
           player.addStage(stage);
         }
         else {
-          serverLog(`${client.getLabel()} dropping vote for stage ${stage.getName()}`);
+          serverLog(`${client.getLabel(board.getId())} dropping vote for stage ${stage.getName()}`);
           player.dropStage(stage);
         }
 
@@ -299,7 +299,7 @@ module.exports = (crowd, config) => {
     });
 
     socket.on('start-draft', () => {
-      serverLog(`${client.getLabel()} started the draft.`);
+      serverLog(`${client.getLabel(board.getId())} started the draft.`);
       board.advanceDraftRound();
 
       if (board.getDraftType(true) === 'free') {
@@ -329,7 +329,7 @@ module.exports = (crowd, config) => {
 
       if (!mismatchedChars) {
 
-        serverLog(`${client.getLabel()} started the game.`);
+        serverLog(`${client.getLabel(board.getId())} started the game.`);
         if (!board.getTotalRounds()) {
           // This had no total rounds initially, so set based off of the total
           // characters of any given player.
@@ -357,13 +357,13 @@ module.exports = (crowd, config) => {
 
     // Reset the entire game board, characters, and others. Keeps players.
     socket.on('reset', data => {
-      serverLog(`${client.getLabel()} requested a server reset.`);
+      serverLog(`${client.getLabel(board.getId())} requested a server reset.`);
       resetGame(board, data);
     });
 
     // Shuffles the players to a random order.
     socket.on('players-shuffle', () => {
-      serverLog(`${client.getLabel()} shuffled the players.`);
+      serverLog(`${client.getLabel(board.getId())} shuffled the players.`);
 
       board.shufflePlayers();
 
@@ -374,7 +374,7 @@ module.exports = (crowd, config) => {
 
     // Be sure to remove the client from the list of clients when they disconnect.
     socket.on('disconnect', () => {
-      const player = client.getPlayer();
+      const player = user.getPlayer(board.getId());
       let noPlayer = true;
       if (player !== null) {
         noPlayer = false;
@@ -382,8 +382,8 @@ module.exports = (crowd, config) => {
 
       // If the client didn't have a player, don't bother announcing their
       // departure.
-      serverLog(`${client.getLabel()} disconnected.`, noPlayer);
-      client.setPlayer(null);
+      serverLog(`${client.getLabel(board.getId())} disconnected.`, noPlayer);
+      user.setPlayer(board.getId(), null);
 
       regeneratePlayers(board);
     });
@@ -423,12 +423,13 @@ function serverLog(message, serverOnly = false) {
  */
 function setClientPlayer(board, client, player) {
   const updatedPlayers = [];
+  const user = client.getUser();
 
   // First remove the current client's player so it's empty again.
-  if (client.getPlayerId() !== null) {
-    const prevPlayer = client.getPlayer();
+  if (user.getPlayerId(board.getId()) !== null) {
+    const prevPlayer = user.getPlayer(board.getId());
     serverLog(`Removing ${client.getColor()(`Client ${client.getId()}`)} from player ${prevPlayer.getName()}`, true);
-    client.setPlayer(null);
+    user.setPlayer(board.getId(), null);
 
     updatedPlayers.push({
       'playerId': prevPlayer.getId(),
@@ -436,7 +437,7 @@ function setClientPlayer(board, client, player) {
     });
   }
 
-  client.setPlayer(player);
+  user.setPlayer(board.getId(), player);
 
   updatedPlayers.push({
     'playerId': player.getId(),
@@ -464,7 +465,7 @@ function setClientPlayer(board, client, player) {
  */
 function advanceFreePick(board, client) {
   const updatedPlayers = [];
-  const player = client.getPlayer();
+  const player = client.getPlayer(board.getId());
 
   player.setActive((!board.getTotalRounds() || player.getCharacterCount() < board.getTotalRounds()));
 
@@ -530,7 +531,7 @@ function advanceDraft(board, characterUpdateData) {
     }
 
     const currentPlayer = board.getPlayerByPickOrder(board.getPick());
-    const currentClient = clients[currentPlayer.getClientId() - 1];
+    const currentClient = clients[currentPlayer.getUser().getClientId() - 1];
 
     // We only need to change active state if the player changes.
     if (prevPlayer !== currentPlayer) {
@@ -598,10 +599,11 @@ function resetGame(board, boardData) {
   }
 
   clients.forEach(client => {
-    client.setPlayer(null);
-    client.setGameId(board.getGameId());
+    const user = client.getUser();
+    user.setPlayer(null);
+    user.setGameId(board.getGameId());
     setClientInfoSingle(client, true);
-    serverLog(`Wiping player info for ${client.getLabel()}`);
+    serverLog(`Wiping player info for ${client.getLabel(board.getId())}`);
   });
 
   regenerateBoardInfo(board);
@@ -832,6 +834,7 @@ function cleanClient(client) {
 
   Object.assign(safeClient, client);
   safeClient.socket = null;
+  safeClient.user = null;
 
   return safeClient;
 }

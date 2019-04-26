@@ -45,7 +45,12 @@ class Smashcrowd {
    *   field: value
    */
   async dbSelectFirst(table, fields = '*', where = 1, sort = '') {
-    return await this.dbSelect(table, fields, where, sort, 1);
+    let row = {};
+    await this.dbSelect(table, fields, where, sort, 1)
+      .then(results => {
+        row = results[0];
+      });
+    return row;
   }
 
   /**
