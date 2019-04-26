@@ -36,7 +36,6 @@ module.exports = (crowd, config) => {
 
   board.loadBoard(1)
     .then(() => {
-      console.log('does this happen?');
       // Load characters from the character data file.
       board.buildAllCharacters(SmashCrowd.getCharacters());
       board.buildAllStages(SmashCrowd.getStages());
@@ -163,7 +162,7 @@ module.exports = (crowd, config) => {
 
       // If we're playing with Free pick, build a new character with this info so
       // that we don't disrupt the board.
-      if (board.getDraftType === 'free' || charId === 999) {
+      if (board.getDraftType(true) === 'free' || charId === 999) {
         character = new Character(charId, board.charData[charId]);
       }
 
@@ -175,11 +174,11 @@ module.exports = (crowd, config) => {
         serverLog(`${client.getLabel()} tried to add ${character.getName()} but does not have a player selected!`);
         setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
       }
-      else if (board.getDraftType() !== 'free' && !player.isActive) {
+      else if (board.getDraftType(true) !== 'free' && !player.isActive) {
         serverLog(`${client.getLabel()} tried to add ${character.getName()} but it is not their turn.`);
         setStatusSingle(client, 'It is not yet your turn! Please wait.', 'alert');
       }
-      else if (board.getDraftType() === 'free' && !player.isActive) {
+      else if (board.getDraftType(true) === 'free' && !player.isActive) {
         serverLog(`${client.getLabel()} tried to add ${character.getName()} but has already added maximum characters!`);
         setStatusSingle(client, 'You have reached the maximum number of characters!', 'alert');
       }
@@ -189,7 +188,7 @@ module.exports = (crowd, config) => {
 
         player.addCharacter(character);
 
-        if (board.getDraftType() !== 'free') {
+        if (board.getDraftType(true) !== 'free') {
           // By default we'll only be disabling the character selection until
           // processing has finished and the client has been updated.
           const characterUpdateData = {
@@ -240,7 +239,7 @@ module.exports = (crowd, config) => {
         }
       }
       // The user is removing a character from their roster.
-      else if (board.getDraftType() === 'free' && clientPlayer.getId() === playerId) {
+      else if (board.getDraftType(true) === 'free' && clientPlayer.getId() === playerId) {
         clientPlayer.dropCharacter(character_index);
         // If the draft was marked complete, uncomplete it!
         if (board.checkStatus('draft-complete')) {
@@ -300,7 +299,7 @@ module.exports = (crowd, config) => {
       serverLog(`${client.getLabel()} started the draft.`);
       board.advanceDraftRound();
 
-      if (board.getDraftType() === 'free') {
+      if (board.getDraftType(true) === 'free') {
         board.getPlayers().forEach(player => {
           player.setActive(true);
         });
@@ -548,7 +547,7 @@ function advanceDraft(board, characterUpdateData) {
 
     // If we're at a new round in snake draft we need to regenerate the player
     // area entirely so that they reorder. Otherwise just update stuff!
-    if (newRound && board.getDraftType() === 'snake') {
+    if (newRound && board.getDraftType(true) === 'snake') {
       setStatusSingle(currentClient, 'With the new round, it is once again your turn! Choose wisely.', 'primary');
       regenerateBoardInfo(board);
       regeneratePlayers(board);

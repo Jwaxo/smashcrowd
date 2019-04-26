@@ -109,6 +109,12 @@ function postInstall() {
   // For now we create a default board.
   // @todo: remove this once multiple boards are working.
   SmashCrowd.dbInsert('boards', config.get('server.default_board'));
+
+  // For now we insert a few draft types by hand.
+  // @todo: add Draft Type class definitions, and a server config to enable/disable
+  // @todo: specific draft types.
+  SmashCrowd.addDraftType('snake', 'Snake Draft');
+  SmashCrowd.addDraftType('free', 'Free Pick');
 }
 
 /**

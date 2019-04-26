@@ -23,10 +23,10 @@ class Board {
      * The types of drafts currently able to pick.
      * @todo: create a draftfactory, then plugin different draft types.
      */
-    this.draftTypes = {
-      snake: 'Snake Draft',
-      free: 'Free Pick',
-    };
+    SmashCrowd.loadDraftTypes()
+      .then(draftTypes => {
+        this.draftTypes = draftTypes;
+      });
 
     this.statusTypes = [
       'new',
@@ -41,7 +41,7 @@ class Board {
     this.current_draft_round = 0;
     this.current_game_round = 0;
     this.total_rounds = 0;
-    this.draftType = 0;
+    this.draftType = 1;
     this.name = null;
     this.status = 0;
     this.next_player_id = 0;
@@ -173,12 +173,26 @@ class Board {
       throw "Tried to set nonexistent draft type.";
     }
   }
+  /**
+   * Returns the current draft type, or the machine name of it.
+   *
+   * @param {boolean} userFriendly
+   * @returns {number|string}
+   */
   getDraftType(userFriendly = false) {
     let type = this.draftType;
     if (userFriendly) {
-      type = this.draftTypes[this.draftType];
+      type = this.draftTypes[this.draftType].machine_name;
     }
     return type;
+  }
+
+  /**
+   * Returns the full info for the current draft type.
+   * @returns {Object}
+   */
+  getDraftTypeInfo() {
+    return this.draftTypes[this.draftType];
   }
 
   setStatus(state) {

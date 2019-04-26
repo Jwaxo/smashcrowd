@@ -2,12 +2,12 @@
   Displays information about the current board.
 #}
 
-<h4>Draft Type: {{ board.getDraftType(true) }}</h4>
+<h4>Draft Type: {{ board.getDraftTypeInfo().label }}</h4>
 
 {% if board.checkStatus('new') %}
   <h4 class="warning">Waiting to Start {% if board.getTotalRounds() %}{{ board.getTotalRounds() }} Round {% endif %}Draft</h4>
 {% elseif board.checkStatus('draft') %}
-  {% if board.getDraftType() == 'free' %}
+  {% if board.getDraftType(true) == 'free' %}
     <h4>Please Draft {% if board.getTotalRounds() %}{{ board.getTotalRounds() }}{% else %}Your{% endif %} Characters</h4>
   {% else %}
     <h4>Draft Round: {{ board.getDraftRound() }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>

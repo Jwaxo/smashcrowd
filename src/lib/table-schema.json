@@ -128,7 +128,7 @@
 				{
 					"name": "total_rounds",
 					"nullable": false,
-					"default_value": 0,
+					"default_value": "0",
 					"type": "int(11)",
 					"extra": ""
 				},
@@ -226,6 +226,42 @@
 					"nullable": true,
 					"default_value": null,
 					"type": "varchar(255)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "draft_types",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "id",
+					"nullable": false,
+					"default_value": null,
+					"type": "tinyint(4)",
+					"extra": "auto_increment"
+				},
+				{
+					"name": "machine_name",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(16)",
+					"extra": ""
+				},
+				{
+					"name": "label",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(64)",
 					"extra": ""
 				}
 			]

@@ -332,7 +332,7 @@ class Smashcrowd {
       this.dbInsert('boards', {
         name: board.getName(),
         owner: board.getOwner(),
-        draft_type: board.getDraftType(),
+        draft_type: board.getDraftType().id,
         status: board.getStatus(),
         current_pick: board.getPick(),
         total_rounds: board.getTotalRounds(),
@@ -368,6 +368,28 @@ class Smashcrowd {
       this.setupUsers(),
       this.setupBoards(),
     ])
+  }
+
+  /**
+   * Loads all valid draft types from the database.
+   *
+   * @returns {Promise<Array>}
+   */
+  async loadDraftTypes() {
+    const draft_types = {};
+
+    await this.dbSelect('draft_types')
+      .then(results => {
+        results.forEach(draft_type => {
+          draft_types[draft_type.id] = draft_type;
+        });
+
+      });
+
+    return draft_types;
+  }
+  addDraftType(machine_name, label) {
+    this.dbInsert('draft_types', {machine_name: machine_name, label: label});
   }
 
 }
