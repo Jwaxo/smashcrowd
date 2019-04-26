@@ -349,7 +349,7 @@
 					"nullable": false,
 					"default_value": null,
 					"type": "int(11)",
-					"extra": ""
+					"extra": "auto_increment"
 				},
 				{
 					"name": "username",

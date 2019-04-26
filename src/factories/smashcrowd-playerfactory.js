@@ -7,7 +7,7 @@
  * It made sense to keep them separate at the time.
  */
 class Player {
-  constructor(name) {
+  constructor(name, board) {
     this.name = name;
     this.characters = [];
     this.stages = [];
@@ -17,6 +17,7 @@ class Player {
     this.stats = {};
     this.sortOrder = null;
     this.user = null;
+    this.board = board;
 
     return this;
   }

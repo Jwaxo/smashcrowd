@@ -73,10 +73,13 @@ module.exports = (crowd, config) => {
 
     const randomColor = Math.floor(Math.random() * (console_colors.length));
 
-    const client = new Client(socket, board.getGameId());
+    const client = new Client(socket, board.getGameId(), SmashCrowd);
     const clientId = clients.push(client);
     client.setId(clientId);
     client.setColor(chalk[console_colors[randomColor]]);
+
+    const user = client.getUser();
+    user.loadUser(SmashCrowd.getAnonymousUserId());
 
     serverLog(`${client.getLabel()} assigned to socket ${socket.id}`, true);
 
@@ -105,7 +108,7 @@ module.exports = (crowd, config) => {
      */
     socket.on('add-player', name => {
       serverLog(`${client.getLabel()} adding player ${name}`);
-      const player = new Player(name);
+      const player = new Player(name, board);
 
       board.addPlayer(player);
 

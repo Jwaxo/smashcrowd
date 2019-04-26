@@ -62,7 +62,7 @@ class Board {
     // @todo: Determine if we still need to have these unique hashes. Probably
     // @todo: not, once we have real sessions going. But we can use this to
     // @todo: create session IDs.
-    this.gameid = this.constructor.generateGameId();
+    this.gameId = this.constructor.generateGameId();
 
     for (let option in options) {
       if (this.hasOwnProperty(option)) {
@@ -75,7 +75,7 @@ class Board {
 
   loadBoard(boardId) {
     return new Promise(resolve => {
-      SmashCrowd.loadBoard(boardId, this)
+      SmashCrowd.loadBoard(boardId)
         .then(boardData => {
           for (let option in boardData) {
             this[option] = boardData[option];

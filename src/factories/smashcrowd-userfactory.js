@@ -7,15 +7,30 @@ let SmashCrowd;
 
 class User {
 
-  constructor(db, crowd) {
+  constructor(crowd) {
     this.session = '';
-    this.userId = null;
+    this.id = null;
     this.email = null;
     this.username = null;
 
     SmashCrowd = crowd;
 
     return this;
+  }
+
+  loadUser(userId) {
+    return new Promise(resolve => {
+      SmashCrowd.loadUser(userId)
+        .then(userData => {
+          for (let option in userData) {
+            if (option !== 'password') {
+              this[option] = userData[option];
+            }
+          }
+
+          resolve();
+        });
+    });
   }
 
   setId(userId) {
@@ -63,7 +78,7 @@ class User {
    *     - 1: username taken
    *     - 2: email taken
    */
-  async static checkUserAvailable(email, username) {
+  async checkUserAvailable(email, username) {
     let available = 0;
 
     await Promise.all([

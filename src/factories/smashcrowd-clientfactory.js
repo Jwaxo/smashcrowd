@@ -1,8 +1,13 @@
 /**
  * Information and methods used for an individual user connection.
  */
+
+const User = require('./smashcrowd-userfactory.js');
+
+let SmashCrowd;
+
 class Client {
-  constructor(socket, gameId) {
+  constructor(socket, gameId, crowd) {
     this.id = 0;
     this.socket = socket;
     this.color = null;
@@ -12,6 +17,10 @@ class Client {
 
     this.setGameId(gameId);
 
+    SmashCrowd = crowd;
+
+    this.user = new User(SmashCrowd);
+
     return this;
   }
 
@@ -20,6 +29,13 @@ class Client {
   // and this should only be done for utility purposes.
   getSocket() {
     return this.socket;
+  }
+
+  setUser(userId) {
+    this.user.loadUser(userId);
+  }
+  getUser() {
+    return this.user;
   }
 
   setId(clientId) {
