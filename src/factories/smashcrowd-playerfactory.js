@@ -1,5 +1,10 @@
 /**
- * Information and methods used for a player on the board.
+ * Information and methods used for a player on a board.
+ *
+ * "Players" are non-database-registered instances of a user, specific to an
+ * individual board.
+ *
+ * It made sense to keep them separate at the time.
  */
 class Player {
   constructor(name) {
@@ -11,6 +16,7 @@ class Player {
     this.playerId = null;
     this.stats = {};
     this.sortOrder = null;
+    this.user = null;
 
     return this;
   }

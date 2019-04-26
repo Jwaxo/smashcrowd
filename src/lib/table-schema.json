@@ -3,74 +3,6 @@
 	"sequences": [],
 	"tables": [
 		{
-			"name": "board_stages",
-			"constraints": [
-				{
-					"name": "PRIMARY",
-					"type": "primary",
-					"columns": [
-						"board_id",
-						"user_id",
-						"stage_id"
-					]
-				}
-			],
-			"indexes": [],
-			"columns": [
-				{
-					"name": "board_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "user_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "stage_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				}
-			]
-		},
-		{
-			"name": "board_users",
-			"constraints": [
-				{
-					"name": "PRIMARY",
-					"type": "primary",
-					"columns": [
-						"board_id",
-						"user_id"
-					]
-				}
-			],
-			"indexes": [],
-			"columns": [
-				{
-					"name": "board_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "user_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				}
-			]
-		},
-		{
 			"name": "boards",
 			"constraints": [
 				{
@@ -143,52 +75,6 @@
 					"name": "current_game_round",
 					"nullable": false,
 					"default_value": "0",
-					"type": "int(11)",
-					"extra": ""
-				}
-			]
-		},
-		{
-			"name": "character_users",
-			"constraints": [
-				{
-					"name": "PRIMARY",
-					"type": "primary",
-					"columns": [
-						"character_id",
-						"user_id",
-						"board_id",
-						"roster_number"
-					]
-				}
-			],
-			"indexes": [],
-			"columns": [
-				{
-					"name": "character_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "user_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "board_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "roster_number",
-					"nullable": false,
-					"default_value": null,
 					"type": "int(11)",
 					"extra": ""
 				}
@@ -327,6 +213,120 @@
 					"nullable": true,
 					"default_value": null,
 					"type": "varchar(255)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "user_boards",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"user_id",
+						"board_id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "user_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "board_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "user_characters",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"user_id",
+						"character_id",
+						"board_id",
+						"roster_number"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "user_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "character_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "board_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "roster_number",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "user_stages",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"user_id",
+						"stage_id",
+						"board_id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "user_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "stage_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "board_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
 					"extra": ""
 				}
 			]
