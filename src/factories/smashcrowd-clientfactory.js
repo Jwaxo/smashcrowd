@@ -53,7 +53,7 @@ class Client {
 
   getLabel(boardId) {
     let label = '';
-    if (this.user.getLabel() !== 'anonymous') {
+    if (!['anonymous', null].includes(this.user.getLabel())) {
       label = this.color(this.user.getLabel());
     }
     else {

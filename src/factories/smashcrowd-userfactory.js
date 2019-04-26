@@ -38,11 +38,15 @@ class User {
     });
   }
 
+  updateUserRow(fieldvalues) {
+    SmashCrowd.dbUpdate('users', fieldvalues, `id = "${this.getId()}"`);
+  }
+
   setId(userId) {
-    this.userId = userId;
+    this.id = userId;
   }
   getId() {
-    return this.userId;
+    return this.id;
   }
 
   setClientId(clientId) {
@@ -92,6 +96,11 @@ class User {
     if (player) {
       player.setUserId(this.id);
       player.setClientId(this.clientId);
+    }
+
+    // For now, we set the user to have the same label as the Player.
+    if (this.username === 'anonymous') {
+      this.setLabel(player.getName());
     }
 
     this.updatePlayerStorage();
@@ -149,6 +158,10 @@ class User {
       label = this.players[boardId].getName();
     }
     return label;
+  }
+  setLabel(label) {
+    this.label = label;
+    this.updateUserRow({"label": label});
   }
 
   /**

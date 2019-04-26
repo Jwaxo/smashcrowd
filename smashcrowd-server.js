@@ -82,6 +82,10 @@ module.exports = (crowd, config) => {
     user.loadUser(SmashCrowd.getAnonymousUserId());
     user.setGameId(board.getGameId());
 
+    // We need a way to track if a player belongs to an anonymous user, so that a client
+    // can slip in to *that* anonymous user, instead of taking on the player
+    // itself.
+
     serverLog(`${client.getLabel(board.getId())} assigned to socket ${socket.id}`, true);
 
     // Generate everything just in case the connections existed before the server.
