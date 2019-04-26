@@ -10,10 +10,33 @@ class User {
   constructor(db, crowd) {
     this.session = '';
     this.userId = null;
+    this.email = null;
+    this.username = null;
 
     SmashCrowd = crowd;
 
     return this;
+  }
+
+  setId(userId) {
+    this.userId = userId;
+  }
+  getId() {
+    return this.userId;
+  }
+
+  setEmail(email) {
+    this.email = email;
+  }
+  getEmail() {
+    return this.email;
+  }
+
+  setUsername(username) {
+    this.username = username;
+  }
+  getUsername() {
+    return this.username;
   }
 
   /**
@@ -24,15 +47,9 @@ class User {
    * @param {string} password
    */
   registerUser(email, username, password) {
-    SmashCrowd.addUser({
-      'email': email,
-      'username': username,
-      'password': this.constructor.passwordHash(password),
-    }).then(userid => {
-      this.userId = userid;
-      this.email = email;
-      this.username = username;
-    });
+    this.setEmail(email);
+    this.setUsername(username);
+    SmashCrowd.addUser(this, this.constructor.passwordHash(password));
   }
 
   /**

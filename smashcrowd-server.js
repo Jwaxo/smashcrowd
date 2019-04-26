@@ -29,14 +29,18 @@ let console_colors = {};
 module.exports = (crowd, config) => {
   const port = config.get('server.port');
   SmashCrowd = crowd;
-  console_colors = config.get('server.console_colors')
+  console_colors = config.get('server.console_colors');
 
-  // Currently we only run one board at a time, so set the ID to 1.
-  const board = new Board(1, config.get('server.default_board'));
+  // Currently we only run one board at a time, so load board 1.
+  const board = new Board(SmashCrowd);
 
-  // Load characters from the character data file.
-  board.buildAllCharacters(SmashCrowd.getCharacters());
-  board.buildAllStages(SmashCrowd.getStages());
+  board.loadBoard(1)
+    .then(() => {
+      console.log('does this happen?');
+      // Load characters from the character data file.
+      board.buildAllCharacters(SmashCrowd.getCharacters());
+      board.buildAllStages(SmashCrowd.getStages());
+    });
 
   // Listen at the port.
   server.listen(port, () => {
@@ -239,7 +243,7 @@ module.exports = (crowd, config) => {
       else if (board.getDraftType() === 'free' && clientPlayer.getId() === playerId) {
         clientPlayer.dropCharacter(character_index);
         // If the draft was marked complete, uncomplete it!
-        if (board.getStatus() === 'draft-complete') {
+        if (board.checkStatus('draft-complete')) {
           board.setStatus('draft');
           regenerateBoardInfo(board);
         }

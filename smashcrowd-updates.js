@@ -105,6 +105,10 @@ function postInstall() {
     .then(() => {
       console.log('All stages configured.');
     });
+
+  // For now we create a default board.
+  // @todo: remove this once multiple boards are working.
+  SmashCrowd.dbInsert('boards', config.get('server.default_board'));
 }
 
 /**

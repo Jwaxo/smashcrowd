@@ -8,7 +8,7 @@ class Smashcrowd {
   /**
    *
    * @param {Connection} db
-   * @param {JSON} config
+   * @param {Config} config
    */
   constructor(db, config) {
     this.db = db;
@@ -17,6 +17,7 @@ class Smashcrowd {
     this.characters = [];
     this.stages = [];
     this.users = {};
+    this.boards = {};
 
     this.dbDiffString = this.constructor.constructDbDiffString(config.get('database.connection'));
   }
@@ -43,10 +44,7 @@ class Smashcrowd {
    *   field: value
    */
   async dbSelectFirst(table, fields = '*', where = 1, sort = '') {
-    return await this.dbSelect(table, fields, where, sort, 1)
-      .then((result) => {
-        resolve(result);
-      });
+    return await this.dbSelect(table, fields, where, sort, 1);
   }
 
   /**
@@ -286,21 +284,75 @@ class Smashcrowd {
       });
     return this.users;
   }
-  addUser(userData) {
+  addUser(user, password) {
     // This will insert a user, but currently we don't have anything actually registering users.
     return new Promise(resolve => {
-      this.dbInsert('users', userData)
+      this.dbInsert('users', {
+        username: user.getUsername(),
+        email: user.getEmail(),
+        password: password,
+      })
         .then(userId => {
-          this.users[userId] = userData;
-          this.users[userId].id = userId;
+          this.users[userId] = user;
+          this.users[userId].setId(userId);
 
-          resolve(userId);
+          resolve();
         });
     });
-
   }
   getUsers() {
     return this.users;
+  }
+
+  /**
+   * Set stages in SmashCrowd main object. This is mostly used by boards as a
+   * reference, so the DB doesn't have to be pinged.
+   *
+   * @param {Array} board_data
+   *   Optional board data, if you already have it. Saves a DB query.
+   * @returns {Promise<Array>}
+   */
+  async setupBoards(board_data = null) {
+    if (board_data == null) {
+      await this.dbSelect('boards')
+        .then((results) => {
+          results.forEach(result => {
+            this.boards[result.id] = result;
+          });
+        });
+    }
+    else {
+      this.boards = board_data;
+    }
+    return this.boards;
+  }
+  addBoard(board) {
+
+    return new Promise(resolve => {
+      this.dbInsert('boards', {
+        name: board.getName(),
+        owner: board.getOwner(),
+        draft_type: board.getDraftType(),
+        status: board.getStatus(),
+        current_pick: board.getPick(),
+        total_rounds: board.getTotalRounds(),
+        current_draft_round: board.getDraftRound(),
+        current_game_round: board.getGameRound(),
+      })
+        .then(boardId => {
+          this.boards[boardId] = board;
+          this.boards[boardId].setId(boardId);
+
+          resolve(this.boards[boardId]);
+        });
+    });
+  }
+  async loadBoard(boardId) {
+    return await this.dbSelectFirst('boards', '*', `id = "${boardId}"`);
+  }
+
+  getBoards() {
+    return this.boards;
   }
 
   /**
@@ -314,6 +366,7 @@ class Smashcrowd {
       this.setupCharacters(),
       this.setupStages(),
       this.setupUsers(),
+      this.setupBoards(),
     ])
   }
 

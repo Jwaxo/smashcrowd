@@ -28,7 +28,8 @@
       "bgWhite"
     ],
     "default_board": {
-      "draftType": "snake"
+      "name": "SmashCrowd Default",
+      "draft_type": "1"
     }
   }
 }

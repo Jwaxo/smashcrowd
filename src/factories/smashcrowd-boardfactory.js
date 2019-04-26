@@ -5,28 +5,19 @@
 const Character = require('./smashcrowd-characterfactory.js');
 const Stage = require('./smashcrowd-stagefactory.js');
 const fs = require('fs');
+let SmashCrowd;
 
 class Board {
-  constructor(boardId, options) {
-    this.boardId = boardId;
-
-    this.currentPick = 0;
-    this.currentDraftRound = 0;
-    this.currentGameRound = 0;
-    this.totalRounds = null;
-    this.draftType = null;
-    this.name = null;
-    this.status = 'new';
-    this.nextPlayerId = 0;
-
-    this.charData = {};
-    this.levelData = {};
-    this.players = [];
-    this.playersPickOrder = [];
-    this.characters = [];
-    this.stages = [];
-
-    this.gameId = this.generateGameId();
+  /**
+   * Create a new Board, or load a Board from the DB.
+   *
+   * @param {SmashCrowd} crowd
+   * @param {int|Object} options
+   *   The ID of the board you wish to load, or an object of configurations.
+   * @returns {Board}
+   */
+  constructor(crowd, options = {}) {
+    SmashCrowd = crowd;
 
     /**
      * The types of drafts currently able to pick.
@@ -45,6 +36,34 @@ class Board {
       'game-complete',
     ];
 
+    this.owner = 0;
+    this.current_pick = 0;
+    this.current_draft_round = 0;
+    this.current_game_round = 0;
+    this.total_rounds = 0;
+    this.draftType = 0;
+    this.name = null;
+    this.status = 0;
+    this.next_player_id = 0;
+
+    this.char_data = {};
+    this.level_data = {};
+    this.players = [];
+    this.players_pick_order = [];
+    this.characters = [];
+    this.stages = [];
+
+    for (let option in options) {
+      this[option] = options[option];
+    }
+
+    // SmashCrowd.addBoard(this);
+
+    // @todo: Determine if we still need to have these unique hashes. Probably
+    // @todo: not, once we have real sessions going. But we can use this to
+    // @todo: create session IDs.
+    this.gameid = this.constructor.generateGameId();
+
     for (let option in options) {
       if (this.hasOwnProperty(option)) {
         this[option] = options[option];
@@ -54,6 +73,32 @@ class Board {
     return this;
   }
 
+  loadBoard(boardId) {
+    return new Promise(resolve => {
+      SmashCrowd.loadBoard(boardId, this)
+        .then(boardData => {
+          for (let option in boardData) {
+            this[option] = boardData[option];
+          }
+
+          // @todo: For now, we set this to blank manually. Needs to be replaced
+          // @todo: with actual saved data info.
+
+          this.char_data = {};
+          this.level_data = {};
+          this.players = [];
+          this.players_pick_order = [];
+          this.characters = [];
+          this.stages = [];
+          resolve();
+        });
+    });
+  }
+
+  updateBoardRow(fieldvalues) {
+    SmashCrowd.dbUpdate('boards', fieldvalues, `id = "${this.getId()}`);
+  }
+
   setId(boardId) {
     this.boardId = boardId;
   }
@@ -61,49 +106,63 @@ class Board {
     return this.boardId;
   }
 
+  setName(name) {
+    this.name = name;
+  }
+  getName() {
+    return this.name;
+  }
+
+  setOwner(userId) {
+    this.owner = userId;
+  }
+  getOwner() {
+    return this.owner;
+  }
+
   setTotalRounds(rounds) {
-    this.totalRounds = parseInt(rounds);
+    this.total_rounds = parseInt(rounds);
   }
   getTotalRounds() {
-    return this.totalRounds;
+    return this.total_rounds;
   }
 
   advanceDraftRound() {
-    if (this.currentDraftRound === 0) {
+    if (this.current_draft_round === 0) {
       this.setStatus('draft');
     }
-    return ++this.currentDraftRound;
+    return ++this.current_draft_round;
   }
   getDraftRound() {
-    return this.currentDraftRound;
+    return this.current_draft_round;
   }
   resetDraftRound() {
     this.getActivePlayer().setActive(false);
-    this.currentDraftRound = 0;
+    this.current_draft_round = 0;
   }
 
   advanceGameRound() {
-    if (this.currentGameRound === 0) {
+    if (this.current_game_round === 0) {
       this.setStatus('game');
     }
-    return ++this.currentGameRound;
+    return ++this.current_game_round;
   }
   getGameRound() {
-    return this.currentGameRound;
+    return this.current_game_round;
   }
   resetGameRound() {
     this.getActivePlayer().setActive(false);
-    this.currentGameRound = 0;
+    this.current_game_round = 0;
   }
 
   advancePick() {
-    return ++this.currentPick;
+    return ++this.current_pick;
   }
   getPick() {
-    return this.currentPick;
+    return this.current_pick;
   }
   resetPick() {
-    this.currentPick = 0;
+    this.current_pick = 0;
   }
 
   setDraftType(type) {
@@ -122,29 +181,63 @@ class Board {
     return type;
   }
 
-  setStatus(status) {
-    if (this.statusTypes.includes(status)) {
-      this.status = status;
-    }
-    else {
-      throw "Tried to set nonexistent board status.";
-    }
-  }
-
-  /**
-   * Either checks if the status is a particular string or, what it currently is.
-   *
-   * @param state
-   * @returns {boolean|string|array}
-   */
-  getStatus(state = null) {
+  setStatus(state) {
     if (typeof state === 'string') {
+      const found = this.statusTypes.findIndex(state);
+      if (found === undefined ) {
+        throw "Tried to set nonexistent board status.";
+      }
+      else {
+        this.setStatus(found);
+      }
+    }
+    else if (Number.isInteger(state)) {
+      this.updateBoardRow({status: state});
       return this.status === state;
     }
-    else if (Array.isArray(state)) {
-      return state.includes(this.status);
+
+  }
+  /**
+   * State is normally stored via an integer, but the string version is much easier
+   * to understand, so for code visibility we allow it to be stored or checked
+   * either way. The DB stores it via int.
+   *
+   * @param {boolean} userFriendly
+   *   Whether to return the string version or the integer version.
+   * @returns {integer|string}
+   */
+  getStatus(userFriendly = false) {
+    let status = this.status;
+    if (userFriendly) {
+      status = this.statusTypes[this.status];
     }
-    return this.status;
+    return status;
+  }
+  /**
+   * Checks if the current status is either the string or int provided, or if it
+   * is in the array provided.
+   *
+   * @param {string|integer|array} state
+   *   Optional parameter
+   * @returns {boolean}
+   */
+  checkStatus(state) {
+    let isStatus = false;
+    if (typeof state === 'string') {
+      isStatus = this.statusTypes[this.status] === state;
+    }
+    else if (Number.isInteger(state)) {
+      isStatus = this.status === state;
+    }
+    else if (Array.isArray(state)) {
+      if (typeof state[0] === 'string') {
+        isStatus = state.includes(this.status);
+      }
+      else {
+        isStatus = (this.status in state);
+      }
+    }
+    return isStatus;
   }
 
   /**
@@ -155,14 +248,14 @@ class Board {
    */
   addPlayer(player) {
     this.players.push(player);
-    this.playersPickOrder.push(player);
-    player.setId(this.nextPlayerId++);
+    this.players_pick_order.push(player);
+    player.setId(this.next_player_id++);
     player.setSortOrder(player.getId()); // Sort by ID by default.
 
     return player.getId();
   }
   updatePlayer(playerId, data) {
-    for (option in data) {
+    for (let option in data) {
       this.players[playerId][option] = data[option];
     }
   }
@@ -173,7 +266,7 @@ class Board {
     return this.players.length;
   }
   getPlayersPickOrder() {
-    return this.playersPickOrder;
+    return this.players_pick_order;
   }
   /**
    * Searches the players array for the player with the matching ID.
@@ -189,7 +282,7 @@ class Board {
     return player ? player : null;
   }
   getPlayerByPickOrder(currentPick) {
-    return this.playersPickOrder[currentPick];
+    return this.players_pick_order[currentPick];
   }
   resetPlayers() {
     this.players.forEach(player => {
@@ -207,7 +300,7 @@ class Board {
     const playerIndex = this.players.findIndex(player => {
       return player.getId() === playerId;
     });
-    const playerPickIndex = this.playersPickOrder.findIndex(player => {
+    const playerPickIndex = this.players_pick_order.findIndex(player => {
       return player.getId() === playerId;
     });
 
@@ -216,24 +309,24 @@ class Board {
     // If this is the active player, we need to either advance the game or draft
     // round to allow game to continue.
     if (droppedPlayer.isActive) {
-      if (this.getStatus('draft')) {
+      if (this.checkStatus('draft')) {
         this.advanceDraftRound();
       }
-      else if (this.getStatus('game')) {
+      else if (this.checkStatus('game')) {
         this.advanceGameRound();
       }
     }
 
     this.players.splice(playerIndex, 1);
-    this.playersPickOrder.splice(playerPickIndex, 1);
+    this.players_pick_order.splice(playerPickIndex, 1);
   }
   dropAllPlayers() {
     this.players = [];
-    this.playersPickOrder = [];
+    this.players_pick_order = [];
   }
 
   reversePlayersPick() {
-    this.playersPickOrder.reverse();
+    this.players_pick_order.reverse();
   }
 
   /**
@@ -248,7 +341,7 @@ class Board {
     this.players.sort((a, b) => {
       return a.getSortOrder() - b.getSortOrder();
     });
-    this.playersPickOrder.sort((a, b) => {
+    this.players_pick_order.sort((a, b) => {
       return a.getSortOrder() - b.getSortOrder();
     });
   }
@@ -331,18 +424,18 @@ class Board {
     // Process characters from library, ensuring we don't reference the property.
     for (let i = 0; i < charData.length; i++) {
       let char_id = charData[i].id;
-      this.charData[i] = charData[i];
+      this.char_data[i] = charData[i];
       this.addCharacter(char_id, new Character(char_id, charData[i]));
     }
 
     // End by adding the "no pick" option, for when users wish to/are forced to
     // sit out.
-    this.charData[999] = {
+    this.char_data[999] = {
       'id': '999',
       'name': 'None',
       'image': 'images/cross.png',
     };
-    this.addCharacter(999, new Character(999, this.charData[999]));
+    this.addCharacter(999, new Character(999, this.char_data[999]));
   }
 
   /**
@@ -384,7 +477,7 @@ class Board {
     // Process characters from library.
     for (let i = 0; i < levelData.length; i++) {
       let stage_id = levelData[i].id;
-      this.levelData[i] = levelData[i];
+      this.level_data[i] = levelData[i];
       this.addStage(stage_id, new Stage(stage_id, levelData[i]));
     }
   }
