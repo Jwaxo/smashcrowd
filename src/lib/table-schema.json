@@ -306,6 +306,20 @@
 					"default_value": null,
 					"type": "int(11)",
 					"extra": ""
+				},
+				{
+					"name": "pick_order",
+					"nullable": true,
+					"default_value": null,
+					"type": "tinyint(4)",
+					"extra": ""
+				},
+				{
+					"name": "display_order",
+					"nullable": true,
+					"default_value": null,
+					"type": "tinyint(4)",
+					"extra": ""
 				}
 			]
 		},

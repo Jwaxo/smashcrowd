@@ -343,11 +343,32 @@ class Smashcrowd {
     await this.dbSelect('players', '*', `board_id = "${board_id}"`)
       .then(results => {
         results.forEach(result => {
-          const player = new Player(result.name, result.user_id, result.id);
+          const player = new Player(result.name, result.user_id);
+          player.setId(result.id);
+
+          // We can ignore board_id, because that will get added automatically
+          // when the board takes ownership of each player.
+
+          if (result.pick_order !== null) {
+            player.setPickOrder(result.pick_order);
+          }
+
+          if (result.display_order !== null) {
+            player.setDisplayOrder(result.display_order);
+          }
+
           players.push(player);
         });
       });
     return players;
+  }
+
+  /**
+   * @param {number} player_id
+   * @param {Object} fieldValues
+   */
+  updatePlayer(player_id, fieldValues) {
+    this.dbUpdate('players', fieldValues, `id = "${player_id}"`);
   }
 
   async loadUser(userId) {

@@ -7,7 +7,7 @@
  * It made sense to keep them separate at the time.
  */
 class Player {
-  constructor(name, userId = null, playerId = 0, board_id = null) {
+  constructor(name, userId = null) {
     this.name = name;
     this.playerId = playerId;
     this.characters = [];
@@ -17,7 +17,7 @@ class Player {
     this.isActive = false;
     this.playerId = null;
     this.stats = {};
-    this.sortOrder = null;
+    this.pickOrder = null;
     this.displayOrder = null;
     this.user = null;
     this.board_id = board_id;
@@ -105,11 +105,11 @@ class Player {
     }
   }
 
-  setSortOrder(order) {
-    this.sortOrder = order;
+  setPickOrder(order) {
+    this.pickOrder = order;
   }
-  getSortOrder() {
-    return this.sortOrder;
+  getPickOrder() {
+    return this.pickOrder;
   }
   setDisplayOrder(order) {
     this.displayOrder = order;

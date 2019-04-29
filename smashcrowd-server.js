@@ -78,15 +78,7 @@ module.exports = (crowd, config) => {
     const user = client.getUser();
     user.setGameId(board.getGameId());
 
-    // @todo: We need a way to track if a player belongs to an anonymous user, so that a client
-    // can slip in to *that* anonymous user, instead of taking on the player
-    // itself.
-
-    // Then make it so that when the server starts, the board status is actually
-    // checked and various things are loaded properly. Somehow steps are out of
-    // order.
-
-    // Then track characters, stages, and users with the actual database.
+    // @todo: Now track characters, stages, and users with the actual database.
     // And we should be done!
 
     serverLog(`${client.getLabel(board.getId())} assigned to socket ${socket.id}`, true);
@@ -145,7 +137,7 @@ module.exports = (crowd, config) => {
     socket.on('pick-player', playerId => {
       if (playerId !== null) {
         serverLog(`${client.getLabel(board.getId())} looking for ${playerId}`, true);
-        const player = board.getPlayerById(playerId);
+        const player = board.getPlayer(playerId);
 
         if (player && !player.getClientId()) {
           serverLog(`${client.getLabel(board.getId())} taking control of player ${player.getName()}`);
@@ -228,7 +220,7 @@ module.exports = (crowd, config) => {
       // We need to do different things depending upon the state of the board and
       // what type of draft we're running.
       const clientPlayer = user.getPlayer(board.getId());
-      const clickedPlayer = board.getPlayerById(playerId);
+      const clickedPlayer = board.getPlayer(playerId);
       const character_index = charRound - 1;
 
       // The user is marking a winner of a round.
@@ -237,7 +229,7 @@ module.exports = (crowd, config) => {
           clickedPlayer.addStat('game_score');
           clickedPlayer.setCharacterState(character_index, 'win');
           for (let board_player_id in board.getPlayers()) {
-            const eachPlayer = board.getPlayerById(board_player_id);
+            const eachPlayer = board.getPlayer(board_player_id);
             if (eachPlayer.getId() !== playerId) {
               eachPlayer.addStat('lost_rounds');
               eachPlayer.setCharacterState(character_index, 'loss');
@@ -264,7 +256,7 @@ module.exports = (crowd, config) => {
     });
 
     socket.on('player-remove-click', playerId => {
-      const clickedPlayer = board.getPlayerById(playerId);
+      const clickedPlayer = board.getPlayer(playerId);
       const isCurrentPlayer = user.getPlayerId(board.getId()) === playerId;
 
       // First make sure that either the client's player and the clicked playerId
@@ -275,7 +267,7 @@ module.exports = (crowd, config) => {
         if (isCurrentPlayer) {
           user.setPlayer(board.getId(), null);
         }
-        board.dropPlayerById(playerId);
+        board.dropPlayer(playerId);
         regeneratePlayers(board);
 
         serverLog(`${client.getLabel(board.getId())} removed player ${clickedPlayer.getName()}`);
@@ -331,7 +323,7 @@ module.exports = (crowd, config) => {
       let mismatchedChars = false;
       let compare_characters = null;
       for (let board_player_id of Object.keys(board.getPlayers())) {
-        const player = board.getPlayerById(board_player_id);
+        const player = board.getPlayer(board_player_id);
         if (compare_characters !== null && compare_characters !== player.getCharacterCount()) {
           mismatchedChars = true;
         }
@@ -494,7 +486,7 @@ function advanceFreePick(board, client) {
   // If any single player is not yet ready, don't update the board info.
   let draftComplete = true;
   for (let playerId in board.getPlayers()) {
-    const player = board.getPlayerById(playerId);
+    const player = board.getPlayer(playerId);
     if (player.getCharacterCount() < board.getTotalRounds()) {
       draftComplete = true;
     }

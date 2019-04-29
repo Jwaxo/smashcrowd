@@ -263,11 +263,42 @@ class Board {
     const player_id = player.getId();
     player.setBoardId(this.getId());
     this.players[player_id] = player;
-    this.players_display_order.push(player);
-    this.players_pick_order.push(player);
-    player.setDisplayOrder(this.players_display_order.length - 1);
-    player.setSortOrder(this.players_display_order.length - 1); // Sort by ID by default.
+
+    // If the player already existed or otherwise had information, use that to
+    // determine sort order (and color number);
+    let pick_order = player.getPickOrder();
+    let display_order = player.getDisplayOrder();
+
+    // Pick order affects what order players appear in column-wise, and, obviously,
+    // what order they pick characters in (if any).
+    if (pick_order !== null) {
+      this.players_pick_order[pick_order] = player;
+    }
+    else {
+      this.players_pick_order.push(player);
+      pick_order = this.players_display_order.length - 1;
+      player.setPickOrder(pick_order);
+    }
+
+    // Display order affects which colors players get; these should remain
+    // constantly through reordering (and server reloads).
+    if (display_order !== null) {
+      this.players_display_order[display_order] = player;
+    }
+    else {
+      this.players_display_order.push(player);
+      display_order = this.players_display_order.length - 1;
+      player.setDisplayOrder(display_order);
+
+      SmashCrowd.updatePlayer(player_id, {'display_order': display_order});
+    }
   }
+
+  /**
+   * Requests players from the database and takes ownership of them.
+   *
+   * @returns {Promise<any>}
+   */
   loadPlayers() {
     return new Promise(resolve => {
       SmashCrowd.loadPlayersByBoard(this.getId())
@@ -303,7 +334,7 @@ class Board {
    *    The ID to look for.
    * @returns {integer|null}
    */
-  getPlayerById(playerId) {
+  getPlayer(playerId) {
     return this.players.hasOwnProperty((playerId)) ? this.players[playerId] : null;
   }
   getPlayerByPickOrder(currentPick) {
@@ -321,7 +352,7 @@ class Board {
    *
    * @param {integer} playerId
    */
-  dropPlayerById(playerId) {
+  dropPlayer(playerId) {
     const playerPickIndex = this.players_pick_order.findIndex(player => {
       return player.getId() === playerId;
     });
@@ -358,16 +389,39 @@ class Board {
 
   /**
    * Takes the current list of players and randomizes their order.
+   *
+   * Maintains basic integer for the order, which is why we involve a few extra
+   * steps.
    */
   shufflePlayers() {
-    for (let playerId in this.players) {
-      this.players[playerId].setSortOrder(Math.random());
-    }
+    // Create a new array that will hold the player sorts.
+    const playerOrder = [];
+    this.players_pick_order = [];
 
-    // After assigning new sort order, sort display order.
-    this.players_pick_order.sort((a, b) => {
-      return a.getSortOrder() - b.getSortOrder();
+    // Shuffle the players.
+    for (let playerId in this.players) {
+      if (this.players.hasOwnProperty(playerId)) {
+        playerOrder.push({
+          id: playerId,
+          place: Math.random(),
+        });
+      }
+    }
+    // Sort the new array.
+    playerOrder.sort((a, b) => {
+      return a.place - b.place;
     });
+
+    // Then based off of the sorting assign the new order.
+    for (let i = 0; i < playerOrder.length; i++) {
+      const playerId = playerOrder[i].id;
+
+      this.players[playerId].setPickOrder(i);
+      SmashCrowd.updatePlayer(playerId, {'pick_order': i});
+
+      // And finally re-add to the pick order array.
+      this.players_pick_order.push(this.players[playerId]);
+    }
   }
 
   /**
