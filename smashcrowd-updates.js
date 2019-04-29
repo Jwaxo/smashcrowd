@@ -115,12 +115,6 @@ function postInstall() {
   // @todo: specific draft types.
   SmashCrowd.addDraftType('snake', 'Snake Draft');
   SmashCrowd.addDraftType('free', 'Free Pick');
-
-  // Create an anonymous user.
-  SmashCrowd.addAnonymousUser()
-    .then(userId => {
-      console.log(`Created default user with id ${userId}`);
-    });
 }
 
 /**

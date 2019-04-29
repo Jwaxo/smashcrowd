@@ -62,10 +62,10 @@ class Client {
     return label;
   }
 
-  getPlayer(boardId) {
+  getPlayerByBoard(boardId) {
     return this.user.getPlayer(boardId);
   }
-  getPlayerId(boardId) {
+  getPlayerIdByBoard(boardId) {
     return this.user.getPlayerId(boardId);
   }
 

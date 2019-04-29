@@ -115,22 +115,23 @@ module.exports = (crowd, config) => {
       serverLog(`${client.getLabel(board.getId())} adding player ${name}`);
       const player = new Player(name, board);
 
-      board.addPlayer(player);
+      board.addPlayer(player)
+        .then(player_id => {
+          if (!user.getPlayer(board.getId())) {
+            // If the client doesn't yet have a player, assume they want this one for
+            // now.
+            serverLog(`${client.getLabel(board.getId())} automatically taking control of player ${player.getName()}`);
+            setClientPlayer(board, client, player);
+          }
 
-      if (!user.getPlayer(board.getId())) {
-        // If the client doesn't yet have a player, assume they want this one for
-        // now.
-        serverLog(`${client.getLabel(board.getId())} automatically taking control of player ${player.getName()}`);
-        setClientPlayer(board, client, player);
-      }
+          clients.forEach(client => {
+            if (!client.getPlayerIdByBoard(board.getId())) {
+              setStatusSingle(client, 'Pick a player to draft.');
+            }
+          });
 
-      clients.forEach(client => {
-        if (!client.getPlayerId(board.getId())) {
-          setStatusSingle(client, 'Pick a player to draft.');
-        }
-      });
-
-      regeneratePlayers(board, false);
+          regeneratePlayers(board, false);
+        });
     });
 
     /**
@@ -233,12 +234,13 @@ module.exports = (crowd, config) => {
         if (charId !== 999) {
           clickedPlayer.addStat('game_score');
           clickedPlayer.setCharacterState(character_index, 'win');
-          board.getPlayers().forEach(eachPlayer => {
+          for (let board_player_id in board.getPlayers()) {
+            const eachPlayer = board.getPlayerById(board_player_id);
             if (eachPlayer.getId() !== playerId) {
               eachPlayer.addStat('lost_rounds');
               eachPlayer.setCharacterState(character_index, 'loss');
             }
-          });
+          }
           advanceGame(board);
         }
         else {
@@ -324,12 +326,15 @@ module.exports = (crowd, config) => {
     socket.on('start-game', () => {
       const players = board.getPlayers();
 
-      const mismatchedChars = board.eachPlayer((player, compareObject) => {
-        if (compareObject.hasOwnProperty('last') && compareObject.last !== player.getCharacterCount()) {
-          return true;
+      let mismatchedChars = false;
+      let compare_characters = null;
+      for (let board_player_id of Object.keys(board.getPlayers())) {
+        const player = board.getPlayerById(board_player_id);
+        if (compare_characters !== null && compare_characters !== player.getCharacterCount()) {
+          mismatchedChars = true;
         }
-        compareObject.last = player.getCharacterCount();
-      });
+        compare_characters = player.getCharacterCount();
+      }
 
       if (!mismatchedChars) {
 
@@ -469,27 +474,29 @@ function setClientPlayer(board, client, player) {
  */
 function advanceFreePick(board, client) {
   const updatedPlayers = [];
-  const player = client.getPlayer(board.getId());
+  const clientplayer = client.getPlayerByBoard(board.getId());
 
-  player.setActive((!board.getTotalRounds() || player.getCharacterCount() < board.getTotalRounds()));
+  clientplayer.setActive((!board.getTotalRounds() || clientplayer.getCharacterCount() < board.getTotalRounds()));
 
   // Disable/Enable picking for this user.
   updateCharactersSingle(client, {allDisabled: !player.isActive});
 
   updatedPlayers.push({
-    'playerId': player.getId(),
-    'isActive': player.isActive,
-    'roster_html': renderPlayerRoster(board, player),
+    'playerId': clientplayer.getId(),
+    'isActive': clientplayer.isActive,
+    'roster_html': renderPlayerRoster(board, clientplayer),
   });
 
   updatePlayersInfo(updatedPlayers);
 
   // If any single player is not yet ready, don't update the board info.
-  const draftComplete = !board.eachPlayer([board.getTotalRounds()], (player, totalRounds) => {
-    if (player.getCharacterCount() < totalRounds) {
-      return true;
+  let draftComplete = true;
+  for (let playerId in board.getPlayers()) {
+    const player = board.getPlayerById(playerId);
+    if (player.getCharacterCount() < board.getTotalRounds()) {
+      draftComplete = true;
     }
-  });
+  }
 
   if (draftComplete) {
     board.setStatus('draft-complete');
@@ -734,7 +741,7 @@ function updatePlayersInfo(players) {
  */
 function updateStageInfo(stage) {
   clients.forEach(client => {
-    const player = client.getPlayer();
+    const player = client.getPlayerByBoard();
     Twig.renderFile('./views/stage.twig', {stage, player}, (error, html) => {
       client.getSocket().emit('update-stage', html, stage.getId());
     });

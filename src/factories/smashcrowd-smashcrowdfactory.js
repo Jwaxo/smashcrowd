@@ -18,7 +18,6 @@ class Smashcrowd {
     this.stages = [];
     this.users = {};
     this.boards = {};
-    this.anonymous_userid = null;
 
     this.dbDiffString = this.constructor.constructDbDiffString(config.get('database.connection'));
   }
@@ -316,36 +315,25 @@ class Smashcrowd {
   }
 
   /**
-   * Creates an anonymous user in order to get a unique ID.
+   * Creates a player row and board, then returns a Promise for the player ID.
    *
-   * This function may not be necessary in the final application.
-   *
-   * @returns {Promise<any>}
+   * @param {Player} player
+   * @returns {Promise<number>}
    */
-  addAnonymousUser() {
+  addPlayer(player) {
     return new Promise(resolve => {
-      this.dbInsert('users', {
-        username: 'anonymous',
-        email: 'none@none',
-        password: 'none',
+      this.dbInsert('players', {
+        name: player.getName(),
+        board_id: player.getBoardId(),
       })
-        .then(userId => {
-          this.anonymous_userid = userId;
-          resolve(userId);
+        .then(playerId => {
+          player.setId(playerId);
+
+          resolve(playerId);
         });
     });
   }
-  getAnonymousUserId() {
-    if (this.anonymous_userid === null) {
-      this.addAnonymousUser()
-        .then(userId => {
-          return this.anonymous_userid;
-        })
-    }
-    else {
-      return this.anonymous_userid;
-    }
-  }
+
   async loadUser(userId) {
     return await this.dbSelectFirst('users', '*', `id = "${userId}"`);
   }

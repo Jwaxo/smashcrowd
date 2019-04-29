@@ -299,6 +299,13 @@
 					"default_value": null,
 					"type": "int(11)",
 					"extra": ""
+				},
+				{
+					"name": "board_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
 				}
 			]
 		},

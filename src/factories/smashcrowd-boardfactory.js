@@ -49,7 +49,8 @@ class Board {
 
     this.char_data = {};
     this.level_data = {};
-    this.players = [];
+    this.players = {};
+    this.players_display_order = [];
     this.players_pick_order = [];
     this.characters = [];
     this.stages = [];
@@ -259,15 +260,22 @@ class Board {
    * Add a player to the players array.
    *
    * @param player
-   * @returns {number} Index of the player.
+   * @returns {Promise<number>} Index of the player.
    */
   addPlayer(player) {
-    this.players.push(player);
-    this.players_pick_order.push(player);
-    player.setId(this.next_player_id++);
-    player.setSortOrder(player.getId()); // Sort by ID by default.
+    player.setBoardId(this.getId());
 
-    return player.getId();
+    return new Promise (resolve => {
+      SmashCrowd.addPlayer(player)
+        .then(player_id => {
+          this.players[player_id] = player;
+          this.players_display_order.push(player);
+          this.players_pick_order.push(player);
+          player.setDisplayOrder(this.players_display_order.length - 1);
+          player.setSortOrder(this.players_display_order.length - 1); // Sort by ID by default.
+          resolve(player_id);
+        });
+    });
   }
   updatePlayer(playerId, data) {
     for (let option in data) {
@@ -278,7 +286,10 @@ class Board {
     return this.players;
   }
   getPlayersCount() {
-    return this.players.length;
+    return Object.keys(this.players).length;
+  }
+  getPlayersDisplayOrder() {
+    return this.players_display_order;
   }
   getPlayersPickOrder() {
     return this.players_pick_order;
@@ -291,18 +302,15 @@ class Board {
    * @returns {integer|null}
    */
   getPlayerById(playerId) {
-    const player = this.players.find(player => {
-      return player.getId() === playerId;
-    });
-    return player ? player : null;
+    return this.players.hasOwnProperty((playerId)) ? this.players[playerId] : null;
   }
   getPlayerByPickOrder(currentPick) {
     return this.players_pick_order[currentPick];
   }
   resetPlayers() {
-    this.players.forEach(player => {
-      player.setCharacters([]);
-    });
+    for (let playerId in this.players) {
+      this.players[playerId].setCharacters([]);
+    }
   }
 
   /**
@@ -312,14 +320,14 @@ class Board {
    * @param {integer} playerId
    */
   dropPlayerById(playerId) {
-    const playerIndex = this.players.findIndex(player => {
-      return player.getId() === playerId;
-    });
     const playerPickIndex = this.players_pick_order.findIndex(player => {
       return player.getId() === playerId;
     });
+    const playerDisplayIndex = this.players_display_order.findIndex(player => {
+      return player.getId() === playerId;
+    });
 
-    const droppedPlayer = this.players[playerIndex];
+    const droppedPlayer = this.players[playerId];
 
     // If this is the active player, we need to either advance the game or draft
     // round to allow game to continue.
@@ -332,11 +340,13 @@ class Board {
       }
     }
 
-    this.players.splice(playerIndex, 1);
+    delete this.players[playerId];
     this.players_pick_order.splice(playerPickIndex, 1);
+    this.players_display_order.splice(playerDisplayIndex, 1);
   }
   dropAllPlayers() {
-    this.players = [];
+    this.players = {};
+    this.players_display_order = [];
     this.players_pick_order = [];
   }
 
@@ -348,14 +358,11 @@ class Board {
    * Takes the current list of players and randomizes their order.
    */
   shufflePlayers() {
-    this.players.forEach(player => {
-      player.setSortOrder(Math.random());
-    });
+    for (let playerId in this.players) {
+      this.players[playerId].setSortOrder(Math.random());
+    }
 
-    // After assigning new sort order, sort both players and pick order.
-    this.players.sort((a, b) => {
-      return a.getSortOrder() - b.getSortOrder();
-    });
+    // After assigning new sort order, sort display order.
     this.players_pick_order.sort((a, b) => {
       return a.getSortOrder() - b.getSortOrder();
     });
@@ -379,55 +386,6 @@ class Board {
       }
     }
     return activePlayer;
-  }
-
-
-  /**
-   * Easy way to run functions for all players on the board with a break and return
-   * value, which normal Array.forEach() functions cannot do.
-   *
-   * Possible forms:
-   *   eachPlayer(callback)
-   *   eachPlayer(args, callback)
-   *   eachPlayer(args, returnValue, callback)
-   *
-   * @param {Array|function} args
-   *   An optional array of arguments to pass to fn.
-   * @param {*} returnValue
-   *   A optional value to be returned by the function. Note that this is also
-   *   measured as a means to break the loop; if this ever returns True, you get
-   *   an early return.
-   * @param {function|null} fn
-   *   The function to run on each Player. If this function returns a truthy value,
-   *   the loop will be broken at that point, and that truthy value will be passed
-   *   back.
-   */
-  eachPlayer(args, returnValue = false, fn = null) {
-    const compareObject = {};
-    // If the user sent only a function, ensure fn is the function.
-    if (typeof args === 'function' && returnValue === false && fn === null) {
-      fn = args;
-    }
-    // If the user sent args and a function, ensure fn is the function and the
-    // return is the default.
-    else if (Array.isArray(args) && typeof returnValue === 'function' && fn === null) {
-      fn = returnValue;
-      returnValue = false;
-    }
-    for (let i = 0; i < this.players.length; i++) {
-      if (Array.isArray(args)) {
-        returnValue = fn(this.players[i], ...args, compareObject);
-      }
-      else {
-        returnValue = fn(this.players[i], compareObject);
-      }
-
-      if (returnValue) {
-        break;
-      }
-    }
-
-    return returnValue;
   }
 
   /**

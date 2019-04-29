@@ -17,8 +17,9 @@ class Player {
     this.playerId = null;
     this.stats = {};
     this.sortOrder = null;
+    this.displayOrder = null;
     this.user = null;
-    this.board = board;
+    this.board_id = board.getId();
 
     return this;
   }
@@ -35,6 +36,13 @@ class Player {
   }
   getUserId() {
     return this.userId;
+  }
+
+  setBoardId(board_id) {
+    this.board_id = board_id;
+  }
+  getBoardId() {
+    return this.board_id;
   }
 
   setClientId(clientId) {
@@ -101,6 +109,12 @@ class Player {
   }
   getSortOrder() {
     return this.sortOrder;
+  }
+  setDisplayOrder(order) {
+    this.displayOrder = order;
+  }
+  getDisplayOrder() {
+    return this.displayOrder;
   }
 
   setActive(state) {
