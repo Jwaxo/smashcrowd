@@ -153,6 +153,156 @@
 			]
 		},
 		{
+			"name": "player_boards",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"player_id",
+						"board_id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "player_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "board_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "player_characters",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"player_id",
+						"character_id",
+						"board_id",
+						"roster_number"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "player_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "character_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "board_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "roster_number",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "player_stages",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"player_id",
+						"stage_id",
+						"board_id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "player_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "stage_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "board_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "players",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": "auto_increment"
+				},
+				{
+					"name": "name",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				},
+				{
+					"name": "user_id",
+					"nullable": true,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
 			"name": "stages",
 			"constraints": [
 				{
@@ -213,120 +363,6 @@
 					"nullable": true,
 					"default_value": null,
 					"type": "varchar(255)",
-					"extra": ""
-				}
-			]
-		},
-		{
-			"name": "user_boards",
-			"constraints": [
-				{
-					"name": "PRIMARY",
-					"type": "primary",
-					"columns": [
-						"user_id",
-						"board_id"
-					]
-				}
-			],
-			"indexes": [],
-			"columns": [
-				{
-					"name": "user_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "board_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				}
-			]
-		},
-		{
-			"name": "user_characters",
-			"constraints": [
-				{
-					"name": "PRIMARY",
-					"type": "primary",
-					"columns": [
-						"user_id",
-						"character_id",
-						"board_id",
-						"roster_number"
-					]
-				}
-			],
-			"indexes": [],
-			"columns": [
-				{
-					"name": "user_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "character_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "board_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "roster_number",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				}
-			]
-		},
-		{
-			"name": "user_stages",
-			"constraints": [
-				{
-					"name": "PRIMARY",
-					"type": "primary",
-					"columns": [
-						"user_id",
-						"stage_id",
-						"board_id"
-					]
-				}
-			],
-			"indexes": [],
-			"columns": [
-				{
-					"name": "user_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "stage_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "board_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
 					"extra": ""
 				}
 			]
