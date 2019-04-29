@@ -36,9 +36,6 @@ module.exports = (crowd, config) => {
 
   board.loadBoard(1)
     .then(() => {
-      // Load characters from the character data file.
-      board.buildAllCharacters(SmashCrowd.getCharacters());
-      board.buildAllStages(SmashCrowd.getStages());
     });
 
   // Listen at the port.
@@ -79,12 +76,18 @@ module.exports = (crowd, config) => {
     client.setColor(chalk[console_colors[randomColor]]);
 
     const user = client.getUser();
-    user.loadUser(SmashCrowd.getAnonymousUserId());
     user.setGameId(board.getGameId());
 
-    // We need a way to track if a player belongs to an anonymous user, so that a client
+    // @todo: We need a way to track if a player belongs to an anonymous user, so that a client
     // can slip in to *that* anonymous user, instead of taking on the player
     // itself.
+
+    // Then make it so that when the server starts, the board status is actually
+    // checked and various things are loaded properly. Somehow steps are out of
+    // order.
+
+    // Then track characters, stages, and users with the actual database.
+    // And we should be done!
 
     serverLog(`${client.getLabel(board.getId())} assigned to socket ${socket.id}`, true);
 
@@ -112,15 +115,14 @@ module.exports = (crowd, config) => {
      * command to all sockets to regenerate the player area.
      */
     socket.on('add-player', name => {
-      serverLog(`${client.getLabel(board.getId())} adding player ${name}`);
-      const player = new Player(name, board);
-
-      board.addPlayer(player)
-        .then(player_id => {
+      const board_id = board.getId();
+      serverLog(`${client.getLabel(board_id)} adding player ${name}`);
+      SmashCrowd.createPlayer(name, board)
+        .then(player => {
           if (!user.getPlayer(board.getId())) {
             // If the client doesn't yet have a player, assume they want this one for
             // now.
-            serverLog(`${client.getLabel(board.getId())} automatically taking control of player ${player.getName()}`);
+            serverLog(`${client.getLabel(board_id)} automatically taking control of player ${player.getName()}`);
             setClientPlayer(board, client, player);
           }
 

@@ -113,8 +113,8 @@ function postInstall() {
   // For now we insert a few draft types by hand.
   // @todo: add Draft Type class definitions, and a server config to enable/disable
   // @todo: specific draft types.
-  SmashCrowd.addDraftType('snake', 'Snake Draft');
-  SmashCrowd.addDraftType('free', 'Free Pick');
+  SmashCrowd.createDraftType('snake', 'Snake Draft');
+  SmashCrowd.createDraftType('free', 'Free Pick');
 }
 
 /**

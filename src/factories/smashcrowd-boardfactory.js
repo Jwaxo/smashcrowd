@@ -55,8 +55,6 @@ class Board {
     this.characters = [];
     this.stages = [];
 
-    // SmashCrowd.addBoard(this);
-
     // @todo: Determine if we still need to have these unique hashes. Probably
     // @todo: not, once we have real sessions going. But we can use this to
     // @todo: create session IDs.
@@ -85,14 +83,14 @@ class Board {
           // @todo: For now, we set this to blank manually. Needs to be replaced
           // @todo: with actual saved data info.
 
-          this.char_data = {};
-          this.level_data = {};
-          this.players = [];
-          this.players_pick_order = [];
-          this.characters = [];
-          this.stages = [];
+          // Load characters from the character data file.
+          this.buildAllCharacters(SmashCrowd.getCharacters());
+          this.buildAllStages(SmashCrowd.getStages());
+          this.loadPlayers()
+            .then(() => {
+              resolve();
+            });
 
-          resolve();
         });
     });
   }
@@ -260,20 +258,24 @@ class Board {
    * Add a player to the players array.
    *
    * @param player
-   * @returns {Promise<number>} Index of the player.
    */
   addPlayer(player) {
+    const player_id = player.getId();
     player.setBoardId(this.getId());
-
-    return new Promise (resolve => {
-      SmashCrowd.addPlayer(player)
-        .then(player_id => {
-          this.players[player_id] = player;
-          this.players_display_order.push(player);
-          this.players_pick_order.push(player);
-          player.setDisplayOrder(this.players_display_order.length - 1);
-          player.setSortOrder(this.players_display_order.length - 1); // Sort by ID by default.
-          resolve(player_id);
+    this.players[player_id] = player;
+    this.players_display_order.push(player);
+    this.players_pick_order.push(player);
+    player.setDisplayOrder(this.players_display_order.length - 1);
+    player.setSortOrder(this.players_display_order.length - 1); // Sort by ID by default.
+  }
+  loadPlayers() {
+    return new Promise(resolve => {
+      SmashCrowd.loadPlayersByBoard(this.getId())
+        .then(players => {
+          for (let player of players) {
+            this.addPlayer(player);
+          }
+          resolve();
         });
     });
   }

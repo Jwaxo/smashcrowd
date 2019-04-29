@@ -174,7 +174,7 @@ class User {
   registerUser(email, username, password) {
     this.setEmail(email);
     this.setUsername(username);
-    SmashCrowd.addUser(this, this.constructor.passwordHash(password));
+    SmashCrowd.createUser(this, this.constructor.passwordHash(password));
   }
 
   /**

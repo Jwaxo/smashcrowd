@@ -3,6 +3,8 @@
  * values and caches them, while also holding the functions to update the db.
  */
 
+const Player = require('./smashcrowd-playerfactory.js');
+
 class Smashcrowd {
 
   /**
@@ -297,7 +299,7 @@ class Smashcrowd {
    * @param {string} password
    * @returns {Promise<any>}
    */
-  addUser(user, password) {
+  createUser(user, password) {
     // This will insert a user, but currently we don't have anything actually registering users.
     return new Promise(resolve => {
       this.dbInsert('users', {
@@ -315,23 +317,37 @@ class Smashcrowd {
   }
 
   /**
-   * Creates a player row and board, then returns a Promise for the player ID.
+   * Creates a player row with board, then returns a Promise for the player ID.
    *
-   * @param {Player} player
+   * @param {string} name
+   * @param {Board} board
    * @returns {Promise<number>}
    */
-  addPlayer(player) {
+  createPlayer(name, board) {
     return new Promise(resolve => {
       this.dbInsert('players', {
-        name: player.getName(),
-        board_id: player.getBoardId(),
+        name: name,
+        board_id: board.getId(),
       })
         .then(playerId => {
+          const player = new Player(name);
           player.setId(playerId);
+          board.addPlayer(player);
 
-          resolve(playerId);
+          resolve(player);
         });
     });
+  }
+  async loadPlayersByBoard(board_id) {
+    const players = [];
+    await this.dbSelect('players', '*', `board_id = "${board_id}"`)
+      .then(results => {
+        results.forEach(result => {
+          const player = new Player(result.name, result.user_id, result.id);
+          players.push(player);
+        });
+      });
+    return players;
   }
 
   async loadUser(userId) {
@@ -363,7 +379,7 @@ class Smashcrowd {
     }
     return this.boards;
   }
-  addBoard(board) {
+  createBoard(board) {
 
     return new Promise(resolve => {
       this.dbInsert('boards', {
@@ -425,7 +441,7 @@ class Smashcrowd {
 
     return draft_types;
   }
-  addDraftType(machine_name, label) {
+  createDraftType(machine_name, label) {
     this.dbInsert('draft_types', {machine_name: machine_name, label: label});
   }
 
