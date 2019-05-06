@@ -9,7 +9,6 @@
 class Player {
   constructor(name, userId = null) {
     this.name = name;
-    this.playerId = playerId;
     this.characters = [];
     this.stages = [];
     this.userId = userId;
@@ -20,7 +19,7 @@ class Player {
     this.pickOrder = null;
     this.displayOrder = null;
     this.user = null;
-    this.board_id = board_id;
+    this.board_id = null;
 
     return this;
   }

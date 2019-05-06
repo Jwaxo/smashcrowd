@@ -191,7 +191,6 @@
 					"columns": [
 						"player_id",
 						"character_id",
-						"board_id",
 						"roster_number"
 					]
 				}
@@ -207,13 +206,6 @@
 				},
 				{
 					"name": "character_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "board_id",
 					"nullable": false,
 					"default_value": null,
 					"type": "int(11)",

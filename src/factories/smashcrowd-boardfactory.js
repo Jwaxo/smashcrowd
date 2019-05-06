@@ -206,8 +206,8 @@ class Board {
       }
     }
     else if (Number.isInteger(state)) {
+      this.status = state;
       this.updateBoardRow({status: state});
-      return this.status === state;
     }
 
   }

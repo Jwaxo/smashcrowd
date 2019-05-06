@@ -364,6 +364,8 @@ class Smashcrowd {
   }
 
   /**
+   * Updates the main `players` table with new data.
+   *
    * @param {number} player_id
    * @param {Object} fieldValues
    */
