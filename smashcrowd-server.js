@@ -188,7 +188,7 @@ module.exports = (crowd, config) => {
         // We can add the character!
         serverLog(`${client.getLabel(board.getId())} adding character ${character.getName()}.`);
 
-        player.addCharacter(character);
+        Board.addCharacterToPlayer(player, character);
 
         if (board.getDraftType(true) !== 'free') {
           // By default we'll only be disabling the character selection until
@@ -536,7 +536,7 @@ function advanceDraft(board, characterUpdateData) {
     }
 
     const currentPlayer = board.getPlayerByPickOrder(board.getPick());
-    const currentClient = clients[currentPlayer.getUser().getClientId() - 1];
+    const currentClient = clients[currentPlayer.getClientId() - 1];
 
     // We only need to change active state if the player changes.
     if (prevPlayer !== currentPlayer) {

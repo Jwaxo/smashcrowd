@@ -373,6 +373,22 @@ class Smashcrowd {
     this.dbUpdate('players', fieldValues, `id = "${player_id}"`);
   }
 
+  /**
+   * Adds a character assignment to the player-character table.
+   *
+   * @param {number} player_id
+   * @param {number} character_id
+   * @param {number} roster_position
+   */
+  addCharacterToPlayer(player_id, character_id, roster_position) {
+    const fieldValues = {
+      "player_id": player_id,
+      "character_id": character_id,
+      "roster_number": roster_position,
+    };
+    this.dbInsert('player_characters', fieldValues);
+  }
+
   async loadUser(userId) {
     return await this.dbSelectFirst('users', '*', `id = "${userId}"`);
   }

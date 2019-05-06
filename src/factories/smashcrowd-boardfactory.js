@@ -347,6 +347,18 @@ class Board {
   }
 
   /**
+   * Combines a player with a character both in object and in the database.
+   *
+   * @param {Player} player
+   * @param {Character} character
+   */
+  static addCharacterToPlayer(player, character) {
+    const player_characters = player.addCharacter(character);
+
+    SmashCrowd.addCharacterToPlayer(player.getId(), character.getId(), player_characters.length - 1)
+  }
+
+  /**
    * Removes a player from the game, taking care of minutia to ensure nothing
    * breaks.
    *
@@ -434,10 +446,13 @@ class Board {
    *   The player that should pick their character next.
    */
   getActivePlayer() {
-    let activePlayer = this.players[0];
-    for (let i = 0; i < this.players.length; i++) {
-      if (this.players[i].isActive) {
-        activePlayer = this.players[i];
+    // Get the first player by default.
+    let activePlayer = this.players[Object.keys(this.players)[0]];
+
+    // Loop through the users and find the active one.
+    for (let player in this.players) {
+      if (this.players[player].isActive) {
+        activePlayer = this.players[player];
         break;
       }
     }
