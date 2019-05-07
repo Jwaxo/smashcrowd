@@ -300,15 +300,9 @@ module.exports = (crowd, config) => {
 
     socket.on('start-draft', () => {
       serverLog(`${client.getLabel(board.getId())} started the draft.`);
-      const players = board.getPlayers();
-      board.advanceDraftRound();
+      board.startDraft();
 
-      if (board.getDraftType(true) === 'free') {
-        for (let player in players) {
-          players[player].setActive(true);
-        }
-      }
-      else {
+      if (board.getDraftType(true) !== 'free') {
         board.getPlayerByPickOrder(0).setActive(true);
       }
 
@@ -446,13 +440,12 @@ function setClientPlayer(board, client, player) {
   updatedPlayers.push({
     'playerId': player.getId(),
     'clientId': client.getId(),
-    'roster_html': renderPlayerRoster(board, player),
   });
 
   setClientInfoSingle(client, true);
 
   updateCharactersSingle(client, {allDisabled: !player.isActive});
-  updatePlayersInfo(updatedPlayers);
+  updatePlayersInfo(board, updatedPlayers);
 
   regenerateStages(board);
 }
@@ -462,40 +455,22 @@ function setClientPlayer(board, client, player) {
  * track how many characters each player has added, and update the board info/
  * state if they've all picked.
  *
+ * @params {Board} board
+ *
  * @params {Client} client
  *  The client that just picked.
  * @params {Player} player
  *  The player that just picked.
  */
 function advanceFreePick(board, client) {
-  const updatedPlayers = [];
-  const clientplayer = client.getPlayerByBoard(board.getId());
+  const postDraftFunctions = board.draft.advanceDraft(board, client);
 
-  clientplayer.setActive((!board.getTotalRounds() || clientplayer.getCharacterCount() < board.getTotalRounds()));
-
-  // Disable/Enable picking for this user.
-  updateCharactersSingle(client, {allDisabled: !clientplayer.isActive});
-
-  updatedPlayers.push({
-    'playerId': clientplayer.getId(),
-    'isActive': clientplayer.isActive,
-    'roster_html': renderPlayerRoster(board, clientplayer),
-  });
-
-  updatePlayersInfo(updatedPlayers);
-
-  // If any single player is not yet ready, don't update the board info.
-  let draftComplete = true;
-  for (let playerId in board.getPlayers()) {
-    const player = board.getPlayer(playerId);
-    if (player.getCharacterCount() < board.getTotalRounds()) {
-      draftComplete = true;
+  // Run all of the defined callbacks.
+  for (let functionIndex in postDraftFunctions) {
+    const functionName = Object.keys(postDraftFunctions[functionIndex])[0];
+    if (typeof eval(functionName) === 'function') {
+      eval(functionName)(...postDraftFunctions[functionIndex][functionName]);
     }
-  }
-
-  if (draftComplete) {
-    board.setStatus('draft-complete');
-    regenerateBoardInfo(board);
   }
 }
 
@@ -566,10 +541,9 @@ function advanceDraft(board, characterUpdateData) {
       updatedPlayers.push({
         'playerId': prevPlayer.getId(),
         'isActive': prevPlayer.isActive,
-        'roster_html': renderPlayerRoster(board, prevPlayer),
       });
 
-      updatePlayersInfo(updatedPlayers);
+      updatePlayersInfo(board, updatedPlayers);
     }
 
     updateCharacters(characterUpdateData);
@@ -598,7 +572,7 @@ function resetGame(board, boardData) {
   const gameId = board.getGameId();
 
   if (boardData.draftType) {
-    board.setDraftType(boardData.draftType);
+    board.setDraft(boardData.draftType);
   }
   if (boardData.totalRounds) {
     board.setTotalRounds(boardData.totalRounds);
@@ -618,6 +592,21 @@ function resetGame(board, boardData) {
   regenerateStages(board);
 
   serverLog(`New game board generated with ID ${gameId}`);
+}
+
+/**
+ * Takes an array of info for updated player rosters and renders the rosters.
+ *
+ * @param {Board} board
+ * @param {array} updatedPlayers
+ * @returns {array}
+ */
+function renderPlayersRosters(board, updatedPlayers) {
+  for (let i = 0; i < updatedPlayers.length; i++) {
+    const player = board.getPlayer(updatedPlayers[i].playerId);
+    updatedPlayers[i].roster_html = renderPlayerRoster(board, player);
+  }
+  return updatedPlayers;
 }
 
 /**
@@ -722,10 +711,11 @@ function setClientInfoSingle(socketClient, isUpdate = false) {
  * Sends an array of players with changed data to inform clients without needing
  * to completely rebuild the player area.
  *
- * @param {Array} players
+ * @param {Board} board
+ * @param {Array} updatedPlayers
  */
-function updatePlayersInfo(players) {
-  io.sockets.emit('update-players', players);
+function updatePlayersInfo(board, updatedPlayers) {
+  io.sockets.emit('update-players', renderPlayersRosters(board, updatedPlayers));
 }
 
 /**

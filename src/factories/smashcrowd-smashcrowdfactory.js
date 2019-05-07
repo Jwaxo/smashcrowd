@@ -198,13 +198,30 @@ class SmashCrowd {
     return await this.dbSelect('system')
       .then((results) => {
         results.forEach(result => {
-          this.system[result.key] = result.value;
+          let value = result.value;
+          switch (result.type) {
+            case 'string':
+              break;
+
+            case 'array':
+              value = result.value.split(',');
+              break;
+
+          }
+
+          this.system[result.key] = value;
         });
       });
   }
-  setSystemValue(key, value) {
+  setSystemValue(key, value, type = null) {
+    const fieldvalues = {
+      'value': value,
+    };
+    if (type !== null) {
+      fieldvalues.type = type;
+    }
     this.system[key] = value;
-    this.dbUpdate('system', {'value': value}, `\`key\` = "${key}"`);
+    this.dbUpdate('system', fieldvalues, `\`key\` = "${key}"`);
   }
   getSystemValue(key) {
     let value;
@@ -476,7 +493,8 @@ class SmashCrowd {
   }
 
   /**
-   * Loads all valid draft types from the database.
+   * Loads all valid draft types from the database. This should be defined via
+   * config and not a table.
    *
    * @returns {Promise<Array>}
    */
@@ -493,6 +511,12 @@ class SmashCrowd {
 
     return draft_types;
   }
+
+  /**
+   *
+   * @param {string} machine_name
+   * @param {string} label
+   */
   createDraftType(machine_name, label) {
     this.dbInsert('draft_types', {machine_name: machine_name, label: label});
   }

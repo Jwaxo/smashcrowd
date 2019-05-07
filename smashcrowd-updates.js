@@ -22,8 +22,13 @@ const dbdiff = require('dbdiff');
 
 let db = {};
 let config = {};
-let SmashCrowd = {};
+let SmashCrowd;
 
+/**
+ *
+ * @param {SmashCrowd} crowd
+ * @returns {Promise<any>}
+ */
 module.exports = (crowd) => {
 
   SmashCrowd = crowd;
@@ -86,10 +91,22 @@ function postInstall() {
   const update_numbers = Object.keys(getUpdates());
   const latest_update = update_numbers[update_numbers.length - 1];
 
-  SmashCrowd.dbInsert('system', {
-    'key': 'update_schema',
-    'value': latest_update,
-  })
+  // Add default install and other config settings.
+  SmashCrowd.dbInsert('system', [
+    {
+      'key': 'update_schema',
+      'value': latest_update,
+      'type': 'string',
+    },
+    {
+      'key': 'draft_types',
+      'value': [
+        'snake',
+        'free',
+      ].join(','),
+      'type': 'array',
+    }
+  ])
     .then(() => {
       console.log('Systems table configured.');
     });
@@ -109,12 +126,6 @@ function postInstall() {
   // For now we create a default board.
   // @todo: remove this once multiple boards are working.
   SmashCrowd.dbInsert('boards', config.get('server.default_board'));
-
-  // For now we insert a few draft types by hand.
-  // @todo: add Draft Type class definitions, and a server config to enable/disable
-  // @todo: specific draft types.
-  SmashCrowd.createDraftType('snake', 'Snake Draft');
-  SmashCrowd.createDraftType('free', 'Free Pick');
 }
 
 /**

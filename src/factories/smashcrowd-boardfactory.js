@@ -23,18 +23,6 @@ class Board {
      * The types of drafts currently able to pick.
      * @todo: create a draftfactory, then plugin different draft types.
      */
-    SmashCrowd.loadDraftTypes()
-      .then(draftTypes => {
-        this.draftTypes = draftTypes;
-      });
-
-    this.statusTypes = [
-      'new',
-      'draft',
-      'draft-complete',
-      'game',
-      'game-complete',
-    ];
 
     this.id = null;
     this.owner = 0;
@@ -42,10 +30,12 @@ class Board {
     this.current_draft_round = 0;
     this.current_game_round = 0;
     this.total_rounds = 0;
-    this.draftType = 1;
     this.name = null;
     this.status = 0;
     this.next_player_id = 0;
+
+    this.draftTypes = SmashCrowd.getSystemValue('draft_types');
+    this.setDraft('free');
 
     this.char_data = {};
     this.level_data = {};
@@ -84,6 +74,8 @@ class Board {
         .then(boardData => {
           this.setupBoard(boardData)
             .then (() => {
+              this.setupByStatus();
+
               resolve();
             });
         });
@@ -122,6 +114,10 @@ class Board {
     return this.total_rounds;
   }
 
+  startDraft() {
+    this.draft.startByStatus('draft', this)
+    this.advanceDraftRound();
+  }
   advanceDraftRound() {
     if (this.current_draft_round === 0) {
       this.setStatus('draft');
@@ -140,6 +136,7 @@ class Board {
   }
 
   advanceGameRound() {
+    this.draft.advanceGame();
     if (this.current_game_round === 0) {
       this.setStatus('game');
     }
@@ -166,8 +163,15 @@ class Board {
     this.current_pick = 0;
   }
 
-  setDraftType(type) {
-    if (this.draftTypes.hasOwnProperty(type)) {
+  getStateTypes() {
+    return this.draft.getStateTypes();
+  }
+
+  setDraft(type) {
+    if (this.draftTypes.indexOf(type) > -1) {
+      const Draft = require(`./../plugins/drafts/smashcrowd-${type}Draft.js`);
+      this.draft = new Draft;
+
       this.draftType = type;
     }
     else {
@@ -183,22 +187,26 @@ class Board {
   getDraftType(userFriendly = false) {
     let type = this.draftType;
     if (userFriendly) {
-      type = this.draftTypes[this.draftType].machine_name;
+      type = this.draft.machine_name;
     }
     return type;
   }
 
   /**
-   * Returns the full info for the current draft type.
-   * @returns {Object}
+   * Returns the full object for the current draft type.
+   * @returns {DraftAbstract}
    */
-  getDraftTypeInfo() {
-    return this.draftTypes[this.draftType];
+  getDraft() {
+    return this.draft;
+  }
+
+  setupByStatus() {
+    this.draft.setupByStatus(this.getStatus(true), this);
   }
 
   setStatus(state) {
     if (typeof state === 'string') {
-      const found = this.statusTypes.indexOf(state);
+      const found = this.draft.statusTypes.indexOf(state);
       if (found === undefined ) {
         throw "Tried to set nonexistent board status.";
       }
@@ -213,9 +221,9 @@ class Board {
 
   }
   /**
-   * State is normally stored via an integer, but the string version is much easier
-   * to understand, so for code visibility we allow it to be stored or checked
-   * either way. The DB stores it via int.
+   * State is a basic string that is dependant upon the draft type.
+   *
+   * @see ./smashcrowd-draftfactory.js
    *
    * @param {boolean} userFriendly
    *   Whether to return the string version or the integer version.
@@ -224,7 +232,7 @@ class Board {
   getStatus(userFriendly = false) {
     let status = this.status;
     if (userFriendly) {
-      status = this.statusTypes[this.status];
+      status = this.draft.statusTypes[this.status];
     }
     return status;
   }
@@ -239,7 +247,7 @@ class Board {
   checkStatus(state) {
     let isStatus = false;
     if (typeof state === 'string') {
-      isStatus = this.statusTypes[this.status] === state;
+      isStatus = this.draft.statusTypes[this.status] === state;
     }
     else if (Number.isInteger(state)) {
       isStatus = this.status === state;
@@ -333,7 +341,7 @@ class Board {
    *
    * @param {integer} playerId
    *    The ID to look for.
-   * @returns {integer|null}
+   * @returns {Player|null}
    */
   getPlayer(playerId) {
     return this.players.hasOwnProperty((playerId)) ? this.players[playerId] : null;
@@ -469,7 +477,7 @@ class Board {
     // Process characters from library, ensuring we don't reference the property.
     for (let i = 0; i < charData.length; i++) {
       let char_id = charData[i].id;
-      this.char_data[i] = charData[i];
+      this.char_data[char_id] = charData[i];
       this.addCharacter(char_id, new Character(char_id, charData[i]));
     }
 
