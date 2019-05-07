@@ -132,7 +132,10 @@ class Board {
     return this.current_draft_round;
   }
   resetDraftRound() {
-    this.getActivePlayer().setActive(false);
+    const activePlayer = this.getActivePlayer();
+    if (activePlayer !== null) {
+      activePlayer.setActive(false);
+    }
     this.current_draft_round = 0;
   }
 
@@ -146,7 +149,10 @@ class Board {
     return this.current_game_round;
   }
   resetGameRound() {
-    this.getActivePlayer().setActive(false);
+    const activePlayer = this.getActivePlayer();
+    if (activePlayer !== null) {
+      activePlayer.setActive(false);
+    }
     this.current_game_round = 0;
   }
 
@@ -437,12 +443,12 @@ class Board {
    * Currently this is locked to "Snake" draft, where the turn order flips every
    * round.
    *
-   * @returns Player
-   *   The player that should pick their character next.
+   * @returns Player|null
+   *   The player that should pick their character next, or null if no players.
    */
   getActivePlayer() {
     // Get the first player by default.
-    let activePlayer = this.players[Object.keys(this.players)[0]];
+    let activePlayer = (Object.keys(this.players).length > 0 ? this.players[Object.keys(this.players)[0]] : null);
 
     // Loop through the users and find the active one.
     for (let player in this.players) {

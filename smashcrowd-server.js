@@ -165,7 +165,7 @@ module.exports = (crowd, config) => {
       // If we're playing with Free pick, build a new character with this info so
       // that we don't disrupt the board.
       if (board.getDraftType(true) === 'free' || charId === 999) {
-        character = new Character(charId, board.charData[charId]);
+        character = new Character(charId, board.char_data[charId]);
       }
 
       if (board.getDraftRound() < 1) {
@@ -300,12 +300,13 @@ module.exports = (crowd, config) => {
 
     socket.on('start-draft', () => {
       serverLog(`${client.getLabel(board.getId())} started the draft.`);
+      const players = board.getPlayers();
       board.advanceDraftRound();
 
       if (board.getDraftType(true) === 'free') {
-        board.getPlayers().forEach(player => {
-          player.setActive(true);
-        });
+        for (let player in players) {
+          players[player].setActive(true);
+        }
       }
       else {
         board.getPlayerByPickOrder(0).setActive(true);
@@ -473,7 +474,7 @@ function advanceFreePick(board, client) {
   clientplayer.setActive((!board.getTotalRounds() || clientplayer.getCharacterCount() < board.getTotalRounds()));
 
   // Disable/Enable picking for this user.
-  updateCharactersSingle(client, {allDisabled: !player.isActive});
+  updateCharactersSingle(client, {allDisabled: !clientplayer.isActive});
 
   updatedPlayers.push({
     'playerId': clientplayer.getId(),
