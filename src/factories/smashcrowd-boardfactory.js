@@ -60,37 +60,32 @@ class Board {
     // @todo: create session IDs.
     this.gameId = this.constructor.generateGameId();
 
+    this.setupBoard(options);
+
+    return this;
+  }
+
+  async setupBoard(options = {}) {
     for (let option in options) {
       if (this.hasOwnProperty(option)) {
         this[option] = options[option];
       }
     }
 
-    return this;
+    // Load characters from the character data file.
+    this.buildAllCharacters(SmashCrowd.getCharacters());
+    this.buildAllStages(SmashCrowd.getStages());
+    await this.loadPlayers();
   }
 
   loadBoard(boardId) {
     return new Promise(resolve => {
       SmashCrowd.loadBoard(boardId)
         .then(boardData => {
-
-          for (let option in boardData) {
-            if (this.hasOwnProperty(option)) {
-              this[option] = boardData[option];
-            }
-          }
-
-          // @todo: For now, we set this to blank manually. Needs to be replaced
-          // @todo: with actual saved data info.
-
-          // Load characters from the character data file.
-          this.buildAllCharacters(SmashCrowd.getCharacters());
-          this.buildAllStages(SmashCrowd.getStages());
-          this.loadPlayers()
-            .then(() => {
+          this.setupBoard(boardData)
+            .then (() => {
               resolve();
             });
-
         });
     });
   }

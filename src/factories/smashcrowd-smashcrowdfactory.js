@@ -4,8 +4,9 @@
  */
 
 const Player = require('./smashcrowd-playerfactory.js');
+const Board = require('./smashcrowd-boardfactory');
 
-class Smashcrowd {
+class SmashCrowd {
 
   /**
    *
@@ -81,7 +82,7 @@ class Smashcrowd {
     sql.push(`WHERE ${where}`);
 
     if (sort !== '') {
-      sql.push(`SORT BY ${sort}`);
+      sql.push(`ORDER BY ${sort}`);
     }
     if (limit !== 0) {
       sql.push(`LIMIT ${limit}`);
@@ -277,7 +278,7 @@ class Smashcrowd {
   }
 
   /**
-   * Set players in SmashCrowd iterator. This is mostly used by boards as a
+   * Set users in SmashCrowd iterator. This is mostly used by boards as a
    * reference, so the DB doesn't have to be pinged.
    *
    * @returns {Promise<Array>}
@@ -340,22 +341,30 @@ class Smashcrowd {
   }
   async loadPlayersByBoard(board_id) {
     const players = [];
+    const board = this.getBoardById(board_id);
     await this.dbSelect('players', '*', `board_id = "${board_id}"`)
-      .then(results => {
-        results.forEach(result => {
-          const player = new Player(result.name, result.user_id);
-          player.setId(result.id);
+      .then(player_results => {
+        player_results.forEach(player_result => {
+          const player = new Player(player_result.name, player_result.user_id);
+          player.setId(player_result.id);
 
           // We can ignore board_id, because that will get added automatically
           // when the board takes ownership of each player.
 
-          if (result.pick_order !== null) {
-            player.setPickOrder(result.pick_order);
+          if (player_result.pick_order !== null) {
+            player.setPickOrder(player_result.pick_order);
           }
 
-          if (result.display_order !== null) {
-            player.setDisplayOrder(result.display_order);
+          if (player_result.display_order !== null) {
+            player.setDisplayOrder(player_result.display_order);
           }
+
+          this.dbSelect('player_characters', '*', `player_id = "${player_result.id}"`, 'roster_number ASC')
+            .then(character_results => {
+              character_results.forEach(character_result => {
+                player.addCharacter(board.getCharacter(character_result.character_id));
+              });
+            });
 
           players.push(player);
         });
@@ -409,7 +418,7 @@ class Smashcrowd {
       await this.dbSelect('boards')
         .then((results) => {
           results.forEach(result => {
-            this.boards[result.id] = result;
+            this.boards[result.id] = new Board(this, results);
           });
         });
     }
@@ -445,6 +454,10 @@ class Smashcrowd {
 
   getBoards() {
     return this.boards;
+  }
+
+  getBoardById(board_id) {
+    return this.boards[board_id];
   }
 
   /**
@@ -486,4 +499,4 @@ class Smashcrowd {
 
 }
 
-module.exports = Smashcrowd;
+module.exports = SmashCrowd;
