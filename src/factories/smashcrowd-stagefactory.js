@@ -56,7 +56,7 @@ class Stage {
     return this.state;
   }
 
-  addPlayer(playerId) {
+  addPlayer(player) {
     // Players are stored in one of twelve random positions, for fun placement of
     // "chosen" tokens.
     let openPositions = [];
@@ -70,11 +70,11 @@ class Stage {
 
     const newPlayerIndex = openPositions[Math.floor(Math.random() * Math.floor(openPositions.length))];
 
-    this.players[newPlayerIndex] = playerId;
+    this.players[newPlayerIndex] = player;
   }
   dropPlayer(playerId) {
     for (let i = 0; i < this.maxPlayers; i++) {
-      if (this.players.hasOwnProperty(i) && this.players[i] === playerId) {
+      if (this.players.hasOwnProperty(i) && this.players[i].getId() === playerId) {
         delete this.players[i];
         break;
       }
@@ -82,6 +82,13 @@ class Stage {
   }
   getPlayers() {
     return this.players;
+  }
+  getPlayerBySlot(slot){
+    let player = null;
+    if (this.players.hasOwnProperty(slot)) {
+      player = this.players[slot];
+    }
+    return player;
   }
   getPlayerCount() {
     return Object.keys(this.players).length;

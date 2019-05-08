@@ -81,7 +81,7 @@ class Player {
 
   addStage(stage) {
     this.stages.push(stage);
-    stage.addPlayer(this.playerId);
+    stage.addPlayer(this);
     return this.stages;
   }
   setStages(stages) {
