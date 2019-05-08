@@ -287,11 +287,11 @@ module.exports = (crowd, config) => {
       if (player !== null) {
         if (!player.hasStage(stage)) {
           serverLog(`${client.getLabel(board.getId())} voting for stage ${stage.getName()}`);
-          player.addStage(stage);
+          Board.addStageToPlayer(player, stage);
         }
         else {
           serverLog(`${client.getLabel(board.getId())} dropping vote for stage ${stage.getName()}`);
-          player.dropStage(stage);
+          Board.dropStageFromPlayer(player, stage);
         }
 
         updateStageInfo(stage);

@@ -139,6 +139,27 @@ class SmashCrowd {
   }
 
   /**
+   * Deletes one or more rows from a given table.
+   *
+   * @param {string} table
+   * @param {string} where
+   *   Logic to determine which rows to drop. Leave blank to truncate table.
+   * @returns {Promise<int>}
+   */
+  async dbDelete(table, where = 1) {
+
+    return new Promise(resolve => {
+      this.db.query(`DELETE FROM ?? WHERE ${where}`, [table], (error, results) => {
+        if (error) {
+          throw error;
+        }
+
+        resolve(results.affectedRows);
+      });
+    });
+  }
+
+  /**
    * Updates one or more rows on a given table.
    *
    * @param {string} table
@@ -413,6 +434,34 @@ class SmashCrowd {
       "roster_number": roster_position,
     };
     this.dbInsert('player_characters', fieldValues);
+  }
+
+  /**
+   * Adds a stage assignment to the player-stage table.
+   *
+   * @param {number} player_id
+   * @param {number} stage_id
+   */
+  addStageToPlayer(player_id, stage_id) {
+    const fieldValues = {
+      "player_id": player_id,
+      "stage_id": stage_id,
+    };
+    this.dbInsert('player_stages', fieldValues);
+  }
+
+  /**
+   * Drops a stage assignment from the player-stage table.
+   *
+   * @param {number} player_id
+   * @param {number} stage_id
+   */
+  dropStageFromPlayer(player_id, stage_id) {
+    const fieldValues = {
+      "player_id": player_id,
+      "stage_id": stage_id,
+    };
+    this.dbDelete('player_stages', `player_id = "${player_id}" AND stage_id = "${stage_id}"`);
   }
 
   async loadUser(userId) {

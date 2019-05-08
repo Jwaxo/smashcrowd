@@ -192,8 +192,7 @@
 					"type": "primary",
 					"columns": [
 						"player_id",
-						"stage_id",
-						"board_id"
+						"stage_id"
 					]
 				}
 			],
@@ -208,13 +207,6 @@
 				},
 				{
 					"name": "stage_id",
-					"nullable": false,
-					"default_value": null,
-					"type": "int(11)",
-					"extra": ""
-				},
-				{
-					"name": "board_id",
 					"nullable": false,
 					"default_value": null,
 					"type": "int(11)",
@@ -345,6 +337,7 @@
 				{
 					"name": "type",
 					"nullable": true,
+					"default_value": null,
 					"type": "varchar(8)",
 					"extra": ""
 				}

@@ -364,7 +364,31 @@ class Board {
   static addCharacterToPlayer(player, character) {
     const player_characters = player.addCharacter(character);
 
-    SmashCrowd.addCharacterToPlayer(player.getId(), character.getId(), player_characters.length - 1)
+    SmashCrowd.addCharacterToPlayer(player.getId(), character.getId(), player_characters.length - 1);
+  }
+
+  /**
+   * Combines a player with a stage both in object and in the database.
+   *
+   * @param {Player} player
+   * @param {Stage} stage
+   */
+  static addStageToPlayer(player, stage) {
+    player.addStage(stage);
+
+    SmashCrowd.addStageToPlayer(player.getId(), stage.getId());
+  }
+
+  /**
+   * Combines a player with a stage both in object and in the database.
+   *
+   * @param {Player} player
+   * @param {Stage} stage
+   */
+  static dropStageFromPlayer(player, stage) {
+    player.dropStage(stage);
+
+    SmashCrowd.dropStageFromPlayer(player.getId(), stage.getId());
   }
 
   /**
