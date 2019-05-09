@@ -45,7 +45,7 @@ class freeDraft extends DraftAbstract {
     for (let playerId in board.getPlayers()) {
       const player = board.getPlayer(playerId);
       if (player.getCharacterCount() < board.getTotalRounds()) {
-        draftComplete = true;
+        draftComplete = false;
       }
     }
 
