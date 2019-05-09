@@ -404,6 +404,13 @@ class SmashCrowd {
               });
             });
 
+          this.dbSelect('player_stages', '*', `player_id = "${player_result.id}"`, 'stage_id ASC')
+            .then(stage_results => {
+              stage_results.forEach(stage_result => {
+                player.addStage(board.getStage(stage_result.stage_id));
+              });
+            });
+
           players.push(player);
         });
       });
@@ -484,7 +491,7 @@ class SmashCrowd {
       await this.dbSelect('boards')
         .then((results) => {
           results.forEach(result => {
-            this.boards[result.id] = new Board(this, results);
+            this.boards[result.id] = new Board(this, result.id);
           });
         });
     }

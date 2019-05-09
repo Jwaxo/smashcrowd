@@ -50,7 +50,12 @@ class Board {
     // @todo: create session IDs.
     this.gameId = this.constructor.generateGameId();
 
-    this.setupBoard(options);
+    if (typeof options !== 'object') {
+      this.loadBoard(options);
+    }
+    else {
+      this.setupBoard(options);
+    }
 
     return this;
   }
@@ -73,7 +78,7 @@ class Board {
       SmashCrowd.loadBoard(boardId)
         .then(boardData => {
           this.setupBoard(boardData)
-            .then (() => {
+            .then(() => {
               this.setupByStatus();
 
               resolve();

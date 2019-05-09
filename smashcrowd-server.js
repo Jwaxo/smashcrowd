@@ -32,11 +32,7 @@ module.exports = (crowd, config) => {
   console_colors = config.get('server.console_colors');
 
   // Currently we only run one board at a time, so load board 1.
-  const board = new Board(SmashCrowd);
-
-  board.loadBoard(1)
-    .then(() => {
-    });
+  const board = crowd.getBoardById(1);
 
   // Listen at the port.
   server.listen(port, () => {
