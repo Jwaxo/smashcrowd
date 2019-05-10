@@ -124,6 +124,9 @@ class User {
     }
     return hasPlayer;
   }
+  unsetPlayer(boardId) {
+    this.players[boardId] = null;
+  }
 
   updatePlayerStorage() {
     return this.playerStorage = 'smashcrowd-' + this.getGameId();

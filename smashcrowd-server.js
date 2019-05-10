@@ -158,59 +158,52 @@ module.exports = (crowd, config) => {
       const player = user.getPlayer(board.getId());
       let character = board.getCharacter(charId);
 
-      if (board.getDraftRound() < 1) {
-        serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but drafting has not started.`);
-        setStatusSingle(client, 'Drafting has not yet begun. Be patient.', 'warning');
-      }
-      if (player === null) {
-        serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but does not have a player selected!`);
-        setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
-      }
-      else if (board.getDraftType(true) === 'free' && !player.isActive) {
-        serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but has already added maximum characters!`);
-        setStatusSingle(client, 'You have reached the maximum number of characters!', 'alert');
-      }
-      else {
-        const results = board.draft.addCharacter(board, player, character);
+      const results = board.draft.addCharacter(board, player, character);
 
-        if (results['type'] === 'error') {
-          setStatusSingle(client, results['message']);
-          switch (results['error']) {
-            // @todo: have a repository of error messages and a single function.
-            case 'error_add_char_not_turn':
-              serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but it is not their turn.`);
-              break;
+      if (results['type'] === 'error') {
+        setStatusSingle(client, results['message']);
+        switch (results['error']) {
+          // @todo: have a repository of error messages and a single function.
+          case 'error_add_char_not_drafting':
+            serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but drafting has not started.`);
+            break;
 
-            case 'error_add_char_max_characters':
-              serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but has already added maximum characters!`);
-              break;
+          case 'error_add_char_no_player':
+            serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but does not have a player selected!`);
+            break;
 
-            default:
-              serverLog(`${client.getLabel(board.getId())} experienced error adding ${character.getName()}`);
-          }
+          case 'error_add_char_not_turn':
+            serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but it is not their turn.`);
+            break;
+
+          case 'error_add_char_max_characters':
+            serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but has already added maximum characters!`);
+            break;
+
+          default:
+            serverLog(`${client.getLabel(board.getId())} experienced error adding ${character.getName()}`);
         }
-        else if (results['type'] === 'success') {
+      }
+      else if (results['type'] === 'success') {
 
-          switch (results['log']) {
-            case 'log_add_char':
-            default:
-              serverLog(`${client.getLabel(board.getId())} adding character ${character.getName()}.`);
-              break;
+        switch (results['log']) {
+          case 'log_add_char':
+          default:
+            serverLog(`${client.getLabel(board.getId())} adding character ${character.getName()}.`);
+            break;
 
-          }
-
-          // Move the draft along with our updated data!
-          const postDraftFunctions = board.draft.advanceDraft(board, client, results['data']);
-
-          // Run all of the defined callbacks.
-          for (let functionIndex in postDraftFunctions) {
-            const functionName = Object.keys(postDraftFunctions[functionIndex])[0];
-            if (typeof eval(functionName) === 'function') {
-              eval(functionName)(...postDraftFunctions[functionIndex][functionName]);
-            }
-          }
         }
 
+        // Move the draft along with our updated data!
+        const postDraftFunctions = board.draft.advanceDraft(board, client, results['data']);
+
+        // Run all of the defined callbacks.
+        for (let functionIndex in postDraftFunctions) {
+          const functionName = Object.keys(postDraftFunctions[functionIndex])[0];
+          if (typeof eval(functionName) === 'function') {
+            eval(functionName)(...postDraftFunctions[functionIndex][functionName]);
+          }
+        }
       }
     });
 
@@ -299,10 +292,6 @@ module.exports = (crowd, config) => {
     socket.on('start-draft', () => {
       serverLog(`${client.getLabel(board.getId())} started the draft.`);
       board.startDraft();
-
-      if (board.getDraftType(true) !== 'free') {
-        board.getPlayerByPickOrder(0).setActive(true);
-      }
 
       regenerateBoardInfo(board);
       regenerateCharacters(board);
@@ -478,7 +467,7 @@ function resetGame(board, boardData) {
 
   clients.forEach(client => {
     const user = client.getUser();
-    user.setPlayer(null);
+    user.unsetPlayer(board.getId());
     user.setGameId(board.getGameId());
     setClientInfoSingle(client, true);
     serverLog(`Wiping player info for ${client.getLabel(board.getId())}`);

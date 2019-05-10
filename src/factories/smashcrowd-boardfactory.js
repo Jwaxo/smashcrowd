@@ -120,7 +120,7 @@ class Board {
   }
 
   startDraft() {
-    this.draft.startByStatus('draft', this)
+    this.draft.startByStatus('draft', this);
     this.advanceDraftRound();
   }
   advanceDraftRound() {
@@ -368,6 +368,7 @@ class Board {
    */
   static addCharacterToPlayer(player, character) {
     const player_characters = player.addCharacter(character);
+    character.setPlayer(player.getId());
 
     SmashCrowd.addCharacterToPlayer(player.getId(), character.getId(), player_characters.length - 1);
   }

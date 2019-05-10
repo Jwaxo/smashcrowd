@@ -16,43 +16,50 @@ class snakeDraft extends DraftAbstract {
   startNew(board) {
   }
 
+  startDraft(board) {
+    board.getPlayerByPickOrder(0).setActive(true);
+  }
+
   addCharacter(board, player, character) {
     const charId = character.getId();
-    const return_data = {};
 
-    if (charId === 999) {
-      character = new Character(999, board.char_data[999]);
-    }
+    // First check to make sure the default Draft checks succeed.
+    const return_data = super.addCharacter(board, player, character);
 
-    if (!player.isActive) {
-      return_data['type'] = 'error';
-      return_data['error'] = 'error_add_char_not_turn';
-      return_data['message'] = 'It is not yet your turn! Please wait.';
-    }
-    else {
-      return_data['type'] = 'success';
+    if (return_data.type === 'success') {
+      if (charId === 999) {
+        character = new Character(999, board.char_data[999]);
+      }
 
-      // We can add the character!
-      return_data['log'] = 'log_add_char';
+      if (!player.isActive) {
+        return_data.type = 'error';
+        return_data.error = 'error_add_char_not_turn';
+        return_data.message = 'It is not yet your turn! Please wait.';
+      }
+      else {
 
-      Board.addCharacterToPlayer(player, character);
+        // We can add the character!
+        return_data.log = 'log_add_char';
 
-      // By default we'll only be disabling the character selection until
-      // processing has finished and the client has been updated.
-      return_data['data'] = {
-        'allDisabled': false,
-      };
+        Board.addCharacterToPlayer(player, character);
 
-      // If the player didn't pick the "sit out" option, remove it from the roster.
-      if (charId !== 999) {
-        character.setPlayer(player.getId());
+        // By default we'll only be disabling the character selection until
+        // processing has finished and the client has been updated.
+        return_data.data = {
+          'allDisabled': false,
+        };
 
-        return_data.chars = [
-          {
-            'charId': charId,
-            'disabled': true,
-          },
-        ];
+        // If the player didn't pick the "sit out" option, remove it from the roster.
+        if (charId !== 999) {
+          character.setPlayer(player.getId());
+
+          return_data.data.chars = [
+            {
+              'charId': charId,
+              'disabled': true,
+            },
+          ];
+        }
       }
     }
 
@@ -69,7 +76,7 @@ class snakeDraft extends DraftAbstract {
     if (board.getDraftRound() === 1 && board.getPick() === 0) {
       // If this is the first pick of the game, tell clients so that we can update
       // the interface.
-      returned_functions.push('setStatusAll', ['Character drafting has begun!', 'success']);
+      returned_functions.push({'setStatusAll': ['Character drafting has begun!', 'success']});
     }
 
     // This boolean tells us if the most recent pick ended the round.
@@ -78,17 +85,17 @@ class snakeDraft extends DraftAbstract {
 
     // If our round is new and the pre-advance current round equals the total, end!
     if (newRound && board.getDraftRound() === board.getTotalRounds()) {
-      returned_functions.push('serverLog', [`Drafting is now complete!`]);
+      returned_functions.push({'serverLog': [`Drafting is now complete!`]});
       board.getActivePlayer().setActive(false);
       board.setStatus('draft-complete');
-      returned_functions.push('regenerateBoardInfo', [board]);
-      returned_functions.push('regeneratePlayers', [board]);
-      returned_functions.push('regenerateCharacters', [board]);
+      returned_functions.push({'regenerateBoardInfo': [board]});
+      returned_functions.push({'regeneratePlayers': [board]});
+      returned_functions.push({'regenerateCharacters': [board]});
     }
     else {
       // On with the draft!
       if (newRound) {
-        returned_functions.push('serverLog', [`Round ${board.getDraftRound()} completed.`]);
+        returned_functions.push({'serverLog': [`Round ${board.getDraftRound()} completed.`]});
         board.advanceDraftRound();
         board.reversePlayersPick();
         board.resetPick();
@@ -114,8 +121,8 @@ class snakeDraft extends DraftAbstract {
       // If we're at a new round in snake draft we need to regenerate the player
       // area entirely so that they reorder. Otherwise just update stuff!
       if (newRound && board.getDraftType(true) === 'snake') {
-        returned_functions.push('regenerateBoardInfo', [board]);
-        returned_functions.push('regeneratePlayers', [board]);
+        returned_functions.push({'regenerateBoardInfo': [board]});
+        returned_functions.push({'regeneratePlayers': [board]});
       }
       else {
         updatedPlayers.push({
@@ -123,10 +130,10 @@ class snakeDraft extends DraftAbstract {
           'isActive': prevPlayer.isActive,
         });
 
-        returned_functions.push('updatePlayersInfo', [board, updatedPlayers]);
+        returned_functions.push({'updatePlayersInfo': [board, updatedPlayers]});
       }
 
-      returned_functions.push('updateCharacters', [characterUpdateData]);
+      returned_functions.push({'updateCharacters': [characterUpdateData]});
     }
 
     return returned_functions;

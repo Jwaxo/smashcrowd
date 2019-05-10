@@ -24,20 +24,25 @@ class freeDraft extends DraftAbstract {
   }
 
   addCharacter(board, player, character) {
+
     const charId = character.getId();
-    const return_data = {};
-    character = new Character(charId, board.char_data[charId]);
 
-    if (!player.isActive) {
-      return_data['type'] = 'error';
-      return_data['error'] = 'error_add_char_max_characters';
-      return_data['message'] = 'You have reached the maximum number of characters!';
-    }
-    else {
-      Board.addCharacterToPlayer(player, character);
+    // First check to make sure the default Draft checks succeed.
+    const return_data = super.addCharacter(board, player, character);
 
-      return_data['type'] = 'success';
-      return_data['data'] = {};
+    if (return_data.type === 'success') {
+      const charId = character.getId();
+      const return_data = {};
+      character = new Character(charId, board.char_data[charId]);
+
+      if (!player.isActive) {
+        return_data.type = 'error';
+        return_data.error = 'error_add_char_max_characters';
+        return_data.message = 'You have reached the maximum number of characters!';
+      }
+      else {
+        Board.addCharacterToPlayer(player, character);
+      }
     }
 
     return return_data;

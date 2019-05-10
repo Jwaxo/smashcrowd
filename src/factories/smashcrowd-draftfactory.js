@@ -52,13 +52,25 @@ class DraftAbstract {
   }
 
   addCharacter(board, player, character) {
-    throw new TypeError(this.constructor.name + " does not initialize function addCharacter");
 
-    return {
-      type: 'error',
-      message: 'Please contact your administrator.',
-      data: 'additional_data',
+    const return_data = {
+      type: 'success',
+      data: {},
+    };
+
+    if (board.getDraftRound() < 1) {
+      return_data.type = 'error';
+      return_data.error = 'error_add_char_not_drafting';
+      return_data.message = 'Drafting has not yet begun. Be patient.';
     }
+    if (player === null) {
+      return_data.type = 'error';
+      return_data.error = 'error_add_char_no_player';
+      return_data.message = 'You must select a player before you can pick a character!';
+
+    }
+
+    return return_data;
   }
 
   /**
