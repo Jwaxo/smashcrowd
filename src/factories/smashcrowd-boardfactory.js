@@ -206,7 +206,7 @@ class Board {
   }
 
   setupByStatus() {
-    this.draft.setupByStatus(this.getStatus(true), this);
+    this.draft.startByStatus(this.getStatus(true), this);
   }
 
   setStatus(state) {

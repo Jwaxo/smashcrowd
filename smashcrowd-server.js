@@ -158,57 +158,59 @@ module.exports = (crowd, config) => {
       const player = user.getPlayer(board.getId());
       let character = board.getCharacter(charId);
 
-      // If we're playing with Free pick, build a new character with this info so
-      // that we don't disrupt the board.
-      if (board.getDraftType(true) === 'free' || charId === 999) {
-        character = new Character(charId, board.char_data[charId]);
-      }
-
       if (board.getDraftRound() < 1) {
         serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but drafting has not started.`);
-        setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
+        setStatusSingle(client, 'Drafting has not yet begun. Be patient.', 'warning');
       }
       if (player === null) {
         serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but does not have a player selected!`);
         setStatusSingle(client, 'You must select a player before you can pick a character!', 'warning');
-      }
-      else if (board.getDraftType(true) !== 'free' && !player.isActive) {
-        serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but it is not their turn.`);
-        setStatusSingle(client, 'It is not yet your turn! Please wait.', 'alert');
       }
       else if (board.getDraftType(true) === 'free' && !player.isActive) {
         serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but has already added maximum characters!`);
         setStatusSingle(client, 'You have reached the maximum number of characters!', 'alert');
       }
       else {
-        // We can add the character!
-        serverLog(`${client.getLabel(board.getId())} adding character ${character.getName()}.`);
+        const results = board.draft.addCharacter(board, player, character);
 
-        Board.addCharacterToPlayer(player, character);
+        if (results['type'] === 'error') {
+          setStatusSingle(client, results['message']);
+          switch (results['error']) {
+            // @todo: have a repository of error messages and a single function.
+            case 'error_add_char_not_turn':
+              serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but it is not their turn.`);
+              break;
 
-        if (board.getDraftType(true) !== 'free') {
-          // By default we'll only be disabling the character selection until
-          // processing has finished and the client has been updated.
-          const characterUpdateData = {
-            'allDisabled': false,
-          };
+            case 'error_add_char_max_characters':
+              serverLog(`${client.getLabel(board.getId())} tried to add ${character.getName()} but has already added maximum characters!`);
+              break;
 
-          // If the player didn't pick the "sit out" option, remove it from the roster.
-          if (charId !== 999) {
-            character.setPlayer(player.getId());
-
-            characterUpdateData.chars = [
-              {
-                'charId': charId,
-                'disabled': true,
-              },
-            ];
+            default:
+              serverLog(`${client.getLabel(board.getId())} experienced error adding ${character.getName()}`);
           }
-          advanceDraft(board, characterUpdateData);
         }
-        else {
-          advanceFreePick(board, client);
+        else if (results['type'] === 'success') {
+
+          switch (results['log']) {
+            case 'log_add_char':
+            default:
+              serverLog(`${client.getLabel(board.getId())} adding character ${character.getName()}.`);
+              break;
+
+          }
+
+          // Move the draft along with our updated data!
+          const postDraftFunctions = board.draft.advanceDraft(board, client, results['data']);
+
+          // Run all of the defined callbacks.
+          for (let functionIndex in postDraftFunctions) {
+            const functionName = Object.keys(postDraftFunctions[functionIndex])[0];
+            if (typeof eval(functionName) === 'function') {
+              eval(functionName)(...postDraftFunctions[functionIndex][functionName]);
+            }
+          }
         }
+
       }
     });
 
@@ -444,106 +446,6 @@ function setClientPlayer(board, client, player) {
   updatePlayersInfo(board, updatedPlayers);
 
   regenerateStages(board);
-}
-
-/**
- * Since free pick doesn't have a nice, easy draft count of rounds, we need to
- * track how many characters each player has added, and update the board info/
- * state if they've all picked.
- *
- * @params {Board} board
- *
- * @params {Client} client
- *  The client that just picked.
- * @params {Player} player
- *  The player that just picked.
- */
-function advanceFreePick(board, client) {
-  const postDraftFunctions = board.draft.advanceDraft(board, client);
-
-  // Run all of the defined callbacks.
-  for (let functionIndex in postDraftFunctions) {
-    const functionName = Object.keys(postDraftFunctions[functionIndex])[0];
-    if (typeof eval(functionName) === 'function') {
-      eval(functionName)(...postDraftFunctions[functionIndex][functionName]);
-    }
-  }
-}
-
-/**
- * Move to the next active player and do any additional processing.
- */
-function advanceDraft(board, characterUpdateData) {
-
-  const prevPlayer = board.getActivePlayer();
-  const updatedPlayers = [];
-
-  if (board.getDraftRound() === 1 && board.getPick() === 0) {
-    // If this is the first pick of the game, tell clients so that we can update
-    // the interface.
-    setStatusAll('Character drafting has begun!', 'success');
-  }
-
-  // This boolean tells us if the most recent pick ended the round.
-  // If players count goes evenly into current pick, we have reached a new round.
-  const newRound = (board.advancePick() % board.getPlayersCount() === 0);
-
-  // If our round is new and the pre-advance current round equals the total, end!
-  if (newRound && board.getDraftRound() === board.getTotalRounds()) {
-    serverLog(`Drafting is now complete!`);
-    io.sockets.emit('draft-complete');
-    board.getActivePlayer().setActive(false);
-    board.setStatus('draft-complete');
-    regenerateBoardInfo(board);
-    regeneratePlayers(board);
-    regenerateCharacters(board);
-  }
-  else {
-    // On with the draft!
-    if (newRound) {
-      serverLog(`Round ${board.getDraftRound()} completed.`);
-      board.advanceDraftRound();
-      board.reversePlayersPick();
-      board.resetPick();
-    }
-
-    const currentPlayer = board.getPlayerByPickOrder(board.getPick());
-    const currentClient = clients[currentPlayer.getClientId() - 1];
-
-    // We only need to change active state if the player changes.
-    if (prevPlayer !== currentPlayer) {
-      // Make sure the characters stay disabled, since this player is no longer
-      // active.
-      characterUpdateData.allDisabled = true;
-
-      prevPlayer.setActive(false);
-      currentPlayer.setActive(true);
-
-      updatedPlayers.push({
-        'playerId': currentPlayer.getId(),
-        'isActive': true,
-      });
-      setStatusSingle(currentClient, 'It is your turn! Please choose your next character.', 'primary');
-    }
-
-    // If we're at a new round in snake draft we need to regenerate the player
-    // area entirely so that they reorder. Otherwise just update stuff!
-    if (newRound && board.getDraftType(true) === 'snake') {
-      setStatusSingle(currentClient, 'With the new round, it is once again your turn! Choose wisely.', 'primary');
-      regenerateBoardInfo(board);
-      regeneratePlayers(board);
-    }
-    else {
-      updatedPlayers.push({
-        'playerId': prevPlayer.getId(),
-        'isActive': prevPlayer.isActive,
-      });
-
-      updatePlayersInfo(board, updatedPlayers);
-    }
-
-    updateCharacters(characterUpdateData);
-  }
 }
 
 /**

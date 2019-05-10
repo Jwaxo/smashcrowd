@@ -2,7 +2,9 @@
  * Abstract definition of a Draft and what kind of functions it requires.
  */
 
-const DraftAbstract = require('./../../factories/smashcrowd-draftfactory.js');
+const DraftAbstract = require('./../../factories/smashcrowd-draftfactory');
+const Character = require('./../../factories/smashcrowd-characterfactory');
+const Board = require('./../../factories/smashcrowd-boardfactory');
 
 class freeDraft extends DraftAbstract {
   constructor() {
@@ -11,7 +13,7 @@ class freeDraft extends DraftAbstract {
     this.label = 'Free Pick';
   }
 
-  setupNew(board) {
+  startNew(board) {
   }
 
   startDraft(board) {
@@ -21,7 +23,38 @@ class freeDraft extends DraftAbstract {
     }
   }
 
-  advanceDraft(board, client) {
+  addCharacter(board, player, character) {
+    const charId = character.getId();
+    const return_data = {};
+    character = new Character(charId, board.char_data[charId]);
+
+    if (!player.isActive) {
+      return_data['type'] = 'error';
+      return_data['error'] = 'error_add_char_max_characters';
+      return_data['message'] = 'You have reached the maximum number of characters!';
+    }
+    else {
+      Board.addCharacterToPlayer(player, character);
+
+      return_data['type'] = 'success';
+      return_data['data'] = {};
+    }
+
+    return return_data;
+  }
+
+  /**
+   * Since free pick doesn't have a nice, easy draft count of rounds when picking,
+   * we need to track how many characters each player has added, and update the
+   * board info/state if they've all picked.
+   *
+   * @param {Board} board
+   * @param {Client} client
+   * @param {Object} unused
+   * @returns {Array}
+   *   Functions and arguments to run from the main server with draft calculations.
+   */
+  advanceDraft(board, client, unused = {}) {
     const updatedPlayers = [];
     const clientplayer = client.getPlayerByBoard(board.getId());
     const returned_functions = [];

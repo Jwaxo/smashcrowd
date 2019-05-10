@@ -2,6 +2,8 @@
  * Abstract definition of a Draft and what kind of functions it requires.
  */
 
+const Character = require('./smashcrowd-characterfactory');
+
 class DraftAbstract {
   constructor() {
     this.machine_name = null;
@@ -37,7 +39,7 @@ class DraftAbstract {
    *   An array of objects that follow the following structure:
    *     {callbackName : [argument1, argument2, argument, 3]}
    */
-  advanceDraft(board, client) {
+  advanceDraft(board, client, additional_data) {
     const returned_functions = [];
 
     throw new TypeError(this.constructor.name + " does not initialize function advanceDraft");
@@ -49,6 +51,26 @@ class DraftAbstract {
     throw new TypeError(this.constructor.name + " does not initialize function advanceGame");
   }
 
+  addCharacter(board, player, character) {
+    throw new TypeError(this.constructor.name + " does not initialize function addCharacter");
+
+    return {
+      type: 'error',
+      message: 'Please contact your administrator.',
+      data: 'additional_data',
+    }
+  }
+
+  /**
+   * Various functions in drafts can be defined for `start` and `continue`.
+   * To have a function be called when these states enter, create a function
+   * with either `start` or `continue for the first part of the name, and a
+   * CamelCase version of the draft state for the next. Example:
+   * startDraftComplete()
+   * continueGame()
+   * etc.
+   */
+
   /**
    * Resumes the local functions, if they exists, for a given draft state.
    *
@@ -56,8 +78,8 @@ class DraftAbstract {
    * @param {board} board
    * @returns {*}
    */
-  setupByStatus(state, board) {
-    this.runStateFunction('setup', state);
+  continueByStatus(state, board) {
+    this.runStateFunction('continue', state);
   }
   /**
    * Initialize local functions, if they exist, for a given draft state.
