@@ -48,6 +48,19 @@ class freeDraft extends DraftAbstract {
     return return_data;
   }
 
+  dropCharacter(board, client, player, character_index) {
+    Board.dropCharacterFromPlayer(player, character_index);
+
+    // If the draft was marked complete, uncomplete it!
+    if (board.checkStatus('draft-complete')) {
+      board.setStatus('draft');
+    }
+
+    this.advanceDraft(board, client);
+
+    return true;
+  }
+
   /**
    * Since free pick doesn't have a nice, easy draft count of rounds when picking,
    * we need to track how many characters each player has added, and update the

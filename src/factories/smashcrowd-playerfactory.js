@@ -69,11 +69,14 @@ class Player {
   getCharacters() {
     return this.characters;
   }
+  getCharacterByIndex(index) {
+    return this.characters[index];
+  }
   getCharacterCount() {
     return this.characters.length;
   }
   dropCharacter(characterIndex) {
-    this.characters.splice(characterIndex, 1);
+    return this.characters.splice(characterIndex, 1)[0];
   }
   setCharacterState(characterIndex, value) {
     this.characters[characterIndex].setState(value);

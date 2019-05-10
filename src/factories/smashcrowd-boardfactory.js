@@ -374,6 +374,22 @@ class Board {
   }
 
   /**
+   * Combines a player with a character both in object and in the database.
+   *
+   * @param {Player} player
+   * @param {number} character_index
+   *   The roster index of the character in the player's lineup.
+   */
+  static dropCharacterFromPlayer(player, character_index) {
+    const character = player.dropCharacter(character_index);
+    character.setPlayer(null);
+
+    SmashCrowd.dropCharacterFromPlayer(player.getId(), character_index);
+    SmashCrowd.updatePlayerRosterIndex(player);
+
+  }
+
+  /**
    * Combines a player with a stage both in object and in the database.
    *
    * @param {Player} player

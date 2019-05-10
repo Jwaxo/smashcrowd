@@ -165,6 +165,11 @@ class SmashCrowd {
    * @param {string} table
    * @param {Object} fieldvalues
    *   An object of matching field names and expected values.
+   *   If you want to update multiple rows, the value should be an array of objects
+   *   that follow the format:
+   *     when: 'where conditional'
+   *     then: 'value'
+   *
    * @param {string} where
    *   A MySQL WHERE statement to tell you when to update to these values.
    * @returns {Promise<*>}
@@ -173,7 +178,19 @@ class SmashCrowd {
     // Build our arrays of field and value strings out of each row.
     const set = [];
     for (let field in fieldvalues) {
-      set.push(`\`${field}\` = "${fieldvalues[field]}"`);
+      if (Array.isArray(fieldvalues[field])) {
+        const casewhens = [];
+
+        for (let i = 0; i < fieldvalues[field].length; i++) {
+          const casewhen = fieldvalues[field][i];
+          casewhens.push(`when ${casewhen.when} then "${casewhen.then}"`);
+        }
+
+        set.push(`\`${field}\` = (case ${casewhens.join(' ')} end)`);
+      }
+      else {
+        set.push(`\`${field}\` = "${fieldvalues[field]}"`);
+      }
     }
 
     return new Promise(resolve => {
@@ -441,6 +458,39 @@ class SmashCrowd {
       "roster_number": roster_position,
     };
     this.dbInsert('player_characters', fieldValues);
+  }
+
+  /**
+   * Drops a character assignment from the player-character table.
+   *
+   * @param {number} player_id
+   * @param {number} roster_number
+   */
+  dropCharacterFromPlayer(player_id, roster_number) {
+    const fieldValues = {
+      "player_id": player_id,
+      "roster_number": roster_number,
+    };
+    this.dbDelete('player_characters', `player_id = "${player_id}" AND roster_number = "${roster_number}"`);
+  }
+
+  /**
+   * Go through a player's characters and send the update command to the DB with
+   * a new order.
+   *
+   * @param {Player} player
+   */
+  updatePlayerRosterIndex(player) {
+    // Get a list of character IDs and their new indices in the character array.
+    const character_indices = [];
+    for (let i = 0; i < player.getCharacterCount(); i++) {
+      character_indices.push({
+        when: `character_id = "${player.getCharacterByIndex(i).getId()}"`,
+        then: i,
+      });
+    }
+
+    this.dbUpdate('player_characters', {'roster_number': character_indices}, `player_id = "${player.getId()}"`);
   }
 
   /**

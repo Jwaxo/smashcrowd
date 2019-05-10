@@ -232,17 +232,11 @@ module.exports = (crowd, config) => {
           serverLog(`${client.getLabel(board.getId())} tried to mark a non-player as winner!`);
         }
       }
-      // The user is removing a character from their roster.
-      else if (board.getDraftType(true) === 'free' && clientPlayer.getId() === playerId) {
-        clientPlayer.dropCharacter(character_index);
-        // If the draft was marked complete, uncomplete it!
-        if (board.checkStatus('draft-complete')) {
-          board.setStatus('draft');
+      else if (clientPlayer.getId() === playerId) {
+        if (board.draft.dropCharacter(board, client, clientPlayer, character_index)) {
           regenerateBoardInfo(board);
+          regeneratePlayers(board);
         }
-
-        advanceFreePick(board, client);
-        regeneratePlayers(board);
       }
     });
 

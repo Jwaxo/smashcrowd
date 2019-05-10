@@ -74,6 +74,22 @@ class DraftAbstract {
   }
 
   /**
+   * Implement a method to drop a character from the roster.
+   *
+   * By default, drafts don't have the option to drop characters.
+   *
+   * @param board
+   * @param client
+   * @param player
+   * @param character_index
+   * @returns {boolean}
+   *   Whether or not a character was dropped.
+   */
+  dropCharacter(board, client, player, character_index) {
+    return false;
+  }
+
+  /**
    * Various functions in drafts can be defined for `start` and `continue`.
    * To have a function be called when these states enter, create a function
    * with either `start` or `continue for the first part of the name, and a
