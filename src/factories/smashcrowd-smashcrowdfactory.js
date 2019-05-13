@@ -493,6 +493,20 @@ class SmashCrowd {
   }
 
   /**
+   * Drops all character assignments from a board.
+   *
+   * @param {array} players
+   */
+  dropCharactersFromPlayers(players) {
+    const player_ids = [];
+    for (let player of players) {
+      player_ids.push(player.getId());
+    }
+
+    this.dbDelete('player_characters', `player_id IN ("${player_ids.join('","')}")`);
+  }
+
+  /**
    * Go through a player's characters and send the update command to the DB with
    * a new order.
    *
@@ -568,13 +582,13 @@ class SmashCrowd {
     }
     return this.boards;
   }
-  createBoard(board) {
 
+  createBoard(board) {
     return new Promise(resolve => {
       this.dbInsert('boards', {
         name: board.getName(),
         owner: board.getOwner(),
-        draft_type: board.getDraftType().id,
+        draft_type: board.getDraftType(),
         status: board.getStatus(),
         current_pick: board.getPick(),
         total_rounds: board.getTotalRounds(),
@@ -588,6 +602,9 @@ class SmashCrowd {
           resolve(this.boards[boardId]);
         });
     });
+  }
+  updateBoard(board_id, field_values) {
+    this.dbUpdate('boards', field_values, `id = "${board_id}"`);
   }
   async loadBoard(boardId) {
     return await this.dbSelectFirst('boards', '*', `id = "${boardId}"`);

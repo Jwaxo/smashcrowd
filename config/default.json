@@ -29,7 +29,8 @@
     ],
     "default_board": {
       "name": "SmashCrowd Default",
-      "draft_type": "free"
+      "draft_type": "free",
+      "owner": 1
     }
   }
 }

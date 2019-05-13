@@ -7,7 +7,7 @@
 {% if board.checkStatus('new') %}
   <h4 class="warning">Waiting to Start {% if board.getTotalRounds() %}{{ board.getTotalRounds() }} Round {% endif %}Draft</h4>
 {% elseif board.checkStatus('draft') %}
-  {% if board.getDraftType(true) == 'free' %}
+  {% if board.getDraftType() == 'free' %}
     <h4>Please Draft {% if board.getTotalRounds() %}{{ board.getTotalRounds() }}{% else %}Your{% endif %} Characters</h4>
   {% else %}
     <h4>Draft Round: {{ board.getDraftRound() }}{% if board.getTotalRounds() %} out of {{ board.getTotalRounds() }}{% endif %}</h4>

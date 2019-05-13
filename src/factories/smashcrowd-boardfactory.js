@@ -60,11 +60,11 @@ class Board {
     return this;
   }
 
-  async setupBoard(options = {}) {
+  setupBoard(options = {}) {
     for (let option in options) {
 
       if (options.hasOwnProperty("draft_type")) {
-        this.setDraft(options.draft_type);
+        this.setDraft(options.draft_type, true);
       }
 
       if (this.hasOwnProperty(option)) {
@@ -72,19 +72,21 @@ class Board {
       }
     }
 
+    this.saveBoard();
+
     // Load characters from the character data file.
     this.buildAllCharacters(SmashCrowd.getCharacters());
     this.buildAllStages(SmashCrowd.getStages());
-    await this.loadPlayers();
   }
 
   loadBoard(boardId) {
     return new Promise(resolve => {
       SmashCrowd.loadBoard(boardId)
         .then(boardData => {
-          this.setupBoard(boardData)
+          this.setupBoard(boardData);
+          this.loadPlayers()
             .then(() => {
-              this.setupByStatus();
+              this.setupDraftByStatus();
 
               resolve();
             });
@@ -92,8 +94,26 @@ class Board {
     });
   }
 
-  updateBoardRow(fieldvalues) {
-    SmashCrowd.dbUpdate('boards', fieldvalues, `id = "${this.getId()}"`);
+  saveBoard() {
+    if (this.getId() === null) {
+      SmashCrowd.createBoard(this);
+    }
+    else {
+      this.updateBoard({
+        name: this.getName(),
+        owner: this.getOwner(),
+        draft_type: this.getDraftType(),
+        status: this.getStatus(),
+        current_pick: this.getPick(),
+        total_rounds: this.getTotalRounds(),
+        current_draft_round: this.getDraftRound(),
+        current_game_round: this.getGameRound(),
+      });
+    }
+  }
+
+  updateBoard(field_values) {
+    SmashCrowd.updateBoard(this.getId(), field_values);
   }
 
   setId(boardId) {
@@ -105,6 +125,7 @@ class Board {
 
   setName(name) {
     this.name = name;
+    this.updateBoard({name: name});
   }
   getName() {
     return this.name;
@@ -112,6 +133,7 @@ class Board {
 
   setOwner(userId) {
     this.owner = userId;
+    this.updateBoard({owner: userId});
   }
   getOwner() {
     return this.owner;
@@ -119,6 +141,7 @@ class Board {
 
   setTotalRounds(rounds) {
     this.total_rounds = parseInt(rounds);
+    this.updateBoard({total_rounds: rounds});
   }
   getTotalRounds() {
     return this.total_rounds;
@@ -132,7 +155,10 @@ class Board {
     if (this.current_draft_round === 0) {
       this.setStatus('draft');
     }
-    return ++this.current_draft_round;
+    this.current_draft_round++;
+    this.updateBoard({current_draft_round: this.current_draft_round});
+
+    return this.current_draft_round;
   }
   getDraftRound() {
     return this.current_draft_round;
@@ -143,6 +169,7 @@ class Board {
       activePlayer.setActive(false);
     }
     this.current_draft_round = 0;
+    this.updateBoard({current_draft_round: 0});
   }
 
   advanceGameRound() {
@@ -150,7 +177,9 @@ class Board {
     if (this.current_game_round === 0) {
       this.setStatus('game');
     }
-    return ++this.current_game_round;
+    this.current_game_round++;
+    this.updateBoard({current_game_round: this.current_game_round});
+    return this.current_game_round;
   }
   getGameRound() {
     return this.current_game_round;
@@ -161,45 +190,50 @@ class Board {
       activePlayer.setActive(false);
     }
     this.current_game_round = 0;
+    this.updateBoard({current_game_round: 0});
   }
 
   advancePick() {
-    return ++this.current_pick;
+    this.current_pick++;
+    this.updateBoard({current_pick: this.current_pick});
+
+    return this.current_pick;
   }
   getPick() {
     return this.current_pick;
   }
   resetPick() {
     this.current_pick = 0;
+    this.updateBoard({current_pick: 0});
   }
 
   getStateTypes() {
     return this.draft.getStateTypes();
   }
 
-  setDraft(type) {
+  setDraft(type, skip_save = false) {
     if (this.draftTypes.indexOf(type) > -1) {
       const Draft = require(`./../plugins/drafts/smashcrowd-${type}Draft.js`);
       this.draft = new Draft;
 
       this.draft_type = type;
+
+      // If the board was just loaded, we are setting this only for internal purposes.
+      if (!skip_save) {
+        this.updateBoard({draft_type: type});
+      }
     }
     else {
       throw "Tried to set nonexistent draft type.";
     }
   }
   /**
-   * Returns the current draft type, or the machine name of it.
+   * Returns the current draft type machine name.
    *
-   * @param {boolean} userFriendly
-   * @returns {number|string}
+   * @returns {string}
    */
-  getDraftType(userFriendly = false) {
-    let type = this.draftType;
-    if (userFriendly) {
-      type = this.draft.machine_name;
-    }
-    return type;
+  getDraftType() {
+    return this.draft_type;
   }
 
   /**
@@ -210,7 +244,7 @@ class Board {
     return this.draft;
   }
 
-  setupByStatus() {
+  setupDraftByStatus() {
     this.draft.startByStatus(this.getStatus(true), this);
   }
 
@@ -226,7 +260,7 @@ class Board {
     }
     else if (Number.isInteger(state)) {
       this.status = state;
-      this.updateBoardRow({status: state});
+      this.updateBoard({status: state});
     }
 
   }
@@ -338,13 +372,11 @@ class Board {
         });
     });
   }
-  updatePlayer(playerId, data) {
-    for (let option in data) {
-      this.players[playerId][option] = data[option];
-    }
-  }
   getPlayers() {
     return this.players;
+  }
+  getPlayersArray() {
+    return Object.values(this.players);
   }
   getPlayersCount() {
     return Object.keys(this.players).length;
@@ -372,6 +404,7 @@ class Board {
     for (let playerId in this.players) {
       this.players[playerId].setCharacters([]);
     }
+    SmashCrowd.dropCharactersFromPlayers(this.getPlayersArray());
   }
 
   /**

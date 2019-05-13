@@ -120,7 +120,7 @@ class snakeDraft extends DraftAbstract {
 
       // If we're at a new round in snake draft we need to regenerate the player
       // area entirely so that they reorder. Otherwise just update stuff!
-      if (newRound && board.getDraftType(true) === 'snake') {
+      if (newRound && board.getDraftType() === 'snake') {
         returned_functions.push({'regenerateBoardInfo': [board]});
         returned_functions.push({'regeneratePlayers': [board]});
       }
