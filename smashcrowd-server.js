@@ -217,15 +217,8 @@ module.exports = (crowd, config) => {
       // The user is marking a winner of a round.
       if (board.getGameRound() === charRound) {
         if (charId !== 999) {
-          clickedPlayer.addStat('game_score');
-          clickedPlayer.setCharacterState(character_index, 'win');
-          for (let board_player_id in board.getPlayers()) {
-            const eachPlayer = board.getPlayer(board_player_id);
-            if (eachPlayer.getId() !== playerId) {
-              eachPlayer.addStat('lost_rounds');
-              eachPlayer.setCharacterState(character_index, 'loss');
-            }
-          }
+          board.setPlayerWin(playerId, charRound);
+
           advanceGame(board);
         }
         else {
@@ -294,7 +287,7 @@ module.exports = (crowd, config) => {
     });
 
     socket.on('start-game', () => {
-      const players = board.getPlayers();
+      const players = board.getPlayersArray();
 
       let mismatchedChars = false;
       let compare_characters = null;
@@ -312,7 +305,7 @@ module.exports = (crowd, config) => {
         if (!board.getTotalRounds()) {
           // This had no total rounds initially, so set based off of the total
           // characters of any given player.
-          board.setTotalRounds(board.getPlayers()[0].getCharacterCount());
+          board.setTotalRounds(players[0].getCharacterCount());
         }
 
         players.forEach(player => {

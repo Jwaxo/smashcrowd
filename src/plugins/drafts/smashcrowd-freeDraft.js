@@ -107,6 +107,17 @@ class freeDraft extends DraftAbstract {
 
     return returned_functions;
   }
+
+  startDraftComplete(board) {
+
+  }
+
+  startGame(board) {
+
+  }
+  advanceGame(board) {
+
+  }
 }
 
 module.exports = freeDraft;

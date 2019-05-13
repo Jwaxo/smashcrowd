@@ -418,6 +418,9 @@ class SmashCrowd {
             .then(character_results => {
               character_results.forEach(character_result => {
                 player.addCharacter(board.getCharacter(character_result.character_id));
+                if (character_result.win) {
+                  board.setPlayerWin(player_result.id, character_result.roster_number, true);
+                }
               });
             });
 
@@ -440,8 +443,19 @@ class SmashCrowd {
    * @param {number} player_id
    * @param {Object} fieldValues
    */
-  updatePlayer(player_id, fieldValues) {
-    this.dbUpdate('players', fieldValues, `id = "${player_id}"`);
+  updatePlayer(player_id, field_values) {
+    this.dbUpdate('players', field_values, `id = "${player_id}"`);
+  }
+
+  /**
+   * Updates the `player_characters` table with new data.
+   *
+   * @param {number} player_id
+   * @param {number} roster_number
+   * @param {Object}field_values
+   */
+  updatePlayerCharacter(player_id, roster_number, field_values = {}) {
+    this.dbUpdate('player_characters', field_values, `player_id = "${player_id}" AND roster_number = "${roster_number}"`);
   }
 
   /**

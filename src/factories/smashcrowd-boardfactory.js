@@ -172,6 +172,24 @@ class Board {
     this.updateBoard({current_draft_round: 0});
   }
 
+  setPlayerWin(player_id, roster, skip_save = false) {
+    const winnerPlayer = this.getPlayer(player_id);
+    const character_index = roster - 1;
+    winnerPlayer.addStat('game_score');
+    winnerPlayer.setCharacterState(character_index, 'win');
+
+    if (!skip_save) {
+      SmashCrowd.updatePlayerCharacter(player_id, roster, {'win': 1});
+    }
+    for (let board_player_id in this.getPlayers()) {
+      const eachPlayer = this.getPlayer(board_player_id);
+      if (eachPlayer.getId() !== player_id) {
+        eachPlayer.addStat('lost_rounds');
+        eachPlayer.setCharacterState(character_index, 'loss');
+      }
+    }
+  }
+
   advanceGameRound() {
     this.draft.advanceGame();
     if (this.current_game_round === 0) {
