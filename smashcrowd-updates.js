@@ -44,7 +44,11 @@ module.exports = (crowd) => {
         const tableSchema = require('./' + config.get('database.export_path'));
         const diff = new dbdiff.DbDiff();
         diff.compareSchemas(schema, tableSchema);
-        SmashCrowd.dbQueries(diff.commands('drop').split(';'))
+        const commands = diff.commands('drop').split(';');
+        for (let i = 0; i < commands.length; i++) {
+          commands[i] = commands[i].replace(' DEFAULT_GENERATED', '');
+        }
+        SmashCrowd.dbQueries(commands)
           .then(() => {
 
             SmashCrowd.setupSystem()
