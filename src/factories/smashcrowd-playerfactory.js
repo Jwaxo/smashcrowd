@@ -107,7 +107,7 @@ class Player {
     }
   }
 
-  setPickOrder(order) {
+  setPickOrder(order, save = false) {
     this.pickOrder = order;
   }
   getPickOrder() {

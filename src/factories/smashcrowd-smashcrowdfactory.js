@@ -445,6 +445,24 @@ class SmashCrowd {
   }
 
   /**
+   * Drops a player from the player table.
+   *
+   * @param {number} player_id
+   */
+  dropPlayer(player_id) {
+    this.dbDelete('players', `player_id = "${player_id}"`);
+  }
+
+  /**
+   * Drops all players from a given board.
+   *
+   * @param {number} board_id
+   */
+  dropPlayersByBoard(board_id) {
+    this.dbDelete('players', `board_id = "${board_id}"`);
+  }
+
+  /**
    * Adds a character assignment to the player-character table.
    *
    * @param {number} player_id

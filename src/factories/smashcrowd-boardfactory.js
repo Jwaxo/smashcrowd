@@ -62,6 +62,11 @@ class Board {
 
   async setupBoard(options = {}) {
     for (let option in options) {
+
+      if (options.hasOwnProperty("draft_type")) {
+        this.setDraft(options.draft_type);
+      }
+
       if (this.hasOwnProperty(option)) {
         this[option] = options[option];
       }
@@ -177,7 +182,7 @@ class Board {
       const Draft = require(`./../plugins/drafts/smashcrowd-${type}Draft.js`);
       this.draft = new Draft;
 
-      this.draftType = type;
+      this.draft_type = type;
     }
     else {
       throw "Tried to set nonexistent draft type.";
@@ -275,6 +280,7 @@ class Board {
    */
   addPlayer(player) {
     const player_id = player.getId();
+    const update_data = {};
     player.setBoardId(this.getId());
     this.players[player_id] = player;
 
@@ -290,8 +296,10 @@ class Board {
     }
     else {
       this.players_pick_order.push(player);
-      pick_order = this.players_display_order.length - 1;
+      pick_order = this.players_pick_order.length - 1;
       player.setPickOrder(pick_order);
+
+      update_data.pick_order = pick_order;
     }
 
     // Display order affects which colors players get; these should remain
@@ -304,7 +312,13 @@ class Board {
       display_order = this.players_display_order.length - 1;
       player.setDisplayOrder(display_order);
 
-      SmashCrowd.updatePlayer(player_id, {'display_order': display_order});
+      update_data.display_order = display_order;
+
+    }
+
+    // If we had to assign any player data, make sure it gets saved to the DB.
+    if (Object.keys(update_data).length > 0) {
+      SmashCrowd.updatePlayer(player_id, update_data);
     }
   }
 
@@ -386,7 +400,6 @@ class Board {
 
     SmashCrowd.dropCharacterFromPlayer(player.getId(), character_index);
     SmashCrowd.updatePlayerRosterIndex(player);
-
   }
 
   /**
@@ -442,16 +455,38 @@ class Board {
 
     delete this.players[playerId];
     this.players_pick_order.splice(playerPickIndex, 1);
+    this.updatePlayersPickOrder();
     this.players_display_order.splice(playerDisplayIndex, 1);
+    this.updatePlayersDisplayOrder();
+
+    SmashCrowd.dropPlayer(playerId);
   }
   dropAllPlayers() {
     this.players = {};
     this.players_display_order = [];
     this.players_pick_order = [];
+    SmashCrowd.dropPlayersByBoard(this.getId());
   }
 
   reversePlayersPick() {
     this.players_pick_order.reverse();
+    this.updatePlayersPickOrder();
+  }
+
+  updatePlayersPickOrder() {
+    for (let i = 0; i < this.players_pick_order.length; i++) {
+      const player = this.players_pick_order[i];
+      player.setPickOrder(i);
+      SmashCrowd.updatePlayer(player.getId(), {'pick_order': i});
+    }
+  }
+
+  updatePlayersDisplayOrder() {
+    for (let i = 0; i < this.players_display_order.length; i++) {
+      const player = this.players_display_order[i];
+      player.setDisplayOrder(i);
+      SmashCrowd.updatePlayer(player.getId(), {'display_order': i});
+    }
   }
 
   /**
@@ -484,11 +519,11 @@ class Board {
       const playerId = playerOrder[i].id;
 
       this.players[playerId].setPickOrder(i);
-      SmashCrowd.updatePlayer(playerId, {'pick_order': i});
 
       // And finally re-add to the pick order array.
       this.players_pick_order.push(this.players[playerId]);
     }
+    this.updatePlayersPickOrder();
   }
 
   /**

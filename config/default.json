@@ -29,7 +29,7 @@
     ],
     "default_board": {
       "name": "SmashCrowd Default",
-      "draft_type": "1"
+      "draft_type": "free"
     }
   }
 }

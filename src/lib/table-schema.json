@@ -40,7 +40,7 @@
 					"name": "draft_type",
 					"nullable": false,
 					"default_value": null,
-					"type": "tinyint(4)",
+					"type": "varchar(16)",
 					"extra": ""
 				},
 				{
@@ -180,6 +180,13 @@
 					"nullable": false,
 					"default_value": null,
 					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "win",
+					"nullable": true,
+					"default_value": "0",
+					"type": "tinyint(1)",
 					"extra": ""
 				}
 			]
