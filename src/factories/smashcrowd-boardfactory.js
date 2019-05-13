@@ -185,7 +185,6 @@ class Board {
       const eachPlayer = this.getPlayer(board_player_id);
       if (eachPlayer.getId() !== player_id) {
         eachPlayer.addStat('lost_rounds');
-        eachPlayer.setCharacterState(character_index, 'loss');
       }
     }
   }

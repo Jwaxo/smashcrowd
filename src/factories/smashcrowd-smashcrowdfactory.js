@@ -464,7 +464,7 @@ class SmashCrowd {
    * @param {number} player_id
    */
   dropPlayer(player_id) {
-    this.dbDelete('players', `player_id = "${player_id}"`);
+    this.dbDelete('players', `id = "${player_id}"`);
   }
 
   /**
