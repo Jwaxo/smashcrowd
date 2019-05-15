@@ -86,8 +86,12 @@ module.exports = (crowd, config) => {
     regenerateStages(board);
     regenerateChatSingle(socket);
 
-    // Set a default status for a connection if there are no players.
-    if (!user.getPlayerId(board.getId())) {
+    const player = client.getPlayerByBoard(board.getId());
+    let playerActive = false;
+
+    // Set a default status for a connection with help tips.
+    if (player === null) {
+      // Make different suggestions based on if there are players.
       if (board.getPlayersCount() === 0) {
         setStatusSingle(client, 'Add a player in order to start drafting!');
       }
@@ -95,6 +99,13 @@ module.exports = (crowd, config) => {
         setStatusSingle(client, 'Pick a player to draft.')
       }
     }
+    else {
+      playerActive = player.getActive();
+    }
+
+    // Finally, manually disable character picking if we don't have a player and
+    // that player isn't active.
+    updateCharactersSingle(client, {allDisabled: !playerActive});
 
     /**
      * The client has created a player for the roster.

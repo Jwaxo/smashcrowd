@@ -123,6 +123,9 @@ class Player {
   setActive(state) {
     this.isActive = state;
   }
+  getActive() {
+    return this.isActive;
+  }
 
   setStat(stat, val) {
     this.stats[stat] = val;

@@ -115,6 +115,7 @@ class freeDraft extends DraftAbstract {
   startGame(board) {
 
   }
+
   advanceGame(board) {
 
   }

@@ -397,6 +397,11 @@ class SmashCrowd {
   async loadPlayersByBoard(board_id) {
     const players = [];
     const board = this.getBoardById(board_id);
+
+    // To streamline the loading a bit, we set up many different select promises
+    // that grab the characters and stages for each player and load them.
+    // This all needs to be returned before we're done in this function.
+    const promises = [];
     await this.dbSelect('players', '*', `board_id = "${board_id}"`)
       .then(player_results => {
         player_results.forEach(player_result => {
@@ -413,8 +418,9 @@ class SmashCrowd {
           if (player_result.display_order !== null) {
             player.setDisplayOrder(player_result.display_order);
           }
+          players.push(player);
 
-          this.dbSelect('player_characters', '*', `player_id = "${player_result.id}"`, 'roster_number ASC')
+          const character_promise = this.dbSelect('player_characters', '*', `player_id = "${player_result.id}"`, 'roster_number ASC')
             .then(character_results => {
               character_results.forEach(character_result => {
                 player.addCharacter(board.getCharacter(character_result.character_id));
@@ -424,16 +430,18 @@ class SmashCrowd {
               });
             });
 
-          this.dbSelect('player_stages', '*', `player_id = "${player_result.id}"`, 'stage_id ASC')
+          const stage_promise = this.dbSelect('player_stages', '*', `player_id = "${player_result.id}"`, 'stage_id ASC')
             .then(stage_results => {
               stage_results.forEach(stage_result => {
                 player.addStage(board.getStage(stage_result.stage_id));
               });
             });
 
-          players.push(player);
+          promises.push(character_promise, stage_promise);
+
         });
       });
+    await Promise.all(promises);
     return players;
   }
 

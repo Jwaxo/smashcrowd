@@ -17,7 +17,17 @@ class snakeDraft extends DraftAbstract {
   }
 
   startDraft(board) {
-    board.getPlayerByPickOrder(0).setActive(true);
+    // Only set the player with pick to active.
+    board.getPlayerByPickOrder(board.getPick()).setActive(true);
+
+    // Remove any characters from the board who are in use by setting their player.
+    for (let player of board.getPlayersArray()) {
+      const characters = player.getCharacters();
+      for (let character of characters) {
+        character.setPlayer(player.getId());
+      }
+    }
+
   }
 
   addCharacter(board, player, character) {
@@ -120,7 +130,7 @@ class snakeDraft extends DraftAbstract {
 
       // If we're at a new round in snake draft we need to regenerate the player
       // area entirely so that they reorder. Otherwise just update stuff!
-      if (newRound && board.getDraftType() === 'snake') {
+      if (newRound) {
         returned_functions.push({'regenerateBoardInfo': [board]});
         returned_functions.push({'regeneratePlayers': [board]});
       }
@@ -137,6 +147,18 @@ class snakeDraft extends DraftAbstract {
     }
 
     return returned_functions;
+  }
+
+  startDraftComplete(board) {
+
+  }
+
+  startGame(board) {
+
+  }
+
+  advanceGame(board) {
+
   }
 }
 
