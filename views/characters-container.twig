@@ -4,14 +4,14 @@
 #}
 {% set characterGridClasses = [
   'character-grid',
-  (board.getStatus() != 'draft' ? 'character-grid--disabled' : ''),
-  (board.getStatus() == 'game' ? 'character-grid--hidden' : ''),
+  (board.getStatus(true) != 'draft' ? 'character-grid--disabled' : ''),
+  (board.checkStatus('game') ? 'character-grid--hidden' : ''),
 ]|join(' ')|trim %}
 
 <div class="cell">
   <div class="{{ characterGridClasses }}">
     {% for character in board.getCharacters() %}
-      {% if character.getPlayer() is null %}
+      {% if character and character.getPlayer() is null %}
         {% include 'character.twig' %}
       {% endif %}
     {% endfor %}

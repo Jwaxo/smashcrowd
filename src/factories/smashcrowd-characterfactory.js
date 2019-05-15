@@ -37,7 +37,8 @@ class Character {
    */
   setImage(image) {
     if (image) {
-      if (!fs.existsSync('public/' + image)) {
+      const imagestring = 'public/' + image;
+      if (!fs.existsSync(imagestring)) {
         image = null;
       }
     }

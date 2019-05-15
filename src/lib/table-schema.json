@@ -1,0 +1,411 @@
+{
+	"dialect": "mysql",
+	"sequences": [],
+	"tables": [
+		{
+			"name": "boards",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": "auto_increment"
+				},
+				{
+					"name": "name",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				},
+				{
+					"name": "owner",
+					"nullable": true,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "draft_type",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(16)",
+					"extra": ""
+				},
+				{
+					"name": "status",
+					"nullable": false,
+					"default_value": "0",
+					"type": "tinyint(4)",
+					"extra": ""
+				},
+				{
+					"name": "current_pick",
+					"nullable": false,
+					"default_value": "0",
+					"type": "tinyint(4)",
+					"extra": ""
+				},
+				{
+					"name": "total_rounds",
+					"nullable": false,
+					"default_value": "0",
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "current_draft_round",
+					"nullable": false,
+					"default_value": "0",
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "current_game_round",
+					"nullable": false,
+					"default_value": "0",
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "characters",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": "auto_increment"
+				},
+				{
+					"name": "name",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				},
+				{
+					"name": "image",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "player_boards",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"player_id",
+						"board_id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "player_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "board_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "player_characters",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"player_id",
+						"character_id",
+						"roster_number"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "player_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "character_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "roster_number",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "win",
+					"nullable": true,
+					"default_value": "0",
+					"type": "tinyint(1)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "player_stages",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"player_id",
+						"stage_id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "player_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "stage_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "players",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": "auto_increment"
+				},
+				{
+					"name": "name",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				},
+				{
+					"name": "user_id",
+					"nullable": true,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "board_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "pick_order",
+					"nullable": true,
+					"default_value": null,
+					"type": "tinyint(4)",
+					"extra": ""
+				},
+				{
+					"name": "display_order",
+					"nullable": true,
+					"default_value": null,
+					"type": "tinyint(4)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "stages",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": "auto_increment"
+				},
+				{
+					"name": "name",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				},
+				{
+					"name": "image",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "system",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"key"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "key",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(32)",
+					"extra": ""
+				},
+				{
+					"name": "value",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				},
+				{
+					"name": "type",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(8)",
+					"extra": ""
+				}
+			]
+		},
+		{
+			"name": "users",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"id"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": "auto_increment"
+				},
+				{
+					"name": "username",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(32)",
+					"extra": ""
+				},
+				{
+					"name": "label",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(32)",
+					"extra": ""
+				},
+				{
+					"name": "email",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(320)",
+					"extra": ""
+				},
+				{
+					"name": "password",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(127)",
+					"extra": ""
+				},
+				{
+					"name": "avatar",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(255)",
+					"extra": ""
+				}
+			]
+		}
+	]
+}

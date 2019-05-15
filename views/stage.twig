@@ -19,7 +19,7 @@
     {% set tokenClasses = [
       'stage-token',
       'stage-token--slot' ~ slot,
-      'stage-token--player' ~ stage.getPlayers()[slot],
+      'stage-token--player' ~ stage.getPlayerBySlot(slot).getDisplayOrder(),
     ]|join(' ')|trim %}
     <span class="{{ tokenClasses }}"><span class="stage-token-inner"></span></span>
   {% endfor %}

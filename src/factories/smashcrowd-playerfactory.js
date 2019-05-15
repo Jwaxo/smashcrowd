@@ -1,16 +1,25 @@
 /**
- * Information and methods used for a player on the board.
+ * Information and methods used for a player on a board.
+ *
+ * "Players" are non-database-registered instances of a user, specific to an
+ * individual board.
+ *
+ * It made sense to keep them separate at the time.
  */
 class Player {
-  constructor(name) {
+  constructor(name, userId = null) {
     this.name = name;
     this.characters = [];
     this.stages = [];
+    this.userId = userId;
     this.clientId = 0;
     this.isActive = false;
     this.playerId = null;
     this.stats = {};
-    this.sortOrder = null;
+    this.pickOrder = null;
+    this.displayOrder = null;
+    this.user = null;
+    this.board_id = null;
 
     return this;
   }
@@ -20,6 +29,20 @@ class Player {
   }
   getId() {
     return this.playerId;
+  }
+
+  setUserId(userId) {
+    this.userId = userId;
+  }
+  getUserId() {
+    return this.userId;
+  }
+
+  setBoardId(board_id) {
+    this.board_id = board_id;
+  }
+  getBoardId() {
+    return this.board_id;
   }
 
   setClientId(clientId) {
@@ -46,11 +69,14 @@ class Player {
   getCharacters() {
     return this.characters;
   }
+  getCharacterByIndex(index) {
+    return this.characters[index];
+  }
   getCharacterCount() {
     return this.characters.length;
   }
   dropCharacter(characterIndex) {
-    this.characters.splice(characterIndex, 1);
+    return this.characters.splice(characterIndex, 1)[0];
   }
   setCharacterState(characterIndex, value) {
     this.characters[characterIndex].setState(value);
@@ -58,7 +84,7 @@ class Player {
 
   addStage(stage) {
     this.stages.push(stage);
-    stage.addPlayer(this.playerId);
+    stage.addPlayer(this);
     return this.stages;
   }
   setStages(stages) {
@@ -81,15 +107,24 @@ class Player {
     }
   }
 
-  setSortOrder(order) {
-    this.sortOrder = order;
+  setPickOrder(order, save = false) {
+    this.pickOrder = order;
   }
-  getSortOrder() {
-    return this.sortOrder;
+  getPickOrder() {
+    return this.pickOrder;
+  }
+  setDisplayOrder(order) {
+    this.displayOrder = order;
+  }
+  getDisplayOrder() {
+    return this.displayOrder;
   }
 
   setActive(state) {
     this.isActive = state;
+  }
+  getActive() {
+    return this.isActive;
   }
 
   setStat(stat, val) {
