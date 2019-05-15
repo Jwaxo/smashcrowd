@@ -2,7 +2,7 @@
   Displays information about the current board.
 #}
 
-<h4>Draft Type: {{ board.getDraftTypeInfo().label }}</h4>
+<h4>Draft Type: {{ board.getDraft().label }}</h4>
 
 {% if board.checkStatus('new') %}
   <h4 class="warning">Waiting to Start {% if board.getTotalRounds() %}{{ board.getTotalRounds() }} Round {% endif %}Draft</h4>
