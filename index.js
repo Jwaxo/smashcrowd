@@ -12,6 +12,10 @@ const mysql = require('mysql');
 
 const db = mysql.createConnection(config.get("database.connection"));
 
+db.on('error', err => {
+  console.log('caught this error: ' + err.toString());
+});
+
 db.connect(error => {
   if (error) {
     throw error;

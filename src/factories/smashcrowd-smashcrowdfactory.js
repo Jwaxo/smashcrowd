@@ -88,6 +88,7 @@ class SmashCrowd {
       sql.push(`LIMIT ${limit}`);
     }
     return new Promise(resolve => {
+      console.log('running select');
       this.db.query(sql.join(' '), [table], (error, results) => {
 
         if (error) {
@@ -128,6 +129,7 @@ class SmashCrowd {
     });
 
     return new Promise(resolve => {
+      console.log('running insert');
       this.db.query(`INSERT INTO ?? (${fields.join(',')}) VALUES ("${values.join('"),("')}")`, [table], (error, results) => {
         if (error) {
           throw error;
@@ -149,6 +151,7 @@ class SmashCrowd {
   async dbDelete(table, where = 1) {
 
     return new Promise(resolve => {
+      console.log('running delete');
       this.db.query(`DELETE FROM ?? WHERE ${where}`, [table], (error, results) => {
         if (error) {
           throw error;
@@ -194,6 +197,7 @@ class SmashCrowd {
     }
 
     return new Promise(resolve => {
+      console.log('running update');
       this.db.query(`UPDATE ?? SET ${set.join(',')} WHERE ${where}`, [table], (error, results) => {
         if (error) {
           throw error;
@@ -216,6 +220,7 @@ class SmashCrowd {
     for (const query of queries) {
       if (query.trim()) {
         await new Promise(resolve => {
+          console.log('running multiple queries');
           this.db.query(query, [], (error, results) => {
             if (error) {
               throw error;
