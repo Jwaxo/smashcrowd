@@ -82,12 +82,13 @@ module.exports.install = (SmashCrowd) => {
 function runUpdates(SmashCrowd) {
   let update_schema;
   try {
-    update_schema = SmashCrowd.getSystemValue('update_schema');
+    SmashCrowd.getSystemValue('update_schema');
   }
   catch (error) {
     console.log('Error getting update version! You may not have installed SmashCrowd yet. Run `node db-install`.');
     throw error;
   }
+  update_schema = SmashCrowd.getSystemValue('update_schema');
   if (update_schema == null) {
     console.log('SmashCrowd successfully installed.');
     // If this property doesn't exist, we have a fresh install.
