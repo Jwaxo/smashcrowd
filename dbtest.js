@@ -23,4 +23,15 @@ db.on('error', function(err) {
 // Listen at the port.
 server.listen(port, () => {
   console.log(`Listening on ${port}`);
+
+  db.query("SELECT * FROM ?? WHERE 1", ['system'], (error, results) => {
+    if (error) {
+      console.log("Error performing test query");
+      throw error;
+    }
+    console.log("Successful query:");
+    for (let result of results) {
+      console.log(result);
+    }
+  })
 });
