@@ -25,15 +25,26 @@ let config = {};
 let SmashCrowd;
 
 /**
+ * Just runs the updates.
  *
  * @param {SmashCrowd} crowd
- * @returns {Promise<any>}
  */
-module.exports = (crowd) => {
+module.exports.updates = (crowd) => {
 
   SmashCrowd = crowd;
   db = SmashCrowd.db;
   config = SmashCrowd.config;
+
+  runUpdates();
+};
+
+/**
+ * Runs the install/DB update script, which compares the current DB structure.
+ *
+ * @param crowd
+ * @returns {Promise<String>}
+ */
+module.exports.install = (crowd) => {
 
   return new Promise((resolve, reject) => {
     resolve();
@@ -41,35 +52,42 @@ module.exports = (crowd) => {
 
     dbdiff.describeDatabase(db_description)
       .then((schema) => {
-        // const tableSchema = require('./' + config.get('database.export_path'));
-        // const diff = new dbdiff.DbDiff();
-        // diff.compareSchemas(schema, tableSchema);
-        // const commands = diff.commands('drop').split(';');
-        // for (let i = 0; i < commands.length; i++) {
-        //   commands[i] = commands[i].replace(' DEFAULT_GENERATED', '');
-        // }
-        // if (commands.length > 0) {
-        //   SmashCrowd.dbQueries(commands)
-        //     .then(() => {
-        //
-        //       SmashCrowd.setupSystem()
-        //         .then(() => {
-        //           runUpdates();
-        //
-        //           resolve();
-        //         })
-        //     });
-        // }
-        // else {
-        //   console.log('DB structure already matches, checking for updates.');
-        //   runUpdates();
-        // }
+        const tableSchema = require('./' + config.get('database.export_path'));
+        const diff = new dbdiff.DbDiff();
+        diff.compareSchemas(schema, tableSchema);
+        const commands = diff.commands('drop').split(';');
+        for (let i = 0; i < commands.length; i++) {
+          commands[i] = commands[i].replace(' DEFAULT_GENERATED', '');
+        }
+        if (commands.length > 0) {
+          SmashCrowd.dbQueries(commands)
+            .then(() => {
+
+              SmashCrowd.setupSystem()
+                .then(() => {
+                  runUpdates();
+
+                  resolve('Database changes complete.');
+                })
+            });
+        }
+        else {
+          console.log('DB structure already matches, checking for updates.');
+          runUpdates();
+          resolve('Updates complete.');
+        }
       });
   });
 };
 
 function runUpdates() {
-  let update_schema = SmashCrowd.getSystemValue('update_schema');
+  try {
+    let update_schema = SmashCrowd.getSystemValue('update_schema');
+  }
+  catch (error) {
+    console.log('Error getting update version! You may not have installed SmashCrowd yet. Run `node db-install`.');
+    throw error;
+  }
   if (update_schema == null) {
     console.log('SmashCrowd successfully installed.');
     // If this property doesn't exist, we have a fresh install.
@@ -80,15 +98,16 @@ function runUpdates() {
     update_schema = parseInt(update_schema);
     const updates = getUpdates();
     let update = '';
-    for (update in updates) {
-      if (parseInt(update) > update_schema) {
-        console.log(`Running update ${update}`);
-        updates[update]();
+    if (updates.length > 0) {
+      for (update in updates) {
+        if (parseInt(update) > update_schema) {
+          console.log(`Running update ${update}`);
+          updates[update]();
+        }
       }
+      console.log(`Updated to version ${update}.`);
+      SmashCrowd.setSystemValue('update_schema', update);
     }
-    console.log(`Updated to version ${update}.`);
-
-    SmashCrowd.setSystemValue('update_schema', update);
   }
 }
 
