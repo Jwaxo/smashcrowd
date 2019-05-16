@@ -49,6 +49,8 @@ module.exports.updates = (crowd) => {
  */
 module.exports.install = (crowd) => {
   SmashCrowd = crowd;
+  db = SmashCrowd.db;
+  config = SmashCrowd.config;
 
   return new Promise((resolve, reject) => {
     const db_description = SmashCrowd.getDbDiffString(config.get("database.connection"));
