@@ -38,4 +38,5 @@ const crowd = new SmashCrowd(db, config);
 require('./smashcrowd-updates').install(crowd)
   .then((log) => {
     console.log(log);
+    process.exit(1);
   });
