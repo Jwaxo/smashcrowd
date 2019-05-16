@@ -95,12 +95,11 @@ class SmashCrowd {
         }
         connection.query(sql.join(' '), [table], (error, results) => {
 
-          connection.release();
-
           if (error) {
             console.log('Error running select');
             throw error;
           }
+          connection.release();
 
           resolve(results);
         });
@@ -145,9 +144,11 @@ class SmashCrowd {
         }
         connection.query(`INSERT INTO ?? (${fields.join(',')}) VALUES ("${values.join('"),("')}")`, [table], (error, results) => {
           if (error) {
+
             console.log('Error running insert');
             throw error;
           }
+          connection.release();
 
           resolve(results.insertId);
         });
@@ -176,6 +177,7 @@ class SmashCrowd {
             console.log('Error running delete');
             throw error;
           }
+          connection.release();
 
           resolve(results.affectedRows);
         });
@@ -228,6 +230,7 @@ class SmashCrowd {
             console.log('Error running update');
             throw error;
           }
+          connection.release();
 
           resolve(results);
         });
@@ -244,7 +247,7 @@ class SmashCrowd {
    *   A Promise that resolves when all queries are complete.
    */
   async dbQueries(queries) {
-    for (const query of queries) {
+    for (let query of queries) {
       if (query.trim()) {
         await new Promise(resolve => {
 
@@ -258,6 +261,7 @@ class SmashCrowd {
                 console.log('Error running multiple queries');
                 throw error;
               }
+              connection.release();
 
               resolve();
             });
@@ -306,7 +310,7 @@ class SmashCrowd {
       value = this.system[key];
     }
     else {
-      throw 'Tried to get non-existing system value.';
+      value = null;
     }
     return value;
   }

@@ -20,7 +20,6 @@
  */
 const dbdiff = require('dbdiff');
 
-let db = {};
 let config = {};
 let SmashCrowd;
 
@@ -32,13 +31,17 @@ let SmashCrowd;
 module.exports.updates = (crowd) => {
 
   SmashCrowd = crowd;
-  db = SmashCrowd.db;
   config = SmashCrowd.config;
 
-  SmashCrowd.setupSystem()
-    .then(() => {
-      runUpdates();
-    });
+  return new Promise((resolve, reject) => {
+    SmashCrowd.setupSystem()
+      .then(() => {
+        runUpdates()
+          .then((updates_message) => {
+            resolve(updates_message);
+          });
+      });
+  });
 };
 
 /**
@@ -49,7 +52,6 @@ module.exports.updates = (crowd) => {
  */
 module.exports.install = (crowd) => {
   SmashCrowd = crowd;
-  db = SmashCrowd.db;
   config = SmashCrowd.config;
 
   return new Promise((resolve, reject) => {
@@ -67,40 +69,36 @@ module.exports.install = (crowd) => {
         if (commands.length > 0) {
           SmashCrowd.dbQueries(commands)
             .then(() => {
-
-              SmashCrowd.setupSystem()
+              resolve('Database changes complete.');
+              runUpdates()
                 .then(() => {
-                  runUpdates();
-
-                  resolve('Database changes complete.');
-                })
+                  resolve('Updates complete.');
+                });
             });
         }
         else {
           console.log('DB structure already matches, checking for updates.');
-          runUpdates();
-          resolve('Updates complete.');
+          runUpdates()
+            .then(() => {
+              resolve('Updates complete.');
+            });
         }
       });
   });
 };
 
-function runUpdates() {
+async function runUpdates() {
 
-  SmashCrowd.setupSystem()
+  console.log('Running updates');
+  const promises = [];
+
+  await SmashCrowd.setupSystem()
     .then(() => {
-      let update_schema;
-      try {
-        update_schema = SmashCrowd.getSystemValue('update_schema');
-      }
-      catch (error) {
-        console.log('Error getting update version! You may not have installed SmashCrowd yet. Run `node db-install`.');
-        throw error;
-      }
+      let update_schema = SmashCrowd.getSystemValue('update_schema');
       if (update_schema == null) {
         console.log('SmashCrowd successfully installed.');
         // If this property doesn't exist, we have a fresh install.
-        postInstall();
+        promises.push(postInstall());
       }
       else {
         // Otherwise, run all additional updates, should they exist.
@@ -119,6 +117,9 @@ function runUpdates() {
         }
       }
     });
+
+  await Promise.all(promises);
+  return 'Updates complete.';
 }
 
 /**
@@ -135,7 +136,7 @@ function postInstall() {
   const latest_update = update_numbers[update_numbers.length - 1];
 
   // Add default install and other config settings.
-  SmashCrowd.dbInsert('system', [
+  const system_promise = SmashCrowd.dbInsert('system', [
     {
       'key': 'update_schema',
       'value': latest_update,
@@ -155,20 +156,30 @@ function postInstall() {
     });
 
   const character_data = require('./src/lib/chars.json');
-  SmashCrowd.dbInsert('characters', character_data.chars)
+  const character_promise = SmashCrowd.dbInsert('characters', character_data.chars)
     .then(() => {
       console.log('All characters configured.');
     });
 
   const stage_data = require('./src/lib/levels.json');
-  SmashCrowd.dbInsert('stages', stage_data.levels)
+  const stage_promise = SmashCrowd.dbInsert('stages', stage_data.levels)
     .then(() => {
       console.log('All stages configured.');
     });
 
   // For now we create a default board.
   // @todo: remove this once multiple boards are working.
-  SmashCrowd.dbInsert('boards', config.get('server.default_board'));
+  const board_promise = SmashCrowd.dbInsert('boards', config.get('server.default_board'))
+    .then(() => {
+      console.log('Default board created.');
+    });
+
+  return Promise.all([
+    system_promise,
+    character_promise,
+    stage_promise,
+    board_promise,
+  ])
 }
 
 /**
