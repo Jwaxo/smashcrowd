@@ -1,10 +1,12 @@
 /**
  * @file
- * index.js
+ * db-install.js
  *
- * The main SmashCrowd app.
+ * Used to analyze the current database schema and either install or update the
+ * database.
  *
- * For assistance with running, see README.md
+ * @usage
+ * node db-install.js
  */
 
 const config = require('config');
@@ -33,12 +35,8 @@ const crowd = new SmashCrowd(db, config);
 
 // This needs to be synchronous to ensure that the server only starts running once
 // everything else is complete.
-require('./smashcrowd-updates').updates(crowd);
-
-crowd.setupAll().then(() => {
-  // We silo all of the main server logic to a separate file.
-  require('./smashcrowd-server')(crowd, config);
-
-  // Build the sass and start to watch for style or JS changes.
-  require('./smashcrowd-sass')();
-});
+require('./smashcrowd-updates').install(crowd)
+  .then((log) => {
+    console.log(log);
+    process.exit(1);
+  });

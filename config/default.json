@@ -4,10 +4,12 @@
       "host": "localhost",
       "database": "example",
       "user": "user",
-      "password": "password"
+      "password": "password",
+      "connectionLimit": 10
     },
     "table_prefix": "",
-    "export_path": "src/lib/table-schema.json"
+    "export_path": "src/lib/table-schema.json",
+    "debug": false
   },
   "server": {
     "port" : 8080,
