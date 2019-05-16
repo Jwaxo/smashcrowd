@@ -22,6 +22,7 @@ const dbdiff = require('dbdiff');
 
 let db = {};
 let config = {};
+let SmashCrowd;
 
 /**
  * Just runs the updates.
@@ -30,11 +31,14 @@ let config = {};
  */
 module.exports.updates = (crowd) => {
 
-  const SmashCrowd = crowd;
+  SmashCrowd = crowd;
   db = SmashCrowd.db;
   config = SmashCrowd.config;
 
-  runUpdates(SmashCrowd);
+  SmashCrowd.setupSystem()
+    .then(() => {
+      runUpdates();
+    });
 };
 
 /**
@@ -43,7 +47,8 @@ module.exports.updates = (crowd) => {
  * @param crowd
  * @returns {Promise<String>}
  */
-module.exports.install = (SmashCrowd) => {
+module.exports.install = (crowd) => {
+  SmashCrowd = crowd;
 
   return new Promise((resolve, reject) => {
     resolve();
@@ -64,7 +69,7 @@ module.exports.install = (SmashCrowd) => {
 
               SmashCrowd.setupSystem()
                 .then(() => {
-                  runUpdates(SmashCrowd);
+                  runUpdates();
 
                   resolve('Database changes complete.');
                 })
@@ -72,44 +77,47 @@ module.exports.install = (SmashCrowd) => {
         }
         else {
           console.log('DB structure already matches, checking for updates.');
-          runUpdates(SmashCrowd);
+          runUpdates();
           resolve('Updates complete.');
         }
       });
   });
 };
 
-function runUpdates(SmashCrowd) {
-  let update_schema;
-  try {
-    SmashCrowd.getSystemValue('update_schema');
-  }
-  catch (error) {
-    console.log('Error getting update version! You may not have installed SmashCrowd yet. Run `node db-install`.');
-    throw error;
-  }
-  update_schema = SmashCrowd.getSystemValue('update_schema');
-  if (update_schema == null) {
-    console.log('SmashCrowd successfully installed.');
-    // If this property doesn't exist, we have a fresh install.
-    postInstall(SmashCrowd);
-  }
-  else {
-    // Otherwise, run all additional updates, should they exist.
-    update_schema = parseInt(update_schema);
-    const updates = getUpdates();
-    let update = '';
-    if (updates.length > 0) {
-      for (update in updates) {
-        if (parseInt(update) > update_schema) {
-          console.log(`Running update ${update}`);
-          updates[update]();
+function runUpdates() {
+
+  SmashCrowd.setupSystem()
+    .then(() => {
+      let update_schema;
+      try {
+        update_schema = SmashCrowd.getSystemValue('update_schema');
+      }
+      catch (error) {
+        console.log('Error getting update version! You may not have installed SmashCrowd yet. Run `node db-install`.');
+        throw error;
+      }
+      if (update_schema == null) {
+        console.log('SmashCrowd successfully installed.');
+        // If this property doesn't exist, we have a fresh install.
+        postInstall();
+      }
+      else {
+        // Otherwise, run all additional updates, should they exist.
+        update_schema = parseInt(update_schema);
+        const updates = getUpdates();
+        let update = '';
+        if (updates.length > 0) {
+          for (update in updates) {
+            if (parseInt(update) > update_schema) {
+              console.log(`Running update ${update}`);
+              updates[update]();
+            }
+          }
+          console.log(`Updated to version ${update}.`);
+          SmashCrowd.setSystemValue('update_schema', update);
         }
       }
-      console.log(`Updated to version ${update}.`);
-      SmashCrowd.setSystemValue('update_schema', update);
-    }
-  }
+    });
 }
 
 /**
@@ -118,7 +126,7 @@ function runUpdates(SmashCrowd) {
  * If any  values need to be put into the DB on creation, this should be
  * accomplished in this function.
  */
-function postInstall(SmashCrowd) {
+function postInstall() {
   // Set the update values for various tables.
   // On initial install, update_schema should match the latest update in the updates
   // function.

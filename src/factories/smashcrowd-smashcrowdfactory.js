@@ -306,7 +306,7 @@ class SmashCrowd {
       value = this.system[key];
     }
     else {
-      value = null;
+      throw 'Tried to get non-existing system value.';
     }
     return value;
   }
