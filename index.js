@@ -12,6 +12,8 @@ const mysql = require('mysql');
 
 const db = mysql.createPool(config.get("database.connection"));
 
+const SmashCrowd = require('./src/factories/smashcrowd-smashcrowdfactory');
+
 db.on('error', error => {
   console.log('Database caught major error: ' + error.toString());
   console.log(error.code);
@@ -27,18 +29,20 @@ if (config.get("database.debug")) {
   });
 }
 
-const SmashCrowd = require('./src/factories/smashcrowd-smashcrowdfactory');
-
 const crowd = new SmashCrowd(db, config);
 
 // This needs to be synchronous to ensure that the server only starts running once
 // everything else is complete.
-require('./smashcrowd-updates').updates(crowd);
+require('./smashcrowd-updates').updates(crowd)
+  .then((update_log) => {
+    console.log(update_log);
 
-crowd.setupAll().then(() => {
-  // We silo all of the main server logic to a separate file.
-  require('./smashcrowd-server')(crowd, config);
+    crowd.setupAll().then(() => {
+      // We silo all of the main server logic to a separate file.
+      require('./smashcrowd-server')(crowd, config);
 
-  // Build the sass and start to watch for style or JS changes.
-  require('./smashcrowd-sass')();
-});
+      // Build the sass and start to watch for style or JS changes.
+      require('./smashcrowd-sass')();
+    });
+  });
+
