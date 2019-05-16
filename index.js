@@ -10,18 +10,17 @@
 const config = require('config');
 const mysql = require('mysql');
 
-const db = mysql.createPool(config.get("database.connection"));
+const db = mysql.createConnection(config.get("database.connection"));
 
 db.on('error', err => {
   console.log('caught this error: ' + err.toString());
 });
 
-db.on('acquire', connection => {
-  console.log("Database connected at %d", connection.threadId);
-});
-
-db.on('release', connection => {
-  console.log('Connection %d released', connection.threadId);
+db.connect(error => {
+  if (error) {
+    throw error;
+  }
+  console.log("Database connected!");
 });
 
 const SmashCrowd = require('./src/factories/smashcrowd-smashcrowdfactory');
