@@ -14,6 +14,7 @@ const db = mysql.createConnection(config.get("database.connection"));
 
 db.on('error', err => {
   console.log('caught this error: ' + err.toString());
+  console.log(err.code);
 });
 
 db.connect(error => {
