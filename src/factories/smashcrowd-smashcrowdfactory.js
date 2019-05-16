@@ -95,6 +95,7 @@ class SmashCrowd {
       this.db.query(sql.join(' '), [table], (error, results) => {
 
         if (error) {
+          console.log('Error running select');
           throw error;
         }
 
@@ -135,6 +136,7 @@ class SmashCrowd {
       console.log('running insert');
       this.db.query(`INSERT INTO ?? (${fields.join(',')}) VALUES ("${values.join('"),("')}")`, [table], (error, results) => {
         if (error) {
+          console.log('Error running insert');
           throw error;
         }
 
@@ -157,6 +159,7 @@ class SmashCrowd {
       console.log('running delete');
       this.db.query(`DELETE FROM ?? WHERE ${where}`, [table], (error, results) => {
         if (error) {
+          console.log('Error running delete');
           throw error;
         }
 
@@ -203,6 +206,7 @@ class SmashCrowd {
       console.log('running update');
       this.db.query(`UPDATE ?? SET ${set.join(',')} WHERE ${where}`, [table], (error, results) => {
         if (error) {
+          console.log('Error running update');
           throw error;
         }
 
@@ -226,6 +230,7 @@ class SmashCrowd {
           console.log('running multiple queries');
           this.db.query(query, [], (error, results) => {
             if (error) {
+              console.log('Error running multiple queries');
               throw error;
             }
 
