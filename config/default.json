@@ -4,7 +4,8 @@
       "host": "localhost",
       "database": "example",
       "user": "user",
-      "password": "password"
+      "password": "password",
+      "connectionLimit": 10
     },
     "table_prefix": "",
     "export_path": "src/lib/table-schema.json"
