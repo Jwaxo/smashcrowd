@@ -16,13 +16,6 @@ db.on('error', err => {
   console.log('caught this error: ' + err.toString());
 });
 
-db.connect(error => {
-  if (error) {
-    throw error;
-  }
-  console.log("Database connected!");
-});
-
 const SmashCrowd = require('./src/factories/smashcrowd-smashcrowdfactory');
 
 const crowd = new SmashCrowd(db, config);
