@@ -51,7 +51,6 @@ module.exports.install = (crowd) => {
   SmashCrowd = crowd;
 
   return new Promise((resolve, reject) => {
-    resolve();
     const db_description = SmashCrowd.getDbDiffString(config.get("database.connection"));
 
     dbdiff.describeDatabase(db_description)
