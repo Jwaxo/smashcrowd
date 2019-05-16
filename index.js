@@ -12,14 +12,20 @@ const mysql = require('mysql');
 
 const db = mysql.createPool(config.get("database.connection"));
 
-db.on('error', err => {
-  console.log('caught this error: ' + err.toString());
-  console.log(err.code);
+db.on('error', error => {
+  console.log('Database caught major error: ' + error.toString());
+  console.log(error.code);
+  throw error;
 });
 
-db.on('connection', connection => {
-  console.log(`Database connected with id ${connection.threadId}`);
-});
+if (config.get("database.debug")) {
+  db.on('connection', connection => {
+    console.log(`Database connected with id ${connection.threadId}`);
+  });
+  db.on('release', connection => {
+    console.log(`Database released connection ${connection.threadId}`);
+  });
+}
 
 const SmashCrowd = require('./src/factories/smashcrowd-smashcrowdfactory');
 

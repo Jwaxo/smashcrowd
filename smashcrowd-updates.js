@@ -38,34 +38,34 @@ module.exports = (crowd) => {
   const tableSchema = require('./src/lib/table-schema.json');
   return new Promise((resolve, reject) => {
     resolve();
-    // const db_description = SmashCrowd.getDbDiffString(config.get("database.connection"));
-    //
-    // dbdiff.describeDatabase(db_description)
-    //   .then((schema) => {
-    //     const tableSchema = require('./' + config.get('database.export_path'));
-    //     const diff = new dbdiff.DbDiff();
-    //     diff.compareSchemas(schema, tableSchema);
-    //     const commands = diff.commands('drop').split(';');
-    //     for (let i = 0; i < commands.length; i++) {
-    //       commands[i] = commands[i].replace(' DEFAULT_GENERATED', '');
-    //     }
-    //     if (commands.length > 0) {
-    //       SmashCrowd.dbQueries(commands)
-    //         .then(() => {
-    //
-    //           SmashCrowd.setupSystem()
-    //             .then(() => {
-    //               runUpdates();
-    //
-    //               resolve();
-    //             })
-    //         });
-    //     }
-    //     else {
-    //       console.log('DB structure already matches, checking for updates.')
-    //       runUpdates();
-    //     }
-    //   });
+    const db_description = SmashCrowd.getDbDiffString(config.get("database.connection"));
+
+    dbdiff.describeDatabase(db_description)
+      .then((schema) => {
+        const tableSchema = require('./' + config.get('database.export_path'));
+        const diff = new dbdiff.DbDiff();
+        diff.compareSchemas(schema, tableSchema);
+        const commands = diff.commands('drop').split(';');
+        for (let i = 0; i < commands.length; i++) {
+          commands[i] = commands[i].replace(' DEFAULT_GENERATED', '');
+        }
+        if (commands.length > 0) {
+          SmashCrowd.dbQueries(commands)
+            .then(() => {
+
+              SmashCrowd.setupSystem()
+                .then(() => {
+                  runUpdates();
+
+                  resolve();
+                })
+            });
+        }
+        else {
+          console.log('DB structure already matches, checking for updates.');
+          runUpdates();
+        }
+      });
   });
 };
 

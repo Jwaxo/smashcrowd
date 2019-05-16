@@ -15,9 +15,6 @@ class SmashCrowd {
    */
   constructor(db, config) {
     this.db = db;
-    this.db.on('error', function (err) {
-      console.log('SmashCrowd DB Error: ' + err.toString());
-    });
     this.config = config;
     this.system = {};
     this.characters = [];
@@ -91,7 +88,6 @@ class SmashCrowd {
       sql.push(`LIMIT ${limit}`);
     }
     return new Promise(resolve => {
-      console.log('running select');
       this.db.getConnection((connect_error, connection) => {
         if (connect_error) {
           console.log('Error getting connection from pool');
@@ -142,7 +138,6 @@ class SmashCrowd {
     });
 
     return new Promise(resolve => {
-      console.log('running insert');
       this.db.getConnection((connect_error, connection) => {
         if (connect_error) {
           console.log('Error getting connection from pool');
@@ -171,7 +166,6 @@ class SmashCrowd {
   async dbDelete(table, where = 1) {
 
     return new Promise(resolve => {
-      console.log('running delete');
       this.db.getConnection((connect_error, connection) => {
         if (connect_error) {
           console.log('Error getting connection from pool');
@@ -224,7 +218,6 @@ class SmashCrowd {
     }
 
     return new Promise(resolve => {
-      console.log('running update');
       this.db.getConnection((connect_error, connection) => {
         if (connect_error) {
           console.log('Error getting connection from pool');
@@ -254,7 +247,6 @@ class SmashCrowd {
     for (const query of queries) {
       if (query.trim()) {
         await new Promise(resolve => {
-          console.log('running multiple queries');
 
           this.db.getConnection((connect_error, connection) => {
             if (connect_error) {
