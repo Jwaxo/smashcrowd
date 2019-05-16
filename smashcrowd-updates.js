@@ -37,6 +37,7 @@ module.exports = (crowd) => {
 
   const tableSchema = require('./src/lib/table-schema.json');
   return new Promise((resolve, reject) => {
+    resolve();
     // const db_description = SmashCrowd.getDbDiffString(config.get("database.connection"));
     //
     // dbdiff.describeDatabase(db_description)
