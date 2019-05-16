@@ -91,7 +91,7 @@ function runUpdates(SmashCrowd) {
   if (update_schema == null) {
     console.log('SmashCrowd successfully installed.');
     // If this property doesn't exist, we have a fresh install.
-    postInstall();
+    postInstall(SmashCrowd);
   }
   else {
     // Otherwise, run all additional updates, should they exist.
@@ -117,7 +117,7 @@ function runUpdates(SmashCrowd) {
  * If any  values need to be put into the DB on creation, this should be
  * accomplished in this function.
  */
-function postInstall() {
+function postInstall(SmashCrowd) {
   // Set the update values for various tables.
   // On initial install, update_schema should match the latest update in the updates
   // function.
