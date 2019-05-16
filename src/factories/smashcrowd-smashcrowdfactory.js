@@ -92,15 +92,24 @@ class SmashCrowd {
     }
     return new Promise(resolve => {
       console.log('running select');
-      this.db.query(sql.join(' '), [table], (error, results) => {
-
-        if (error) {
-          console.log('Error running select');
-          throw error;
+      this.db.getConnection((connect_error, connection) => {
+        if (connect_error) {
+          console.log('Error getting connection from pool');
+          throw connect_error;
         }
+        connection.query(sql.join(' '), [table], (error, results) => {
 
-        resolve(results);
+          connection.release();
+
+          if (error) {
+            console.log('Error running select');
+            throw error;
+          }
+
+          resolve(results);
+        });
       });
+
     });
   }
 
@@ -134,13 +143,19 @@ class SmashCrowd {
 
     return new Promise(resolve => {
       console.log('running insert');
-      this.db.query(`INSERT INTO ?? (${fields.join(',')}) VALUES ("${values.join('"),("')}")`, [table], (error, results) => {
-        if (error) {
-          console.log('Error running insert');
-          throw error;
+      this.db.getConnection((connect_error, connection) => {
+        if (connect_error) {
+          console.log('Error getting connection from pool');
+          throw connect_error;
         }
+        connection.query(`INSERT INTO ?? (${fields.join(',')}) VALUES ("${values.join('"),("')}")`, [table], (error, results) => {
+          if (error) {
+            console.log('Error running insert');
+            throw error;
+          }
 
-        resolve(results.insertId);
+          resolve(results.insertId);
+        });
       });
     });
   }
@@ -157,13 +172,19 @@ class SmashCrowd {
 
     return new Promise(resolve => {
       console.log('running delete');
-      this.db.query(`DELETE FROM ?? WHERE ${where}`, [table], (error, results) => {
-        if (error) {
-          console.log('Error running delete');
-          throw error;
+      this.db.getConnection((connect_error, connection) => {
+        if (connect_error) {
+          console.log('Error getting connection from pool');
+          throw connect_error;
         }
+        connection.query(`DELETE FROM ?? WHERE ${where}`, [table], (error, results) => {
+          if (error) {
+            console.log('Error running delete');
+            throw error;
+          }
 
-        resolve(results.affectedRows);
+          resolve(results.affectedRows);
+        });
       });
     });
   }
@@ -204,13 +225,19 @@ class SmashCrowd {
 
     return new Promise(resolve => {
       console.log('running update');
-      this.db.query(`UPDATE ?? SET ${set.join(',')} WHERE ${where}`, [table], (error, results) => {
-        if (error) {
-          console.log('Error running update');
-          throw error;
+      this.db.getConnection((connect_error, connection) => {
+        if (connect_error) {
+          console.log('Error getting connection from pool');
+          throw connect_error;
         }
+        connection.query(`UPDATE ?? SET ${set.join(',')} WHERE ${where}`, [table], (error, results) => {
+          if (error) {
+            console.log('Error running update');
+            throw error;
+          }
 
-        resolve(results);
+          resolve(results);
+        });
       });
     });
   }
@@ -228,13 +255,20 @@ class SmashCrowd {
       if (query.trim()) {
         await new Promise(resolve => {
           console.log('running multiple queries');
-          this.db.query(query, [], (error, results) => {
-            if (error) {
-              console.log('Error running multiple queries');
-              throw error;
-            }
 
-            resolve();
+          this.db.getConnection((connect_error, connection) => {
+            if (connect_error) {
+              console.log('Error getting connection from pool');
+              throw connect_error;
+            }
+            connection.query(query, [], (error, results) => {
+              if (error) {
+                console.log('Error running multiple queries');
+                throw error;
+              }
+
+              resolve();
+            });
           });
         });
       }
