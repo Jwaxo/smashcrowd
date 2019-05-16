@@ -15,6 +15,9 @@ class SmashCrowd {
    */
   constructor(db, config) {
     this.db = db;
+    this.db.on('error', function (err) {
+      console.log('SmashCrowd DB Error: ' + err.toString());
+    });
     this.config = config;
     this.system = {};
     this.characters = [];
