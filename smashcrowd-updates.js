@@ -22,7 +22,6 @@ const dbdiff = require('dbdiff');
 
 let db = {};
 let config = {};
-let SmashCrowd;
 
 /**
  * Just runs the updates.
@@ -31,11 +30,11 @@ let SmashCrowd;
  */
 module.exports.updates = (crowd) => {
 
-  SmashCrowd = crowd;
+  const SmashCrowd = crowd;
   db = SmashCrowd.db;
   config = SmashCrowd.config;
 
-  runUpdates();
+  runUpdates(SmashCrowd);
 };
 
 /**
@@ -44,7 +43,7 @@ module.exports.updates = (crowd) => {
  * @param crowd
  * @returns {Promise<String>}
  */
-module.exports.install = (crowd) => {
+module.exports.install = (SmashCrowd) => {
 
   return new Promise((resolve, reject) => {
     resolve();
@@ -65,7 +64,7 @@ module.exports.install = (crowd) => {
 
               SmashCrowd.setupSystem()
                 .then(() => {
-                  runUpdates();
+                  runUpdates(SmashCrowd);
 
                   resolve('Database changes complete.');
                 })
@@ -73,16 +72,17 @@ module.exports.install = (crowd) => {
         }
         else {
           console.log('DB structure already matches, checking for updates.');
-          runUpdates();
+          runUpdates(SmashCrowd);
           resolve('Updates complete.');
         }
       });
   });
 };
 
-function runUpdates() {
+function runUpdates(SmashCrowd) {
+  let update_schema;
   try {
-    let update_schema = SmashCrowd.getSystemValue('update_schema');
+    update_schema = SmashCrowd.getSystemValue('update_schema');
   }
   catch (error) {
     console.log('Error getting update version! You may not have installed SmashCrowd yet. Run `node db-install`.');
