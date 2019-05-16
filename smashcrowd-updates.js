@@ -48,39 +48,49 @@ module.exports = (crowd) => {
         for (let i = 0; i < commands.length; i++) {
           commands[i] = commands[i].replace(' DEFAULT_GENERATED', '');
         }
-        SmashCrowd.dbQueries(commands)
-          .then(() => {
+        if (commands.length > 0) {
+          SmashCrowd.dbQueries(commands)
+            .then(() => {
 
-            SmashCrowd.setupSystem()
-              .then(() => {
-                let update_schema = SmashCrowd.getSystemValue('update_schema');
-                if (update_schema == null) {
-                  console.log('All tables created!');
-                  // If this property doesn't exist, we have a fresh install.
-                  postInstall();
-                }
-                else {
-                  console.log('All tables synchronized!');
-                  // Otherwise, run all additional updates, should they exist.
-                  update_schema = parseInt(update_schema);
-                  const updates = getUpdates();
-                  let update = '';
-                  for (update in updates) {
-                    if (parseInt(update) > update_schema) {
-                      console.log(`Running update ${update}`);
-                      updates[update]();
-                    }
-                  }
+              SmashCrowd.setupSystem()
+                .then(() => {
+                  runUpdates();
 
-                  SmashCrowd.setSystemValue('update_schema', update);
-                }
-
-                resolve();
-              })
-          });
+                  resolve();
+                })
+            });
+        }
+        else {
+          console.log('DB structure already matches, checking for updates.')
+          runUpdates();
+        }
       });
   });
 };
+
+function runUpdates() {
+  let update_schema = SmashCrowd.getSystemValue('update_schema');
+  if (update_schema == null) {
+    console.log('SmashCrowd successfully installed.');
+    // If this property doesn't exist, we have a fresh install.
+    postInstall();
+  }
+  else {
+    // Otherwise, run all additional updates, should they exist.
+    update_schema = parseInt(update_schema);
+    const updates = getUpdates();
+    let update = '';
+    for (update in updates) {
+      if (parseInt(update) > update_schema) {
+        console.log(`Running update ${update}`);
+        updates[update]();
+      }
+    }
+    console.log(`Updated to version ${update}.`);
+
+    SmashCrowd.setSystemValue('update_schema', update);
+  }
+}
 
 /**
  * Install functions that run at the end of the installation process.
