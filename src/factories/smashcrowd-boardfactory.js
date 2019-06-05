@@ -147,6 +147,22 @@ class Board {
     return this.total_rounds;
   }
 
+  /**
+   * Gets the maximum number of rounds in this game.
+   *
+   * This differs from the "total_rounds" property, which is set at board creation,
+   * and is a useless statistic if we're playing with an unlimited number of rounds
+   * in this game.
+   */
+  getMaxRounds() {
+    // If total rounds are set, return those. If it isn't, reduce the players
+    // object to the maximum number of characters in every player. Whoever has
+    // the most characters will be the max rounds we can play for.
+    return this.total_rounds || Object.keys(this.players).reduce((previous_max, playerid) => {
+      return Math.max(previous_max, this.players[playerid].getCharacterCount());
+    });
+  }
+
   startDraft() {
     this.draft.startByStatus('draft', this);
     this.advanceDraftRound();

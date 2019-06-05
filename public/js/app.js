@@ -147,6 +147,8 @@ $(function() {
         }
       }
     }
+
+    characterSetup();
   });
 
   /**

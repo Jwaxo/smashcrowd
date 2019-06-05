@@ -427,11 +427,12 @@ function setClientPlayer(board, client, player) {
     'clientId': client.getId(),
   });
 
+  // Send out updates to the specific client so that they know they are the player.
   setClientInfoSingle(client, true);
-
   updateCharactersSingle(client, {allDisabled: !player.isActive});
-  updatePlayersInfo(board, updatedPlayers);
 
+  // Send updates to all clients so they see the player being controlled.
+  updatePlayersInfo(board, updatedPlayers);
   regenerateStages(board);
 }
 
@@ -550,6 +551,15 @@ function regeneratePlayers(board, regenerateForm = false) {
 function regenerateCharacters(board) {
   Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
     io.sockets.emit('rebuild-characters', html);
+  });
+}
+
+/**
+ * Renders the character select screen specific to one player and updates them.
+ */
+function regenerateCharactersSingle(board, socket) {
+  Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
+    socket.emit('rebuild-characters', html);
   });
 }
 

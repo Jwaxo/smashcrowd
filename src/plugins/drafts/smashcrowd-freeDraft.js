@@ -93,17 +93,21 @@ class freeDraft extends DraftAbstract {
 
     // If any single player is not yet ready, don't update the board info.
     let draftComplete = true;
+    let maxRounds = board.getMaxRounds();
     for (let playerId in board.getPlayers()) {
       const player = board.getPlayer(playerId);
-      if (player.getCharacterCount() < board.getTotalRounds()) {
+      if (player.getCharacterCount() < maxRounds) {
         draftComplete = false;
       }
     }
 
     if (draftComplete) {
       board.setStatus('draft-complete');
-      returned_functions.push({'regenerateBoardInfo': [board]});
     }
+    else {
+      board.setStatus('draft');
+    }
+    returned_functions.push({'regenerateBoardInfo': [board]});
 
     return returned_functions;
   }
