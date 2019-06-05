@@ -70,7 +70,12 @@ class User {
     return this.username;
   }
 
-
+  setAvatar(avatar) {
+    this.avatar = avatar;
+  }
+  getAvatar() {
+    return this.avatar || SmashCrowd.getDefaultAvatar();
+  }
 
   /**
    * Store a Player in the users's information. The user's info gets passed

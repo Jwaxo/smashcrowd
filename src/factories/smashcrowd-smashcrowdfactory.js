@@ -683,6 +683,10 @@ class SmashCrowd {
     return this.boards[board_id];
   }
 
+  getDefaultAvatar() {
+    return this.config.get('server.default_avatar');
+  }
+
   /**
    * Run all setup functions and return a single Promise, which fulfills when all done.
    *

@@ -33,6 +33,7 @@
       "name": "SmashCrowd Default",
       "draft_type": "free",
       "owner": 1
-    }
+    },
+    "default_avatar": "images/avatar_default.png"
   }
 }

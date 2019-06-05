@@ -71,16 +71,16 @@ module.exports.install = (crowd) => {
             .then(() => {
               resolve('Database changes complete.');
               runUpdates()
-                .then(() => {
-                  resolve('Updates complete.');
+                .then((updates_message) => {
+                  resolve(updates_message);
                 });
             });
         }
         else {
           console.log('DB structure already matches, checking for updates.');
           runUpdates()
-            .then(() => {
-              resolve('Updates complete.');
+            .then((updates_message) => {
+              resolve(updates_message);
             });
         }
       });
