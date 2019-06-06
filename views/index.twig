@@ -11,8 +11,15 @@
 <div class="grid-container">
   <div class="grid-x grid-padding-x">
     <div class="cell medium-2">
-      {% include 'user-toolbar.twig' %}
-      {% include 'boards-toolbar.twig' %}
+
+      <div id="user_toolbar_container">
+        {% include 'user-toolbar.twig' %}
+      </div>
+
+      <div id="boards_toolbar_container">
+        {% include 'boards-toolbar.twig' %}
+      </div>
+
     </div>
 
     <div class="cell auto">

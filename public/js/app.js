@@ -8,6 +8,7 @@ $(function() {
   playerSetup(true);
   playerFormSetup(true);
   boardSetup(true);
+  userToolbarSetup(true);
 
   /**
    * We've been registered as a new connection, or are updating a current one.
@@ -59,6 +60,12 @@ $(function() {
     const boardInfoContainer = $('#board_info_container');
     boardInfoContainer.html(html);
     boardSetup();
+  });
+
+  socket.on('rebuild-usertoolbar', html => {
+    const userToolbarContainer = $('#user_toolbar_container');
+    userToolbarContainer.html(html);
+    userToolbarSetup();
   });
 
   /**
@@ -206,7 +213,6 @@ $(function() {
   $('form[name="new-user"]').submit((e) => {
     e.preventDefault();
     const form = $(event.currentTarget);
-    const registerModal = $('#modal_user_register');
     const errorContainer = form.find('.error-container');
     const data = {
       username: form.find('input[name="username"]').val(),
@@ -236,6 +242,31 @@ $(function() {
       socket.emit('register-user', data);
     }
   });
+
+  socket.on('form-user-register-error', error => {
+    const form = $('form[name="new-user"]');
+    const errorContainer = form.find('.error-container');
+
+    for (let field of error.elements) {
+      form.find(`input[name="${field}"]`).addClass('invalid');
+    }
+    errorContainer.html(error.message);
+  });
+
+  socket.on('form-user-register-complete', user => {
+    const registerModal = $('#modal_user_register');
+    registerModal.foundation('close');
+  });
+
+  /**
+   * Needs to be run any time the user toolbar gets recreated, so the jQuery
+   * events properly attach.
+   */
+  function userToolbarSetup(initial = false) {
+    if (!initial) {
+      $('#user_toolbar_container').foundation();
+    }
+  }
 
   /**
    * Needs to be run any time the character grid gets recreated, so the jQuery

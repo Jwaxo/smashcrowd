@@ -17,6 +17,7 @@ const Player = require('./src/factories/smashcrowd-playerfactory.js');
 const Character = require('./src/factories/smashcrowd-characterfactory.js');
 const Board = require('./src/factories/smashcrowd-boardfactory.js');
 const Stage = require('./src/factories/smashcrowd-stagefactory.js');
+const User = require('./src/factories/smashcrowd-userfactory.js');
 
 const clients = [];
 const chatHistory = [];
@@ -24,6 +25,7 @@ const app = express();
 const server = http.Server(app);
 const uuid = require('uuid/v4');
 const io = socketio(server);
+const bcrypt = require('bcrypt');
 let SmashCrowd;
 let console_colors = {};
 
@@ -97,12 +99,15 @@ module.exports = (crowd, config) => {
     const user = client.getUser();
 
     if (clientSession.userId) {
-      user.loadUser(clientSession.userid);
-      console.log(`This client has an active userId of ${clientSession.userId}`);
+      // We're resuming a session, so load the user.
+      user.loadUser(clientSession.userId)
+        .then(() => {
+          regenerateUserToolbar(user, socket);
+        });
     }
     else {
+      // No session, so create an anonymous user (for now).
       user.setGameId(board.getGameId());
-      console.log(`User has no active login with session ${clientSession.id}.`);
     }
 
     serverLog(`${client.getLabel(board.getId())} assigned to socket ${socket.id}`, true);
@@ -114,7 +119,6 @@ module.exports = (crowd, config) => {
     regenerateCharacters(board);
     regenerateStages(board);
     regenerateChatSingle(socket);
-    regenerateUserToolbar(user, socket);
 
     const player = client.getPlayerByBoard(board.getId());
     let playerActive = false;
@@ -136,6 +140,57 @@ module.exports = (crowd, config) => {
     // Finally, manually disable character picking if we don't have a player and
     // that player isn't active.
     updateCharactersSingle(client, {allDisabled: !playerActive});
+
+    /**
+     * The client attempted to register a new user.
+     *
+     * This data should already be validated clientside, we just need to make
+     * sure the email and username aren't already in use, then save the user.
+     */
+    socket.on('register-user', data => {
+      user.checkUserAvailable(data.email, data.username)
+        .then(results => {
+          const error = {};
+
+          switch (results) {
+
+            // Available.
+            case 0:
+              user.setEmail(data.email);
+              user.setUsername(data.username);
+              SmashCrowd.createUser(user, bcrypt.hashSync(data.password1, 10))
+                .then(userId => {
+                  clientSession.userId = userId;
+                  clientSession.save();
+
+                  serverLog(`${client.getLabel(board.getId())} created new user ${data.username}`);
+
+                  socket.emit('form-user-register-complete');
+                  regenerateUserToolbar(user, socket);
+                });
+
+              break;
+
+            // Username taken.
+            case 1:
+              error.elements = ['username'];
+              error.message = 'This username is already taken. Please try a different one.';
+
+              break;
+
+            // Email taken.
+            case 2:
+              error.elements = ['email'];
+              error.message = 'This email is already in use. Please use a different one.';
+
+              break;
+          }
+
+          if (error.hasOwnProperty('elements')) {
+            socket.emit('form-user-register-error', error);
+          }
+        });
+    });
 
     /**
      * The client has created a player for the roster.

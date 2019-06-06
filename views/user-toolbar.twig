@@ -1,5 +1,5 @@
-{% if user %}
-  {{ user.username }}
+{% if user.getId() %}
+  {{ user.getUsername() }}
   <button class="logout button">Logout</button>
 {% else %}
   <button class="login button" data-open="modal_user_login">Login</button>

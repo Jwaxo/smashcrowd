@@ -7,7 +7,7 @@ let SmashCrowd;
 
 class User {
 
-  constructor(crowd) {
+  constructor(crowd, options = {}) {
     this.session = '';
     this.id = null;
     this.email = null;
@@ -16,7 +16,13 @@ class User {
 
     this.clientId = 0;
     this.boards = {};
-    this.players= {}; // Organized by board ID.
+    this.players = {}; // Organized by board ID.
+
+    if (options) {
+      for (let property in options) {
+        this[property] = options[property];
+      }
+    }
 
     SmashCrowd = crowd;
 
@@ -201,18 +207,18 @@ class User {
 
     await Promise.all([
       new Promise(resolve => {
-        SmashCrowd.dbSelect('user', 'username', `username = "${username}"`)
+        SmashCrowd.dbSelectFirst('users', 'username', `username = "${username}"`)
           .then(results => {
-            if (results.length > 0) {
+            if (results > 0) {
               available = 1;
             }
             resolve();
           });
       }),
       new Promise(resolve => {
-        SmashCrowd.dbSelect('user', 'email', `email = "${email}"`)
+        SmashCrowd.dbSelectFirst('users', 'email', `email = "${email}"`)
           .then(results => {
-            if (results.length > 0) {
+            if (results > 0) {
               available = 2;
             }
             resolve();

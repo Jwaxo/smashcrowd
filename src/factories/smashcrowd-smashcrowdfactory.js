@@ -5,6 +5,7 @@
 
 const Player = require('./smashcrowd-playerfactory.js');
 const Board = require('./smashcrowd-boardfactory');
+const User = require('./smashcrowd-userfactory');
 
 class SmashCrowd {
 
@@ -385,7 +386,7 @@ class SmashCrowd {
     await this.dbSelect('users')
       .then(results => {
         results.forEach(result => {
-          this.users[result.id] = result;
+          this.users[result.id] = new User(this, result);
         });
       });
     return this.users;
@@ -410,7 +411,7 @@ class SmashCrowd {
           this.users[userId] = user;
           this.users[userId].setId(userId);
 
-          resolve();
+          resolve(userId);
         });
     });
   }
