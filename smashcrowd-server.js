@@ -22,6 +22,8 @@ const clients = [];
 const chatHistory = [];
 const app = express();
 const server = http.Server(app);
+const session = require('express-session');
+const uuid = require('uuid/v4');
 const io = socketio(server);
 let SmashCrowd;
 let console_colors = {};
@@ -44,12 +46,25 @@ module.exports = (crowd, config) => {
   // Do basic server setup stuff.
   app.use(express.static(__dirname + '/public'));
 
+  app.use(session({
+    genid: req => {
+      return uuid(); // use UUIDs for session IDs
+    },
+    secret: 'buff mac',
+    resave: false,
+    saveUninitialized: true,
+  }));
+
   app.set("twig options", {
     allow_async: true,
     strict_variables: false
   });
 
-  app.get('/', function(req, res) {
+  app.get('/', (req, res) => {
+    // We are now tracking a single session in the browser! When a session gets
+    // attached to a user, we need to make a row in a new table that ties the
+    // session to a user, and check this this session is re-initialized. Then
+    // we have have that user immediately resume! Huzzah!
     res.render('index.twig', {
       board,
       chatHistory,

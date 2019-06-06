@@ -351,6 +351,35 @@
 			]
 		},
 		{
+			"name": "user_sessions",
+			"constraints": [
+				{
+					"name": "PRIMARY",
+					"type": "primary",
+					"columns": [
+						"session"
+					]
+				}
+			],
+			"indexes": [],
+			"columns": [
+				{
+					"name": "user_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": ""
+				},
+				{
+					"name": "session",
+					"nullable": false,
+					"default_value": null,
+					"type": "varchar(64)",
+					"extra": ""
+				}
+			]
+		},
+		{
 			"name": "users",
 			"constraints": [
 				{
