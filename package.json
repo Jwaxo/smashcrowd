@@ -30,9 +30,10 @@
     "config": "^3.0.1",
     "dbdiff": "^0.5.3",
     "express": "^4.16.4",
+    "express-session": "^1.16.1",
     "foundation-sites": "^6.5.3",
     "fs": "0.0.1-security",
-    "jquery": "^3.3.1",
+    "jquery": "^3.4.1",
     "motion-ui": "^2.0.3",
     "mysql": "^2.17.0",
     "socket.io": "^2.2.0",
@@ -43,7 +44,7 @@
   "devDependencies": {
     "autoprefixer": "^9.1.5",
     "gulp": "^4.0.0",
-    "gulp-load-plugins": "^1.1.0",
+    "gulp-load-plugins": "^1.6.0",
     "gulp-postcss": "^8.0.0",
     "gulp-sass": "^4.0.1"
   }
