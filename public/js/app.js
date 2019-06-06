@@ -201,6 +201,43 @@ $(function() {
   });
 
   /**
+   * Resets the entire board: players, rosters, and characters chosen.
+   */
+  $('form[name="new-user"]').submit((e) => {
+    e.preventDefault();
+    const form = $(event.currentTarget);
+    const registerModal = $('#modal_user_register');
+    const errorContainer = form.find('.error-container');
+    const data = {
+      username: form.find('input[name="username"]').val(),
+      email: form.find('input[name="email"]').val(),
+      password1: form.find('input[name="password1"]').val(),
+      password2: form.find('input[name="password2"]').val(),
+    };
+    const error = {};
+
+    if (data.password1 !== data.password2) {
+      error.elements = ['password1', 'password2'];
+      error.message = "Please verify that your passwords match.";
+    }
+    else if (data.password1.length < 12) {
+      error.elements = ['password1', 'password2'];
+      error.message = "Please ensure that your password is at least 12 characters long.";
+    }
+
+    if (error.elements) {
+      for (let field of error.elements) {
+        form.find(`input[name="${field}"]`).addClass('invalid');
+      }
+      errorContainer.html(error.message);
+      return false;
+    }
+    else {
+      socket.emit('register-user', data);
+    }
+  });
+
+  /**
    * Needs to be run any time the character grid gets recreated, so the jQuery
    * events properly attach.
    */

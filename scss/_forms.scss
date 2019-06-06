@@ -1,0 +1,13 @@
+/**
+ * Styles defining forms.
+ */
+
+form {
+  .error-container {
+    color: map-get($foundation-palette, alert);
+  }
+
+  .invalid {
+    border: rem-calc(2px) solid map-get($foundation-palette, alert);
+  }
+}

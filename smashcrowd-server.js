@@ -22,11 +22,23 @@ const clients = [];
 const chatHistory = [];
 const app = express();
 const server = http.Server(app);
-const session = require('express-session');
 const uuid = require('uuid/v4');
 const io = socketio(server);
 let SmashCrowd;
 let console_colors = {};
+
+// Define how sessions are created and tracked.
+const session = require('express-session')({
+  genid: req => {
+    return uuid(); // use UUIDs for session IDs
+  },
+  secret: 'buff mac',
+  resave: false,
+  saveUninitialized: true,
+});
+// Since Express and IO are technically two different types of server trackers,
+// we need to track sessions using some middleware.
+const sharedSession = require("express-socket.io-session");
 
 module.exports = (crowd, config) => {
   const port = config.get('server.port');
@@ -46,14 +58,9 @@ module.exports = (crowd, config) => {
   // Do basic server setup stuff.
   app.use(express.static(__dirname + '/public'));
 
-  app.use(session({
-    genid: req => {
-      return uuid(); // use UUIDs for session IDs
-    },
-    secret: 'buff mac',
-    resave: false,
-    saveUninitialized: true,
-  }));
+  // Here we do the Express/IO shared session magic.
+  app.use(session);
+  io.use(sharedSession(session));
 
   app.set("twig options", {
     allow_async: true,
@@ -81,25 +88,33 @@ module.exports = (crowd, config) => {
 
     const randomColor = Math.floor(Math.random() * (console_colors.length));
 
+    const clientSession = socket.handshake.session;
     const client = new Client(socket, SmashCrowd);
     const clientId = clients.push(client);
     client.setId(clientId);
     client.setColor(chalk[console_colors[randomColor]]);
 
     const user = client.getUser();
-    user.setGameId(board.getGameId());
 
-    // @todo: Now track characters, stages, and users with the actual database.
-    // And we should be done!
+    if (clientSession.userId) {
+      user.loadUser(clientSession.userid);
+      console.log(`This client has an active userId of ${clientSession.userId}`);
+    }
+    else {
+      user.setGameId(board.getGameId());
+      console.log(`User has no active login with session ${clientSession.id}.`);
+    }
 
     serverLog(`${client.getLabel(board.getId())} assigned to socket ${socket.id}`, true);
 
-    // Generate everything just in case the connections existed before the server.
+    // Generate everything that may change based off of an existing client connection
+    // or resumed session.
     setClientInfoSingle(client);
     regeneratePlayers(board);
     regenerateCharacters(board);
     regenerateStages(board);
     regenerateChatSingle(socket);
+    regenerateUserToolbar(user, socket);
 
     const player = client.getPlayerByBoard(board.getId());
     let playerActive = false;
@@ -597,6 +612,18 @@ function regenerateStages(board) {
     Twig.renderFile('./views/stages-container.twig', {board, client}, (error, html) => {
       client.getSocket().emit('rebuild-stages', html);
     });
+  });
+}
+
+/**
+ * Renders the user toolbar for a particular client/user.
+ *
+ * @param {User} user
+ * @param {WebSocket} socket
+ */
+function regenerateUserToolbar(user, socket) {
+  Twig.renderFile('./views/user-toolbar.twig', {user}, (error, html) => {
+    socket.emit('rebuild-usertoolbar', html);
   });
 }
 
