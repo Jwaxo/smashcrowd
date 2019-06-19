@@ -179,16 +179,48 @@ class User {
   }
 
   /**
-   * Assuming successfully validated user info, creates the user.
+   * Attempts to log a user in with credentials, and sets the user up if success.
    *
-   * @param {string} email
    * @param {string} username
    * @param {string} password
+   *  The plaintext password that the end user attempted.
+   * @param {boolean} skipPassword
+   *  FOR ADMIN USE ONLY. Skips the password step.
+   *
+   * @returns {Promise<boolean>}
    */
-  registerUser(email, username, password) {
-    this.setEmail(email);
-    this.setUsername(username);
-    SmashCrowd.createUser(this, this.constructor.passwordHash(password));
+  async loginUser(username, password, skipPassword = false) {
+    let allowLogin = false;
+    let userData = null;
+    await SmashCrowd.loadUserByUsername(username)
+      .then(loadedUser => {
+        userData = loadedUser;
+
+        if (userData !== null) {
+          // A user by this username exists, so let's check the password.
+
+          if (skipPassword) {
+            allowLogin = true;
+          }
+          else if (bcrypt.compareSync(password, userData.password)) {
+            // The password checks out, let's login.
+            allowLogin = true;
+          }
+        }
+      });
+
+    // We should only have allowLogin true if userdata exists, but we check again
+    // anyway, in case the framework changes in the future.
+    if (allowLogin && userData !== null) {
+      // Everything is green, let's log in.
+      this.setId(userData.id);
+      this.setUsername(userData.username);
+      this.setLabel(userData.label);
+      this.setEmail(userData.email);
+      this.setAvatar(userData.avatar);
+    }
+
+    return allowLogin;
   }
 
   /**
@@ -229,19 +261,6 @@ class User {
     ]);
 
     return available;
-  }
-
-  /**
-   * Hash a given password with bcrypt methods and return the hash.
-   *
-   * @param {string} password
-   * @returns {string}
-   */
-  static passwordHash(password) {
-    bcrypt.hash(password, 10, (err, hash) => {
-      password = hash;
-    });
-    return password;
   }
 
 }

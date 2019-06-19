@@ -1,1 +1,40 @@
-Hey login here!
+
+<form name="user-login">
+
+  <div class="grid-x grid-padding-x">
+    <div class="medium-12 cell">
+      <h3>User Login</h3>
+      <div class="error-container help-text"></div>
+    </div>
+  </div>
+
+  <div class="grid-x grid-padding-x">
+    <div class="medium-6 cell">
+      <label>Username
+        <input type="text" name="username" placeholder="ExaMple" required maxlength="16">
+      </label>
+    </div>
+    <div class="medium-6 cell">
+      <div class="medium-6 cell">
+        <label>Password
+          <input type="password" name="password" required>
+        </label>
+      </div>
+    </div>
+  </div>
+  <div class="grid-x grid-padding-x forgot-password-container is-hidden">
+
+    <div class="medium-6 cell">
+      <label>Enter your email
+        <input type="email" name="email" placeholder="exam.ple@example.com" maxlength="32">
+      </label>
+    </div>
+  </div>
+
+  <div class="grid-x grid-padding-x">
+    <div class="medium-12 cell">
+      <button class="button" type="submit">Submit</button>
+    </div>
+  </div>
+
+</form>

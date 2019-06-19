@@ -624,6 +624,9 @@ class SmashCrowd {
   async loadUser(userId) {
     return await this.dbSelectFirst('users', '*', `id = "${userId}"`);
   }
+  async loadUserByUsername(username) {
+    return await this.dbSelectFirst('users', '*', `username = "${username}"`);
+  }
   getUsers() {
     return this.users;
   }

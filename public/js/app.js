@@ -208,7 +208,37 @@ $(function() {
   });
 
   /**
-   * Resets the entire board: players, rosters, and characters chosen.
+   * User attempts a login.
+   */
+  $('form[name="user-login"]').submit((e) => {
+    e.preventDefault();
+    const form = $(event.currentTarget);
+    const errorContainer = form.find('.error-container');
+    const data = {
+      username: form.find('input[name="username"]').val(),
+      password: form.find('input[name="password"]').val(),
+    };
+
+    socket.emit('user-login', data);
+  });
+
+  socket.on('form-user-login-error', error => {
+    const form = $('form[name="user-login"]');
+    const errorContainer = form.find('.error-container');
+
+    for (let field of error.elements) {
+      form.find(`input[name="${field}"]`).addClass('invalid');
+    }
+    errorContainer.html(error.message);
+  });
+
+  socket.on('form-user-login-complete', user => {
+    const loginModal = $('#modal_user_login');
+    loginModal.foundation('close');
+  });
+
+  /**
+   * Register a new user.
    */
   $('form[name="new-user"]').submit((e) => {
     e.preventDefault();

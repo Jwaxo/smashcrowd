@@ -142,6 +142,36 @@ module.exports = (crowd, config) => {
     updateCharactersSingle(client, {allDisabled: !playerActive});
 
     /**
+     * The client attempted to login as a user.
+     *
+     * This data should already be validated clientside, so let's try to login
+     * with it.
+     */
+    socket.on('user-login', data => {
+      user.loginUser(data.username, data.password)
+        .then(loggedIn => {
+          if (loggedIn) {
+            clientSession.userId = user.getId();
+            clientSession.save();
+
+            serverLog(`${data.username} logged in.`);
+
+            socket.emit('form-user-login-complete');
+            regenerateUserToolbar(user, socket);
+          }
+          else {
+            const error = {
+              elements: ['username', 'password'],
+              message: 'Login credentials failed. Please check your username and password and try again.',
+            };
+
+            socket.emit('form-user-login-error', error);
+          }
+        });
+
+    });
+
+    /**
      * The client attempted to register a new user.
      *
      * This data should already be validated clientside, we just need to make
