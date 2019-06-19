@@ -209,7 +209,8 @@ class User {
       new Promise(resolve => {
         SmashCrowd.dbSelectFirst('users', 'username', `username = "${username}"`)
           .then(results => {
-            if (results > 0) {
+            if (results) {
+              // Username is already taken.
               available = 1;
             }
             resolve();
@@ -218,7 +219,8 @@ class User {
       new Promise(resolve => {
         SmashCrowd.dbSelectFirst('users', 'email', `email = "${email}"`)
           .then(results => {
-            if (results > 0) {
+            if (results) {
+              // Email is already taken.
               available = 2;
             }
             resolve();

@@ -51,7 +51,9 @@ class SmashCrowd {
     let row = {};
     await this.dbSelect(table, fields, where, sort, 1)
       .then(results => {
-        row = results[0];
+        if (results) {
+          row = results[0];
+        }
       });
     return row;
   }
