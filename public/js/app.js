@@ -293,6 +293,10 @@ $(function() {
    * events properly attach.
    */
   function userToolbarSetup(initial = false) {
+    $('button.logout').unbind('click').click(element => {
+      socket.emit('user-logout');
+    });
+
     if (!initial) {
       $('#user_toolbar_container').foundation();
     }

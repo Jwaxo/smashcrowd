@@ -96,7 +96,7 @@ module.exports = (crowd, config) => {
     client.setId(clientId);
     client.setColor(chalk[console_colors[randomColor]]);
 
-    const user = client.getUser();
+    let user = client.getUser();
 
     if (clientSession.userId) {
       // We're resuming a session, so load the user.
@@ -169,6 +169,20 @@ module.exports = (crowd, config) => {
           }
         });
 
+    });
+
+    /**
+     * The client wants to log out.
+     */
+    socket.on('user-logout', data => {
+      serverLog(`${user.getUsername()} logged out.`);
+
+      clientSession.userId = null;
+      clientSession.save();
+      client.newUser();
+
+      user = client.getUser();
+      regenerateUserToolbar(user, socket);
     });
 
     /**

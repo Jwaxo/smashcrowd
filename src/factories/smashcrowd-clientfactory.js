@@ -36,6 +36,10 @@ class Client {
   getUser() {
     return this.user;
   }
+  newUser() {
+    this.userId = null;
+    this.user = new User(SmashCrowd);
+  }
 
   setId(clientId) {
     this.id = clientId;
