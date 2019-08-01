@@ -423,16 +423,18 @@ class SmashCrowd {
    *
    * @param {string} name
    * @param {Board} board
+   * @param {*} userId
    * @returns {Promise<number>}
    */
-  createPlayer(name, board) {
+  createPlayer(name, board, userId = null) {
     return new Promise(resolve => {
       this.dbInsert('players', {
         name: name,
         board_id: board.getId(),
+        user_id: (userId !== null ? userId : 0),
       })
         .then(playerId => {
-          const player = new Player(name);
+          const player = new Player(name, userId);
           player.setId(playerId);
           board.addPlayer(player);
 

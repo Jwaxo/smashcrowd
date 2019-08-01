@@ -433,6 +433,16 @@ class Board {
   getPlayerByPickOrder(currentPick) {
     return this.players_pick_order[currentPick];
   }
+  getPlayerByUserId(userId) {
+    let returnPlayer = null;
+    for (let playerId in this.players) {
+      if (this.players[playerId].getUserId() === userId) {
+        returnPlayer = this.players[playerId];
+        break;
+      }
+    }
+    return returnPlayer;
+  }
   resetPlayers() {
     for (let playerId in this.players) {
       this.players[playerId].setCharacters([]);

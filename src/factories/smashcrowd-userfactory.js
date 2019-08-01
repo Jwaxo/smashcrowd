@@ -97,7 +97,7 @@ class User {
   setPlayer(boardId, player) {
     // If a player is already set, remove this user from it.
     if (this.hasPlayerAtBoard(boardId)) {
-      this.players[boardId].setUserId(0);
+      this.players[boardId].setUserId(null);
       this.players[boardId].setClientId(0);
     }
 

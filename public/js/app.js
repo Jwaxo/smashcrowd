@@ -31,11 +31,6 @@ $(function() {
     const playerContainer = $('#players');
     playerContainer.html(html);
     playerSetup();
-  });
-
-  socket.on('rebuild-player-form', (html) => {
-    const playerFormContainer = $('#add_player_form_container');
-    playerFormContainer.html(html);
     playerFormSetup();
   });
 
@@ -373,6 +368,10 @@ $(function() {
       const field = $('.player-add');
       socket.emit('add-player', field.val());
       field.val('');
+    });
+    $('.player-join-form').unbind('submit').submit(event => {
+      event.preventDefault();
+      socket.emit('add-player-by-user');
     });
   }
 

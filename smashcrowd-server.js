@@ -102,7 +102,7 @@ module.exports = (crowd, config) => {
       // We're resuming a session, so load the user.
       user.loadUser(clientSession.userId)
         .then(() => {
-          regenerateUserToolbar(user, socket);
+          clientLogin(client, user, board, socket);
         });
     }
     else {
@@ -154,10 +154,7 @@ module.exports = (crowd, config) => {
             clientSession.userId = user.getId();
             clientSession.save();
 
-            serverLog(`${data.username} logged in.`);
-
-            socket.emit('form-user-login-complete');
-            regenerateUserToolbar(user, socket);
+            clientLogin(client, user, board, socket);
           }
           else {
             const error = {
@@ -183,6 +180,7 @@ module.exports = (crowd, config) => {
 
       user = client.getUser();
       regenerateUserToolbar(user, socket);
+      regeneratePlayersSingle(board, client);
     });
 
     /**
@@ -261,6 +259,30 @@ module.exports = (crowd, config) => {
           });
 
           regeneratePlayers(board, false);
+        });
+    });
+
+    socket.on('add-player-by-user', () => {
+      const board_id = board.getId();
+      const user = client.getUser();
+      const name = user.getUsername();
+      serverLog(`${client.getLabel(board_id)} adding player from user ${name}`);
+      SmashCrowd.createPlayer(name, board, user.getId())
+        .then(player => {
+          if (!user.getPlayer(board.getId())) {
+            // If the client doesn't yet have a player, assume they want this one for
+            // now.
+            serverLog(`${client.getLabel(board_id)} automatically taking control of player ${player.getName()}`);
+            setClientPlayer(board, client, player);
+          }
+
+          clients.forEach(client => {
+            if (!client.getPlayerIdByBoard(board.getId())) {
+              setStatusSingle(client, 'Pick a player to draft.');
+            }
+          });
+
+          regeneratePlayers(board);
         });
     });
 
@@ -422,7 +444,7 @@ module.exports = (crowd, config) => {
 
       regenerateBoardInfo(board);
       regenerateCharacters(board);
-      regeneratePlayers(board, true);
+      regeneratePlayers(board);
       setStatusAll('The draft has begun!', 'success');
     });
 
@@ -495,7 +517,10 @@ module.exports = (crowd, config) => {
       // If the client didn't have a player, don't bother announcing their
       // departure.
       serverLog(`${client.getLabel(board.getId())} disconnected.`, noPlayer);
-      user.setPlayer(board.getId(), null);
+      // Make sure we only make the player "available" if the user was anonymous.
+      if (user.getId() === null) {
+        user.setPlayer(board.getId(), null);
+      }
 
       regeneratePlayers(board);
     });
@@ -602,7 +627,7 @@ function resetGame(board, boardData) {
   });
 
   regenerateBoardInfo(board);
-  regeneratePlayers(board, true);
+  regeneratePlayers(board);
   regenerateCharacters(board);
   regenerateStages(board);
 
@@ -654,11 +679,8 @@ function regenerateBoardInfo(board) {
  * Renders the players and updates all clients with new player info.
  *
  * @param {Board} board
- * @param {boolean} regenerateForm
- *   Whether or not the "Add Player" form should also be regenerated. Only needed
- *   when starting a new draft or setting up a new game.
  */
-function regeneratePlayers(board, regenerateForm = false) {
+function regeneratePlayers(board) {
   // The player listing is unique to each client, so we need to rebuild it and
   // send it out individually.
   clients.forEach(client => {
@@ -666,16 +688,25 @@ function regeneratePlayers(board, regenerateForm = false) {
       client.getSocket().emit('rebuild-players', html);
     });
   });
+}
 
-  if (regenerateForm) {
-    Twig.renderFile('./views/form-add-player.twig', {board}, (error, html) => {
-      io.sockets.emit('rebuild-player-form', html);
-    })
-  }
+/**
+ * Unlike other single regenerations, this requires client, since that needs to
+ * be passed to the players template, anyway.
+ *
+ * @param {Board} board
+ * @param {Client} client
+ */
+function regeneratePlayersSingle(board, client) {
+  Twig.renderFile('./views/players-container.twig', {board, client}, (error, html) => {
+    client.getSocket().emit('rebuild-players', html);
+  });
 }
 
 /**
  * Renders the character select screen and updates all clients with new char info.
+ *
+ * @param {Board} board
  */
 function regenerateCharacters(board) {
   Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
@@ -848,6 +879,31 @@ function updateChat(message) {
   Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
     io.sockets.emit('update-chat', html);
   });
+}
+
+/**
+ * Perform all of the necessary operations after a user logs in or resumes a session.
+ *
+ * @param {Client} client
+ * @param {User} user
+ * @param {Board} board
+ * @param {WebSocket} socket
+ */
+function clientLogin(client, user, board, socket) {
+
+  client.setUser(user.getId());
+
+  // Regenerate anything that may have already loaded without our user
+  // info.
+  const player = board.getPlayerByUserId(user.getId());
+  if (player !== null) {
+    console.log('found player with id ' + player.getId());
+    user.setPlayer(board.getId(), player);
+  }
+  regenerateUserToolbar(user, socket);
+  regeneratePlayersSingle(board, client);
+
+  socket.emit('form-user-login-complete');
 }
 
 /**
