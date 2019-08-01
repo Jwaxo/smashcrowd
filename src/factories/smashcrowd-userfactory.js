@@ -7,7 +7,7 @@ let SmashCrowd;
 
 class User {
 
-  constructor(crowd) {
+  constructor(crowd, options = {}) {
     this.session = '';
     this.id = null;
     this.email = null;
@@ -16,7 +16,13 @@ class User {
 
     this.clientId = 0;
     this.boards = {};
-    this.players= {}; // Organized by board ID.
+    this.players = {}; // Organized by board ID.
+
+    if (options) {
+      for (let property in options) {
+        this[property] = options[property];
+      }
+    }
 
     SmashCrowd = crowd;
 
@@ -70,7 +76,12 @@ class User {
     return this.username;
   }
 
-
+  setAvatar(avatar) {
+    this.avatar = avatar;
+  }
+  getAvatar() {
+    return this.avatar || SmashCrowd.getDefaultAvatar();
+  }
 
   /**
    * Store a Player in the users's information. The user's info gets passed
@@ -86,7 +97,7 @@ class User {
   setPlayer(boardId, player) {
     // If a player is already set, remove this user from it.
     if (this.hasPlayerAtBoard(boardId)) {
-      this.players[boardId].setUserId(0);
+      this.players[boardId].setUserId(null);
       this.players[boardId].setClientId(0);
     }
 
@@ -168,16 +179,48 @@ class User {
   }
 
   /**
-   * Assuming successfully validated user info, creates the user.
+   * Attempts to log a user in with credentials, and sets the user up if success.
    *
-   * @param {string} email
    * @param {string} username
    * @param {string} password
+   *  The plaintext password that the end user attempted.
+   * @param {boolean} skipPassword
+   *  FOR ADMIN USE ONLY. Skips the password step.
+   *
+   * @returns {Promise<boolean>}
    */
-  registerUser(email, username, password) {
-    this.setEmail(email);
-    this.setUsername(username);
-    SmashCrowd.createUser(this, this.constructor.passwordHash(password));
+  async loginUser(username, password, skipPassword = false) {
+    let allowLogin = false;
+    let userData = null;
+    await SmashCrowd.loadUserByUsername(username)
+      .then(loadedUser => {
+        userData = loadedUser;
+
+        if (userData !== null) {
+          // A user by this username exists, so let's check the password.
+
+          if (skipPassword) {
+            allowLogin = true;
+          }
+          else if (bcrypt.compareSync(password, userData.password)) {
+            // The password checks out, let's login.
+            allowLogin = true;
+          }
+        }
+      });
+
+    // We should only have allowLogin true if userdata exists, but we check again
+    // anyway, in case the framework changes in the future.
+    if (allowLogin && userData !== null) {
+      // Everything is green, let's log in.
+      this.setId(userData.id);
+      this.setUsername(userData.username);
+      this.setLabel(userData.label);
+      this.setEmail(userData.email);
+      this.setAvatar(userData.avatar);
+    }
+
+    return allowLogin;
   }
 
   /**
@@ -196,18 +239,20 @@ class User {
 
     await Promise.all([
       new Promise(resolve => {
-        SmashCrowd.dbSelect('user', 'username', `username = "${username}"`)
+        SmashCrowd.dbSelectFirst('users', 'username', `username = "${username}"`)
           .then(results => {
-            if (results.length > 0) {
+            if (results) {
+              // Username is already taken.
               available = 1;
             }
             resolve();
           });
       }),
       new Promise(resolve => {
-        SmashCrowd.dbSelect('user', 'email', `email = "${email}"`)
+        SmashCrowd.dbSelectFirst('users', 'email', `email = "${email}"`)
           .then(results => {
-            if (results.length > 0) {
+            if (results) {
+              // Email is already taken.
               available = 2;
             }
             resolve();
@@ -216,19 +261,6 @@ class User {
     ]);
 
     return available;
-  }
-
-  /**
-   * Hash a given password with bcrypt methods and return the hash.
-   *
-   * @param {string} password
-   * @returns {string}
-   */
-  static passwordHash(password) {
-    bcrypt.hash(password, 10, (err, hash) => {
-      password = hash;
-    });
-    return password;
   }
 
 }

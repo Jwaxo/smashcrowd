@@ -11,7 +11,6 @@ class Client {
     this.id = 0;
     this.socket = socket;
     this.color = null;
-    this.player = null;
     this.userId = null;
 
     SmashCrowd = crowd;
@@ -35,6 +34,22 @@ class Client {
   }
   getUser() {
     return this.user;
+  }
+  getUserId() {
+    return this.userId;
+  }
+  newUser() {
+    this.userId = null;
+    this.user = new User(SmashCrowd);
+  }
+
+  /**
+   * Essentially check to see if a User has been properly built, or if we're anon.
+   *
+   * @returns {boolean}
+   */
+  isLoggedIn() {
+    return this.userId !== null;
   }
 
   setId(clientId) {
@@ -67,6 +82,9 @@ class Client {
   }
   getPlayerIdByBoard(boardId) {
     return this.user.getPlayerId(boardId);
+  }
+  hasPlayerByBoard(boardId) {
+    return this.user.hasPlayerAtBoard(boardId);
   }
 
 }

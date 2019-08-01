@@ -14,6 +14,21 @@
     border-color: map-get($foundation-palette, alert);
   }
 
+  &.player--new {
+    border-color: $medium-gray;
+    border-style: dashed;
+    border-width: rem-calc(4px);
+    &:after {
+      color: $medium-gray;
+      content: '+';
+      display: block;
+      font-size: rem-calc(30px);
+      font-weight: bold;
+      margin: rem-calc(30px 0 60px);
+      text-align: center;
+    }
+  }
+
   &:not(.player--current) {
     padding: rem-calc(3px);
   }

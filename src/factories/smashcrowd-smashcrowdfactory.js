@@ -5,6 +5,7 @@
 
 const Player = require('./smashcrowd-playerfactory.js');
 const Board = require('./smashcrowd-boardfactory');
+const User = require('./smashcrowd-userfactory');
 
 class SmashCrowd {
 
@@ -50,7 +51,9 @@ class SmashCrowd {
     let row = {};
     await this.dbSelect(table, fields, where, sort, 1)
       .then(results => {
-        row = results[0];
+        if (results) {
+          row = results[0];
+        }
       });
     return row;
   }
@@ -385,7 +388,7 @@ class SmashCrowd {
     await this.dbSelect('users')
       .then(results => {
         results.forEach(result => {
-          this.users[result.id] = result;
+          this.users[result.id] = new User(this, result);
         });
       });
     return this.users;
@@ -410,7 +413,7 @@ class SmashCrowd {
           this.users[userId] = user;
           this.users[userId].setId(userId);
 
-          resolve();
+          resolve(userId);
         });
     });
   }
@@ -420,16 +423,18 @@ class SmashCrowd {
    *
    * @param {string} name
    * @param {Board} board
+   * @param {*} userId
    * @returns {Promise<number>}
    */
-  createPlayer(name, board) {
+  createPlayer(name, board, userId = null) {
     return new Promise(resolve => {
       this.dbInsert('players', {
         name: name,
         board_id: board.getId(),
+        user_id: (userId !== null ? userId : 0),
       })
         .then(playerId => {
-          const player = new Player(name);
+          const player = new Player(name, userId);
           player.setId(playerId);
           board.addPlayer(player);
 
@@ -621,6 +626,9 @@ class SmashCrowd {
   async loadUser(userId) {
     return await this.dbSelectFirst('users', '*', `id = "${userId}"`);
   }
+  async loadUserByUsername(username) {
+    return await this.dbSelectFirst('users', '*', `username = "${username}"`);
+  }
   getUsers() {
     return this.users;
   }
@@ -681,6 +689,10 @@ class SmashCrowd {
 
   getBoardById(board_id) {
     return this.boards[board_id];
+  }
+
+  getDefaultAvatar() {
+    return this.config.get('server.default_avatar');
   }
 
   /**

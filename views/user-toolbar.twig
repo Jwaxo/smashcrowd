@@ -1,0 +1,25 @@
+{% if user.getId() %}
+  {{ user.getUsername() }}
+  <button class="logout button">Logout</button>
+{% else %}
+  <button class="login button" data-open="modal_user_login">Login</button>
+  <button class="register button" data-open="modal_user_register">Register</button>
+{% endif %}
+
+<div id="modal_user_login" class="modal reveal" data-reveal>
+
+  {% include 'form-user-login.twig' %}
+
+  <button class="close-button" data-close aria-label="Close modal" type="button">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<div id="modal_user_register" class="modal reveal" data-reveal>
+
+  {% include 'form-user-register.twig' %}
+
+  <button class="close-button" data-close aria-label="Close modal" type="button">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>

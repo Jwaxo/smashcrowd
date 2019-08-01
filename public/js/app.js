@@ -8,6 +8,7 @@ $(function() {
   playerSetup(true);
   playerFormSetup(true);
   boardSetup(true);
+  userToolbarSetup(true);
 
   /**
    * We've been registered as a new connection, or are updating a current one.
@@ -30,11 +31,6 @@ $(function() {
     const playerContainer = $('#players');
     playerContainer.html(html);
     playerSetup();
-  });
-
-  socket.on('rebuild-player-form', (html) => {
-    const playerFormContainer = $('#add_player_form_container');
-    playerFormContainer.html(html);
     playerFormSetup();
   });
 
@@ -59,6 +55,12 @@ $(function() {
     const boardInfoContainer = $('#board_info_container');
     boardInfoContainer.html(html);
     boardSetup();
+  });
+
+  socket.on('rebuild-usertoolbar', html => {
+    const userToolbarContainer = $('#user_toolbar_container');
+    userToolbarContainer.html(html);
+    userToolbarSetup();
   });
 
   /**
@@ -201,6 +203,101 @@ $(function() {
   });
 
   /**
+   * User attempts a login.
+   */
+  $('form[name="user-login"]').submit((e) => {
+    e.preventDefault();
+    const form = $(event.currentTarget);
+    const errorContainer = form.find('.error-container');
+    const data = {
+      username: form.find('input[name="username"]').val(),
+      password: form.find('input[name="password"]').val(),
+    };
+
+    socket.emit('user-login', data);
+  });
+
+  socket.on('form-user-login-error', error => {
+    const form = $('form[name="user-login"]');
+    const errorContainer = form.find('.error-container');
+
+    for (let field of error.elements) {
+      form.find(`input[name="${field}"]`).addClass('invalid');
+    }
+    errorContainer.html(error.message);
+  });
+
+  socket.on('form-user-login-complete', user => {
+    const loginModal = $('#modal_user_login');
+    loginModal.foundation('close');
+  });
+
+  /**
+   * Register a new user.
+   */
+  $('form[name="new-user"]').submit((e) => {
+    e.preventDefault();
+    const form = $(event.currentTarget);
+    const errorContainer = form.find('.error-container');
+    const data = {
+      username: form.find('input[name="username"]').val(),
+      email: form.find('input[name="email"]').val(),
+      password1: form.find('input[name="password1"]').val(),
+      password2: form.find('input[name="password2"]').val(),
+    };
+    const error = {};
+
+    if (data.password1 !== data.password2) {
+      error.elements = ['password1', 'password2'];
+      error.message = "Please verify that your passwords match.";
+    }
+    else if (data.password1.length < 12) {
+      error.elements = ['password1', 'password2'];
+      error.message = "Please ensure that your password is at least 12 characters long.";
+    }
+
+    if (error.elements) {
+      for (let field of error.elements) {
+        form.find(`input[name="${field}"]`).addClass('invalid');
+      }
+      errorContainer.html(error.message);
+      return false;
+    }
+    else {
+      socket.emit('register-user', data);
+    }
+  });
+
+  socket.on('form-user-register-error', error => {
+    const form = $('form[name="new-user"]');
+    const errorContainer = form.find('.error-container');
+
+    for (let field of error.elements) {
+      form.find(`input[name="${field}"]`).addClass('invalid');
+    }
+    errorContainer.html(error.message);
+  });
+
+  socket.on('form-user-register-complete', user => {
+    const registerModal = $('#modal_user_register');
+    registerModal.foundation('close');
+  });
+
+  /**
+   * Needs to be run any time the user toolbar gets recreated, so the jQuery
+   * events properly attach.
+   */
+  function userToolbarSetup(initial = false) {
+    $('button.logout').unbind('click').click(element => {
+      socket.emit('user-logout');
+    });
+
+    if (!initial) {
+      $('#user_toolbar_container').foundation();
+    }
+  }
+
+  /**
    * Needs to be run any time the character grid gets recreated, so the jQuery
    * events properly attach.
    */
@@ -271,6 +368,10 @@ $(function() {
       const field = $('.player-add');
       socket.emit('add-player', field.val());
       field.val('');
+    });
+    $('.player-join-form').unbind('submit').submit(event => {
+      event.preventDefault();
+      socket.emit('add-player-by-user');
     });
   }
 

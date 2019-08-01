@@ -1,0 +1,45 @@
+
+<form name="new-user">
+
+  <div class="grid-x grid-padding-x">
+    <div class="medium-12 cell">
+      <h3>New User Registration</h3>
+      <div class="error-container help-text"></div>
+    </div>
+  </div>
+
+  <div class="grid-x grid-padding-x">
+    <div class="medium-6 cell">
+      <label>Username
+        <input type="text" name="username" placeholder="ExaMple" required maxlength="16">
+      </label>
+    </div>
+    <div class="medium-6 cell">
+      <label>Email
+        <input type="email" name="email" placeholder="exam.ple@example.com" required maxlength="32">
+      </label>
+    </div>
+  </div>
+  <div class="grid-x grid-padding-x password-container">
+    <div class="medium-6 cell">
+      <label>Password
+        <input type="password" name="password1" required>
+      </label>
+    </div>
+    <div class="medium-6 cell">
+      <label>Repeat Password
+        <input type="password" name="password2" required>
+      </label>
+    </div>
+    <div class="medium-12 cell">
+      <p class="help-text">Your password must be at least 12 characters long.</p>
+    </div>
+  </div>
+
+  <div class="grid-x grid-padding-x">
+    <div class="medium-12 cell">
+      <button class="button" type="submit">Submit</button>
+    </div>
+  </div>
+
+</form>

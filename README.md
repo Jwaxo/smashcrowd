@@ -88,19 +88,20 @@ the SCSS only gets recompiled when the server is started.
 ### Planned features/Todo
 
 * Bug reporting and feature requesting link.
-* Simple stage voting.
+* Teams.
+* ~~Simple stage voting.~~
   * Option for anonymous voting or registered.
   * Remove stage votes when a player is deleted...
   * Display which stages have most votes
   * Ban/vote against
-* User Profiles
+* ~~User Profiles~~
+  * Email confirmation.
   * User and character stat-tracking
   * Player label customization.
 * Stage and roster shuffling.
 * Player boxes shake when they become active.
 * Multiple drafts per server.
   * Can set them up like Discord channels, where "rooms" you're in show up on the side.
-* Persistent storage via MySQL (or other DB)
 * Game options:
   * "Score Card" style, used just for tracking games/characters.
   * Character limiting options: "None", "Per-Player", "Per-Board"

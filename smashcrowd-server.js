@@ -17,14 +17,30 @@ const Player = require('./src/factories/smashcrowd-playerfactory.js');
 const Character = require('./src/factories/smashcrowd-characterfactory.js');
 const Board = require('./src/factories/smashcrowd-boardfactory.js');
 const Stage = require('./src/factories/smashcrowd-stagefactory.js');
+const User = require('./src/factories/smashcrowd-userfactory.js');
 
 const clients = [];
 const chatHistory = [];
 const app = express();
 const server = http.Server(app);
+const uuid = require('uuid/v4');
 const io = socketio(server);
+const bcrypt = require('bcrypt');
 let SmashCrowd;
 let console_colors = {};
+
+// Define how sessions are created and tracked.
+const session = require('express-session')({
+  genid: req => {
+    return uuid(); // use UUIDs for session IDs
+  },
+  secret: 'buff mac',
+  resave: false,
+  saveUninitialized: true,
+});
+// Since Express and IO are technically two different types of server trackers,
+// we need to track sessions using some middleware.
+const sharedSession = require("express-socket.io-session");
 
 module.exports = (crowd, config) => {
   const port = config.get('server.port');
@@ -44,12 +60,20 @@ module.exports = (crowd, config) => {
   // Do basic server setup stuff.
   app.use(express.static(__dirname + '/public'));
 
+  // Here we do the Express/IO shared session magic.
+  app.use(session);
+  io.use(sharedSession(session));
+
   app.set("twig options", {
     allow_async: true,
     strict_variables: false
   });
 
-  app.get('/', function(req, res) {
+  app.get('/', (req, res) => {
+    // We are now tracking a single session in the browser! When a session gets
+    // attached to a user, we need to make a row in a new table that ties the
+    // session to a user, and check this this session is re-initialized. Then
+    // we have have that user immediately resume! Huzzah!
     res.render('index.twig', {
       board,
       chatHistory,
@@ -66,20 +90,30 @@ module.exports = (crowd, config) => {
 
     const randomColor = Math.floor(Math.random() * (console_colors.length));
 
+    const clientSession = socket.handshake.session;
     const client = new Client(socket, SmashCrowd);
     const clientId = clients.push(client);
     client.setId(clientId);
     client.setColor(chalk[console_colors[randomColor]]);
 
-    const user = client.getUser();
-    user.setGameId(board.getGameId());
+    let user = client.getUser();
 
-    // @todo: Now track characters, stages, and users with the actual database.
-    // And we should be done!
+    if (clientSession.userId) {
+      // We're resuming a session, so load the user.
+      user.loadUser(clientSession.userId)
+        .then(() => {
+          clientLogin(client, user, board, socket);
+        });
+    }
+    else {
+      // No session, so create an anonymous user (for now).
+      user.setGameId(board.getGameId());
+    }
 
     serverLog(`${client.getLabel(board.getId())} assigned to socket ${socket.id}`, true);
 
-    // Generate everything just in case the connections existed before the server.
+    // Generate everything that may change based off of an existing client connection
+    // or resumed session.
     setClientInfoSingle(client);
     regeneratePlayers(board);
     regenerateCharacters(board);
@@ -108,6 +142,99 @@ module.exports = (crowd, config) => {
     updateCharactersSingle(client, {allDisabled: !playerActive});
 
     /**
+     * The client attempted to login as a user.
+     *
+     * This data should already be validated clientside, so let's try to login
+     * with it.
+     */
+    socket.on('user-login', data => {
+      user.loginUser(data.username, data.password)
+        .then(loggedIn => {
+          if (loggedIn) {
+            clientSession.userId = user.getId();
+            clientSession.save();
+
+            clientLogin(client, user, board, socket);
+          }
+          else {
+            const error = {
+              elements: ['username', 'password'],
+              message: 'Login credentials failed. Please check your username and password and try again.',
+            };
+
+            socket.emit('form-user-login-error', error);
+          }
+        });
+
+    });
+
+    /**
+     * The client wants to log out.
+     */
+    socket.on('user-logout', data => {
+      serverLog(`${user.getUsername()} logged out.`);
+
+      clientSession.userId = null;
+      clientSession.save();
+      client.newUser();
+
+      user = client.getUser();
+      regenerateUserToolbar(user, socket);
+      regeneratePlayersSingle(board, client);
+    });
+
+    /**
+     * The client attempted to register a new user.
+     *
+     * This data should already be validated clientside, we just need to make
+     * sure the email and username aren't already in use, then save the user.
+     */
+    socket.on('register-user', data => {
+      user.checkUserAvailable(data.email, data.username)
+        .then(results => {
+          const error = {};
+
+          switch (results) {
+
+            // Available.
+            case 0:
+              user.setEmail(data.email);
+              user.setUsername(data.username);
+              SmashCrowd.createUser(user, bcrypt.hashSync(data.password1, 10))
+                .then(userId => {
+                  clientSession.userId = userId;
+                  clientSession.save();
+
+                  serverLog(`${client.getLabel(board.getId())} created new user ${data.username}`);
+
+                  socket.emit('form-user-register-complete');
+                  regenerateUserToolbar(user, socket);
+                });
+
+              break;
+
+            // Username taken.
+            case 1:
+              error.elements = ['username'];
+              error.message = 'This username is already taken. Please try a different one.';
+
+              break;
+
+            // Email taken.
+            case 2:
+              error.elements = ['email'];
+              error.message = 'This email is already in use. Please use a different one.';
+
+              break;
+          }
+
+          if (error.hasOwnProperty('elements')) {
+            socket.emit('form-user-register-error', error);
+          }
+        });
+    });
+
+    /**
      * The client has created a player for the roster.
      *
      * Adds the player name to the list, assigns it an ID, and then sends the
@@ -132,6 +259,30 @@ module.exports = (crowd, config) => {
           });
 
           regeneratePlayers(board, false);
+        });
+    });
+
+    socket.on('add-player-by-user', () => {
+      const board_id = board.getId();
+      const user = client.getUser();
+      const name = user.getUsername();
+      serverLog(`${client.getLabel(board_id)} adding player from user ${name}`);
+      SmashCrowd.createPlayer(name, board, user.getId())
+        .then(player => {
+          if (!user.getPlayer(board.getId())) {
+            // If the client doesn't yet have a player, assume they want this one for
+            // now.
+            serverLog(`${client.getLabel(board_id)} automatically taking control of player ${player.getName()}`);
+            setClientPlayer(board, client, player);
+          }
+
+          clients.forEach(client => {
+            if (!client.getPlayerIdByBoard(board.getId())) {
+              setStatusSingle(client, 'Pick a player to draft.');
+            }
+          });
+
+          regeneratePlayers(board);
         });
     });
 
@@ -293,7 +444,7 @@ module.exports = (crowd, config) => {
 
       regenerateBoardInfo(board);
       regenerateCharacters(board);
-      regeneratePlayers(board, true);
+      regeneratePlayers(board);
       setStatusAll('The draft has begun!', 'success');
     });
 
@@ -366,7 +517,10 @@ module.exports = (crowd, config) => {
       // If the client didn't have a player, don't bother announcing their
       // departure.
       serverLog(`${client.getLabel(board.getId())} disconnected.`, noPlayer);
-      user.setPlayer(board.getId(), null);
+      // Make sure we only make the player "available" if the user was anonymous.
+      if (user.getId() === null) {
+        user.setPlayer(board.getId(), null);
+      }
 
       regeneratePlayers(board);
     });
@@ -473,7 +627,7 @@ function resetGame(board, boardData) {
   });
 
   regenerateBoardInfo(board);
-  regeneratePlayers(board, true);
+  regeneratePlayers(board);
   regenerateCharacters(board);
   regenerateStages(board);
 
@@ -525,11 +679,8 @@ function regenerateBoardInfo(board) {
  * Renders the players and updates all clients with new player info.
  *
  * @param {Board} board
- * @param {boolean} regenerateForm
- *   Whether or not the "Add Player" form should also be regenerated. Only needed
- *   when starting a new draft or setting up a new game.
  */
-function regeneratePlayers(board, regenerateForm = false) {
+function regeneratePlayers(board) {
   // The player listing is unique to each client, so we need to rebuild it and
   // send it out individually.
   clients.forEach(client => {
@@ -537,16 +688,25 @@ function regeneratePlayers(board, regenerateForm = false) {
       client.getSocket().emit('rebuild-players', html);
     });
   });
+}
 
-  if (regenerateForm) {
-    Twig.renderFile('./views/form-add-player.twig', {board}, (error, html) => {
-      io.sockets.emit('rebuild-player-form', html);
-    })
-  }
+/**
+ * Unlike other single regenerations, this requires client, since that needs to
+ * be passed to the players template, anyway.
+ *
+ * @param {Board} board
+ * @param {Client} client
+ */
+function regeneratePlayersSingle(board, client) {
+  Twig.renderFile('./views/players-container.twig', {board, client}, (error, html) => {
+    client.getSocket().emit('rebuild-players', html);
+  });
 }
 
 /**
  * Renders the character select screen and updates all clients with new char info.
+ *
+ * @param {Board} board
  */
 function regenerateCharacters(board) {
   Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
@@ -582,6 +742,18 @@ function regenerateStages(board) {
     Twig.renderFile('./views/stages-container.twig', {board, client}, (error, html) => {
       client.getSocket().emit('rebuild-stages', html);
     });
+  });
+}
+
+/**
+ * Renders the user toolbar for a particular client/user.
+ *
+ * @param {User} user
+ * @param {WebSocket} socket
+ */
+function regenerateUserToolbar(user, socket) {
+  Twig.renderFile('./views/user-toolbar.twig', {user}, (error, html) => {
+    socket.emit('rebuild-usertoolbar', html);
   });
 }
 
@@ -707,6 +879,31 @@ function updateChat(message) {
   Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
     io.sockets.emit('update-chat', html);
   });
+}
+
+/**
+ * Perform all of the necessary operations after a user logs in or resumes a session.
+ *
+ * @param {Client} client
+ * @param {User} user
+ * @param {Board} board
+ * @param {WebSocket} socket
+ */
+function clientLogin(client, user, board, socket) {
+
+  client.setUser(user.getId());
+
+  // Regenerate anything that may have already loaded without our user
+  // info.
+  const player = board.getPlayerByUserId(user.getId());
+  if (player !== null) {
+    console.log('found player with id ' + player.getId());
+    user.setPlayer(board.getId(), player);
+  }
+  regenerateUserToolbar(user, socket);
+  regeneratePlayersSingle(board, client);
+
+  socket.emit('form-user-login-complete');
 }
 
 /**
