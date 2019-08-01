@@ -1,9 +1,9 @@
 {% if user.getId() %}
   {{ user.getUsername() }}
-  <button class="logout button">Logout</button>
+  <button class="logout button small clear">Logout</button>
 {% else %}
-  <button class="login button" data-open="modal_user_login">Login</button>
-  <button class="register button" data-open="modal_user_register">Register</button>
+  <button class="login button small clear" data-open="modal_user_login">Login</button>
+  <button class="register button small clear" data-open="modal_user_register">Register</button>
 {% endif %}
 
 <div id="modal_user_login" class="modal reveal" data-reveal>
