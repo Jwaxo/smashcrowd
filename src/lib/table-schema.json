@@ -30,6 +30,13 @@
 					"extra": ""
 				},
 				{
+					"name": "tagline",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(511)",
+					"extra": ""
+				},
+				{
 					"name": "owner",
 					"nullable": true,
 					"default_value": null,

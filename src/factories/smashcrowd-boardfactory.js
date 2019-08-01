@@ -31,6 +31,7 @@ class Board {
     this.current_game_round = 0;
     this.total_rounds = 0;
     this.name = null;
+    this.tagline = null;
     this.status = 0;
     this.next_player_id = 0;
 
@@ -129,6 +130,14 @@ class Board {
   }
   getName() {
     return this.name;
+  }
+
+  setTagline(tagline) {
+    this.tagline = tagline;
+    this.updateBoard({tagline: tagline});
+  }
+  getTagline() {
+    return this.tagline;
   }
 
   setOwner(userId) {
@@ -257,7 +266,7 @@ class Board {
       }
     }
     else {
-      throw "Tried to set nonexistent draft type.";
+      throw `Tried to set nonexistent draft type "${type}"`;
     }
   }
   /**

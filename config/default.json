@@ -31,6 +31,7 @@
     ],
     "default_board": {
       "name": "SmashCrowd Default",
+      "tagline": "Draft your next online Smashdown!",
       "draft_type": "free",
       "owner": 1
     },

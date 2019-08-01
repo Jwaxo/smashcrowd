@@ -124,7 +124,8 @@ class SmashCrowd {
     const fields = [];
     const values = [];
 
-    // Just in case an object was passed to us, put it in an array.
+    // Just in case a single object was passed to us, ie a single field-value pair,
+    // put it in an array.
     if (!Array.isArray(fieldvalues)) {
       fieldvalues = [fieldvalues];
     }
@@ -136,7 +137,11 @@ class SmashCrowd {
 
     // Finally build our array of value strings out of just the values of each row.
     fieldvalues.forEach((row) => {
-      values.push(Object.values(row).join('","'));
+      // Ensure that all potentially user-input values are escaped.
+      for (let field in row) {
+        row[field] = this.db.escape(row[field]);
+      }
+      values.push(Object.values(row).join(','));
     });
 
     return new Promise(resolve => {
@@ -145,7 +150,7 @@ class SmashCrowd {
           console.log('Error getting connection from pool');
           throw connect_error;
         }
-        connection.query(`INSERT INTO ?? (${fields.join(',')}) VALUES ("${values.join('"),("')}")`, [table], (error, results) => {
+        connection.query(`INSERT INTO ?? (${fields.join(',')}) VALUES (${values.join('),(')})`, [table], (error, results) => {
           if (error) {
 
             console.log('Error running insert');
@@ -212,13 +217,13 @@ class SmashCrowd {
 
         for (let i = 0; i < fieldvalues[field].length; i++) {
           const casewhen = fieldvalues[field][i];
-          casewhens.push(`when ${casewhen.when} then "${casewhen.then}"`);
+          casewhens.push(`when ${casewhen.when} then ${this.db.escape(casewhen.then)}`);
         }
 
         set.push(`\`${field}\` = (case ${casewhens.join(' ')} end)`);
       }
       else {
-        set.push(`\`${field}\` = "${fieldvalues[field]}"`);
+        set.push(`\`${field}\` = ${this.db.escape(fieldvalues[field])}`);
       }
     }
 
