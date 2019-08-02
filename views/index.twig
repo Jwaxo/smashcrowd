@@ -19,18 +19,15 @@
       </div>
     </div>
   </div>
-  <div class="grid-x grid-padding-x layout-sidebar">
-    <div class="cell medium-2">
-
-      <div id="boards_toolbar_container">
-        {% include 'boards-toolbar.twig' %}
-      </div>
-
-    </div>
+  <div class="grid-x grid-padding-x">
 
     <div class="cell auto">
       {% include 'board.twig' %}
     </div>
+  </div>
+
+  <div id="boards_toolbar_container" class="layout-sidebar">
+    {% include 'boards-toolbar.twig' %}
   </div>
 
 </div>

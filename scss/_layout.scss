@@ -9,3 +9,36 @@
     margin-bottom: 0;
   }
 }
+
+.layout-sidebar {
+
+  background: $white;
+  border: rem-calc(4px) solid $dark-gray;
+  border-left: 0;
+  left: rem-calc(-360px);
+  padding: rem-calc(6px);
+  position: fixed;
+  top: rem-calc(25px);
+  transition: left .1s ease-in;
+  width: rem-calc(360px);
+
+  &:after {
+    @extend %fa-icon;
+    @extend .fas;
+
+    background: $white;
+    border: rem-calc(4px) solid $dark-gray;
+    border-left: 0;
+    color: $dark-gray;
+    content: fa-content($fa-var-chevron-circle-right);
+    font-size: rem-calc(32px);
+    padding: rem-calc(4px 4px 4px 8px);
+    position: absolute;
+    right: rem-calc(-48px);
+    top: rem-calc(-4px);
+  }
+
+  &:hover {
+    left: 0;
+  }
+}

@@ -1,3 +1,7 @@
+// Fontawesome and Foundation settings
+
+$fa-font-path: "../webfonts";
+
 //  Foundation for Sites Settings
 //  -----------------------------
 //
@@ -66,7 +70,7 @@
 // ---------
 
 $global-font-size: 100%;
-$global-width: rem-calc(1600);
+$global-width: rem-calc(1200);
 $global-lineheight: 1.5;
 $foundation-palette: (
   primary: #1779ba,

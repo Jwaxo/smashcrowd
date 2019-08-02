@@ -30,7 +30,7 @@
       "bgWhite"
     ],
     "default_board": {
-      "name": "SmashCrowd Default",
+      "name": "SmashCrowd",
       "tagline": "Draft your next online Smashdown!",
       "draft_type": "free",
       "owner": 1
