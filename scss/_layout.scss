@@ -38,7 +38,8 @@
     top: rem-calc(-4px);
   }
 
-  &:hover {
+  &:hover,
+  &:focus {
     left: 0;
   }
 }
