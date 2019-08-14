@@ -271,8 +271,14 @@ class User {
     return available;
   }
 
+  /**
+   * Check parameters sent via registration email to verify an address.
+   *
+   * @param {number} userid
+   * @param {string} email_hash
+   * @returns {Promise}
+   */
   static verifyEmailHash(userid, email_hash) {
-    console.log('checking for hash');
     return SmashCrowd.dbSelectFirst('users', 'username', `id = "${userid}" AND email_hash = "${email_hash}"`);
   }
 }

@@ -70,6 +70,7 @@ module.exports = (crowd, config) => {
     strict_variables: false
   });
 
+  // Serve up the default page.
   app.get('/', (req, res) => {
     res.render('index.twig', {
       board,
@@ -77,25 +78,23 @@ module.exports = (crowd, config) => {
     });
   });
 
+  // If a user is verifying an email address...
   app.get('/verify_email', (req, res) => {
+    // Make sure the userid and the email hash are identified.
     if (req.query.userid && req.query.hash) {
-      console.log('found params');
+      // Run it past the User static function to verify it.
       User.verifyEmailHash(req.query.userid, req.query.hash)
         .then(results => {
-          console.log('hash checked');
           if (results) {
-            console.log('verified!');
+            // Then update the user and set a status so we can tell them they
+            // succeeded.
             SmashCrowd.updateUser(req.query.userid, {active: 'active'});
             req.session.status = 'email_verify_complete';
             res.redirect('/');
           }
-          else {
-            console.log('unable to verify');
-          }
         });
     }
     else {
-      console.log('redirecting because no params');
       res.redirect('/');
     }
   });
