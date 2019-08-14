@@ -378,6 +378,13 @@
 					"extra": ""
 				},
 				{
+					"name": "active",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(8)",
+					"extra": ""
+				},
+				{
 					"name": "label",
 					"nullable": true,
 					"default_value": null,
@@ -403,6 +410,13 @@
 					"nullable": true,
 					"default_value": null,
 					"type": "varchar(255)",
+					"extra": ""
+				},
+				{
+					"name": "email_hash",
+					"nullable": true,
+					"default_value": null,
+					"type": "varchar(31)",
 					"extra": ""
 				}
 			]
