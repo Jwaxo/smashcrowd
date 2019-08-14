@@ -220,7 +220,7 @@ module.exports = (crowd, config) => {
      * The client attempted to register a new user.
      *
      * This data should already be validated clientside, we just need to make
-     * sure the email and username aren't already in use, and check recaptcha:
+     * sure the email and username aren't already in use, and check recaptcha.
      */
     socket.on('register-user', data => {
       const error = {};
@@ -230,15 +230,24 @@ module.exports = (crowd, config) => {
         error.message = 'Please ensure you have checked the reCAPTCHA';
       }
       else {
+        // First run the request past reCAPTCHA to verify humanity.
         request({
           uri: `https://www.google.com/recaptcha/api/siteverify?secret=${SmashCrowd.config.get('recaptcha.secret')}&response=${data.recaptcha}`,
           method: 'POST',
-        }, (error, response) => {
+        }, (re_error, response) => {
+
+          if (re_error) {
+            console.log(re_error);
+          }
+
+          response = JSON.parse(response.body);
+
           if (!response.success) {
             error.elements = ['g-recaptcha'];
             error.message = 'Something went wrong with the reCAPTCHA. Please try again.';
           }
           else {
+            // They're a human, so make sure that their stuff is valid.
             user.checkUserAvailable(data.email, data.username)
               .then(results => {
 
