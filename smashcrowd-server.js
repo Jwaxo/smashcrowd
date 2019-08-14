@@ -71,10 +71,15 @@ module.exports = (crowd, config) => {
   });
 
   app.get('/', (req, res) => {
-    // We are now tracking a single session in the browser! When a session gets
-    // attached to a user, we need to make a row in a new table that ties the
-    // session to a user, and check this this session is re-initialized. Then
-    // we have have that user immediately resume! Huzzah!
+    console.log(req);
+    res.render('index.twig', {
+      board,
+      chatHistory,
+    });
+  });
+
+  app.get('/verify_email', (req, res) => {
+    console.log(req);
     res.render('index.twig', {
       board,
       chatHistory,

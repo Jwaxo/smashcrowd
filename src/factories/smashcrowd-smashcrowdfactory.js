@@ -92,7 +92,7 @@ class SmashCrowd {
     if (this.mail) {
       Twig.renderFile(template, tokens, (error, rendered) => {
         const message = {
-          from: this.config.get('email.username'),
+          from: this.config.get('email.user'),
           to: recipient,
           subject,
           html: rendered,
