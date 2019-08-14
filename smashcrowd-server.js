@@ -71,7 +71,6 @@ module.exports = (crowd, config) => {
   });
 
   app.get('/', (req, res) => {
-    console.log(req);
     res.render('index.twig', {
       board,
       chatHistory,
@@ -79,11 +78,26 @@ module.exports = (crowd, config) => {
   });
 
   app.get('/verify_email', (req, res) => {
-    console.log(req);
-    res.render('index.twig', {
-      board,
-      chatHistory,
-    });
+    if (req.query.userid && req.query.hash) {
+      console.log('found params');
+      User.verifyEmailHash(req.query.userid, req.query.hash)
+        .then(results => {
+          console.log('hash checked');
+          if (results) {
+            console.log('verified!');
+            SmashCrowd.updateUser(req.query.userid, {active: 'active'});
+            req.session.status = 'email_verify_complete';
+            res.redirect('/');
+          }
+          else {
+            console.log('unable to verify');
+          }
+        });
+    }
+    else {
+      console.log('redirecting because no params');
+      res.redirect('/');
+    }
   });
 
   /**
@@ -146,6 +160,18 @@ module.exports = (crowd, config) => {
     // Finally, manually disable character picking if we don't have a player and
     // that player isn't active.
     updateCharactersSingle(client, {allDisabled: !playerActive});
+
+    if (clientSession.status) {
+      console.log('connection has status ' + clientSession.status);
+      let message = '';
+      switch (clientSession.status) {
+        case 'email_verify_complete':
+          message = "Thank you for verifying your email address!";
+
+          break;
+      }
+      setStatusSingle(client, message);
+    }
 
     /**
      * The client attempted to login as a user.

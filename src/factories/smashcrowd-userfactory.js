@@ -271,6 +271,10 @@ class User {
     return available;
   }
 
+  static verifyEmailHash(userid, email_hash) {
+    console.log('checking for hash');
+    return SmashCrowd.dbSelectFirst('users', 'username', `id = "${userid}" AND email_hash = "${email_hash}"`);
+  }
 }
 
 module.exports = User;

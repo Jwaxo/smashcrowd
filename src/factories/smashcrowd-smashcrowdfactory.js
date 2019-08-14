@@ -728,6 +728,16 @@ class SmashCrowd {
   }
 
   /**
+   * Updates the main `users` table with new data.
+   *
+   * @param {number} userid
+   * @param {Object} fieldValues
+   */
+  updateUser(userid, field_values) {
+    this.dbUpdate('users', field_values, `id = "${userid}"`);
+  }
+
+  /**
    * Set stages in SmashCrowd main object. This is mostly used by boards as a
    * reference, so the DB doesn't have to be pinged.
    *
