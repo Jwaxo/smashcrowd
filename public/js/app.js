@@ -244,6 +244,7 @@ $(function() {
       email: form.find('input[name="email"]').val(),
       password1: form.find('input[name="password1"]').val(),
       password2: form.find('input[name="password2"]').val(),
+      recaptcha: grecaptcha.getResponse(),
     };
     const error = {};
 

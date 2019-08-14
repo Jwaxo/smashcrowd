@@ -8,6 +8,7 @@ const express = require('express');
 
 const socketio = require('socket.io');
 const http = require('http');
+const request = require('request');
 
 const chalk = require('chalk');
 const stripAnsi = require('strip-ansi');
@@ -75,6 +76,7 @@ module.exports = (crowd, config) => {
     res.render('index.twig', {
       board,
       chatHistory,
+      recaptcha_key: config.get('recaptcha.key'),
     });
   });
 
@@ -218,54 +220,72 @@ module.exports = (crowd, config) => {
      * The client attempted to register a new user.
      *
      * This data should already be validated clientside, we just need to make
-     * sure the email and username aren't already in use, then save the user.
+     * sure the email and username aren't already in use, and check recaptcha:
      */
     socket.on('register-user', data => {
-      user.checkUserAvailable(data.email, data.username)
-        .then(results => {
-          const error = {};
+      const error = {};
 
-          switch (results) {
-
-            // Available.
-            case 0:
-              user.setEmail(data.email);
-              user.setUsername(data.username);
-              SmashCrowd.createUser(user, bcrypt.hashSync(data.password1, 10))
-                .then(userId => {
-                  // todo: Do not log registered users in until they verify email.
-                  // Status is currently being set to "inactive", but that is unused.
-                  clientSession.userId = userId;
-                  clientSession.save();
-
-                  SmashCrowd.emailRegistration(user);
-                  serverLog(`${client.getLabel(board.getId())} created new user ${data.username}`);
-
-                  socket.emit('form-user-register-complete');
-                  regenerateUserToolbar(user, socket);
-                });
-
-              break;
-
-            // Username taken.
-            case 1:
-              error.elements = ['username'];
-              error.message = 'This username is already taken. Please try a different one.';
-
-              break;
-
-            // Email taken.
-            case 2:
-              error.elements = ['email'];
-              error.message = 'This email is already in use. Please use a different one.';
-
-              break;
+      if (!data.recaptcha) {
+        error.elements = ['g-recaptcha'];
+        error.message = 'Please ensure you have checked the reCAPTCHA';
+      }
+      else {
+        request({
+          uri: `https://www.google.com/recaptcha/api/siteverify?secret=${SmashCrowd.config.get('recaptcha.secret')}&response=${data.recaptcha}`,
+          method: 'POST',
+        }, (error, response) => {
+          if (!response.success) {
+            error.elements = ['g-recaptcha'];
+            error.message = 'Something went wrong with the reCAPTCHA. Please try again.';
           }
+          else {
+            user.checkUserAvailable(data.email, data.username)
+              .then(results => {
 
-          if (error.hasOwnProperty('elements')) {
-            socket.emit('form-user-register-error', error);
+                switch (results) {
+
+                  // Available.
+                  case 0:
+                    user.setEmail(data.email);
+                    user.setUsername(data.username);
+                    SmashCrowd.createUser(user, bcrypt.hashSync(data.password1, 10))
+                      .then(userId => {
+                        // todo: Do not log registered users in until they verify email.
+                        // Status is currently being set to "inactive", but that is unused.
+                        clientSession.userId = userId;
+                        clientSession.save();
+
+                        SmashCrowd.emailRegistration(user);
+                        serverLog(`${client.getLabel(board.getId())} created new user ${data.username}`);
+
+                        socket.emit('form-user-register-complete');
+                        regenerateUserToolbar(user, socket);
+                      });
+
+                    break;
+
+                  // Username taken.
+                  case 1:
+                    error.elements = ['username'];
+                    error.message = 'This username is already taken. Please try a different one.';
+
+                    break;
+
+                  // Email taken.
+                  case 2:
+                    error.elements = ['email'];
+                    error.message = 'This email is already in use. Please use a different one.';
+
+                    break;
+                }
+              });
           }
         });
+      }
+
+      if (error.hasOwnProperty('elements')) {
+        socket.emit('form-user-register-error', error);
+      }
     });
 
     /**
@@ -786,7 +806,7 @@ function regenerateStages(board) {
  * @param {WebSocket} socket
  */
 function regenerateUserToolbar(user, socket) {
-  Twig.renderFile('./views/user-toolbar.twig', {user}, (error, html) => {
+  Twig.renderFile('./views/user-toolbar.twig', {user, recaptcha_key: SmashCrowd.config.get('recaptcha.key')}, (error, html) => {
     socket.emit('rebuild-usertoolbar', html);
   });
 }

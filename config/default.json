@@ -11,6 +11,10 @@
     "export_path": "src/lib/table-schema.json",
     "debug": false
   },
+  "recaptcha":{
+    "secret": "default",
+    "key": "default"
+  },
   "server": {
     "port" : 8080,
     "console_colors": [
