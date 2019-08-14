@@ -109,7 +109,16 @@ class SmashCrowd {
     }
   }
 
-  emailTest() {
+  /**
+   *
+   * @param {User} user
+   */
+  emailRegistration(user) {
+    this.emailSend(user.getEmail(), "Complete Your SmashCrowd Registration", "./views/mail/registration.twig", {
+      name: user.getUsername(),
+      url: `${this.config.get('server.domain')}/verify_email?userid=${user.getId()}&hash=${user.getEmailHash()}`,
+      domain: this.config.get('server.domain'),
+    });
   }
 
   /**
@@ -481,12 +490,17 @@ class SmashCrowd {
    * @returns {Promise<any>}
    */
   createUser(user, password) {
-    // This will insert a user, but currently we don't have anything actually registering users.
+    // This will insert a user and define an email hash for checking later when
+    // the user verifies their email.
+    // We want a random number 15 digits long with some random salting.
+    user.setEmailHash(Math.floor(Math.random() * Math.pow(10, 15)) + this.config.get('email.hashsalt'));
+
     return new Promise(resolve => {
       this.dbInsert('users', {
         username: user.getUsername(),
         email: user.getEmail(),
         password: password,
+        email_hash: user.getEmailHash(),
       })
         .then(userId => {
           this.users[userId] = user;

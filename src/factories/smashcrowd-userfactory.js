@@ -13,6 +13,7 @@ class User {
     this.email = null;
     this.username = null;
     this.label = '';
+    this.email_hash = null;
 
     this.clientId = 0;
     this.boards = {};
@@ -67,6 +68,13 @@ class User {
   }
   getEmail() {
     return this.email;
+  }
+
+  setEmailHash(hash) {
+    this.email_hash = hash;
+  }
+  getEmailHash() {
+    return this.email_hash;
   }
 
   setUsername(username) {
