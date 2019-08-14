@@ -29,14 +29,14 @@ class SmashCrowd {
     this.stages = [];
     this.users = {};
     this.boards = {};
-    this.mail = {};
+    this.mail = false;
 
     this.dbDiffString = this.constructor.constructDbDiffString(config.get('database.connection'));
 
     // Get email configuration setup if we're not in debug mode. If we are, the
-    // mail object will just be empty.
+    // mail object will just be false.
     if (!config.has('email.debug')) {
-      console.log('about to create mailer');
+      this.mail = {};
       this.mail.transporter = nodemailer.createTransport({
         host: config.get('email.host'),
         secure: config.get('email.secure'),
@@ -58,36 +58,50 @@ class SmashCrowd {
     return this.dbDiffString;
   }
 
+  /**
+   * Using predefined mail settings, runs the Nodemailer verify function.
+   *
+   * If the verify function fails, we wipe the mail settings so that no more
+   * attempts are made, and the service can continue.
+   */
   emailVerify() {
-    if (!this.config.has('email.debug')) {
+    if (this.mail) {
       this.mail.transporter.verify((error, success) => {
         if (error) {
           console.log("Error connecting to email server. Reason:" + error.reason);
+          this.mail = false;
         }
         else {
           console.log("Server is ready to send mail.");
-
-          this.emailTest();
         }
       });
     }
   }
 
+  /**
+   * Send email to a willing participant.
+   *
+   * @param {string} recipient
+   * @param {string} subject
+   * @param {string} template
+   *   The location of the file to render. Most likely is in ./views.
+   * @param {Object} tokens
+   *   Tokens to pass along to the rendering file.
+   */
   emailSend(recipient, subject, template, tokens) {
-    if (!this.config.has('email.debug')) {
+    if (this.mail) {
       Twig.renderFile(template, tokens, (error, rendered) => {
         const message = {
           from: this.config.get('email.username'),
           to: recipient,
           subject,
           html: rendered,
-          text: 'a plaintext version of the message',
         };
 
         this.mail.transporter.sendMail(message, (err, info, response) => {
           if (err) {
             console.log("Error sending mail.");
-            console.log('err');
+            console.log(err);
           }
         });
       });
