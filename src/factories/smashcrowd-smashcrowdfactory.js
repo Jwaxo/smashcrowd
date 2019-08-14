@@ -498,6 +498,7 @@ class SmashCrowd {
     return new Promise(resolve => {
       this.dbInsert('users', {
         username: user.getUsername(),
+        active: 'inactive',
         email: user.getEmail(),
         password: password,
         email_hash: user.getEmailHash(),

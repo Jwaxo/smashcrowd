@@ -203,9 +203,12 @@ module.exports = (crowd, config) => {
               user.setUsername(data.username);
               SmashCrowd.createUser(user, bcrypt.hashSync(data.password1, 10))
                 .then(userId => {
+                  // todo: Do not log registered users in until they verify email.
+                  // Status is currently being set to "inactive", but that is unused.
                   clientSession.userId = userId;
                   clientSession.save();
 
+                  SmashCrowd.emailRegistration(user);
                   serverLog(`${client.getLabel(board.getId())} created new user ${data.username}`);
 
                   socket.emit('form-user-register-complete');
