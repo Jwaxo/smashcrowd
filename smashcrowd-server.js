@@ -26,6 +26,7 @@ const server = http.Server(app);
 const uuid = require('uuid/v4');
 const io = socketio(server);
 const bcrypt = require('bcrypt');
+
 let SmashCrowd;
 let console_colors = {};
 

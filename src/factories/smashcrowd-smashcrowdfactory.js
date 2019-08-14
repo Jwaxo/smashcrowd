@@ -1,11 +1,18 @@
 /**
- * Logic, query, and other app-wide functions and services. This tracks all db
- * values and caches them, while also holding the functions to update the db.
+ * Logic, query, and other app-wide functions and services.
+ *
+ * This tracks:
+ *   - all db values, and caches them, while also holding the functions to update the db.
+ *   - all email services.
+ *   - master lists of characters, stages, users, and boards.
  */
 
 const Player = require('./smashcrowd-playerfactory.js');
 const Board = require('./smashcrowd-boardfactory');
 const User = require('./smashcrowd-userfactory');
+
+const Twig = require('twig');
+const nodemailer = require('nodemailer');
 
 class SmashCrowd {
 
@@ -22,8 +29,26 @@ class SmashCrowd {
     this.stages = [];
     this.users = {};
     this.boards = {};
+    this.mail = {};
 
     this.dbDiffString = this.constructor.constructDbDiffString(config.get('database.connection'));
+
+    // Get email configuration setup if we're not in debug mode. If we are, the
+    // mail object will just be empty.
+    if (!config.has('email.debug')) {
+      console.log('about to create mailer');
+      this.mail.transporter = nodemailer.createTransport({
+        host: config.get('email.host'),
+        secure: config.get('email.secure'),
+        port: config.get('email.port'),
+        auth: {
+          user: config.get('email.user'),
+          pass: config.get('email.password'),
+        },
+      });
+
+      this.emailVerify();
+    }
   }
 
   static constructDbDiffString(db_connection) {
@@ -31,6 +56,46 @@ class SmashCrowd {
   }
   getDbDiffString() {
     return this.dbDiffString;
+  }
+
+  emailVerify() {
+    if (!this.config.has('email.debug')) {
+      this.mail.transporter.verify((error, success) => {
+        if (error) {
+          console.log("Error connecting to email server. Reason:" + error.reason);
+        }
+        else {
+          console.log("Server is ready to send mail.");
+
+          this.emailTest();
+        }
+      });
+    }
+  }
+
+  emailSend(recipient, subject, template, tokens) {
+    if (!this.config.has('email.debug')) {
+      Twig.renderFile(template, tokens, (error, rendered) => {
+        const message = {
+          from: this.config.get('email.username'),
+          to: recipient,
+          subject,
+          html: rendered,
+          text: 'a plaintext version of the message',
+        };
+
+        this.mail.transporter.sendMail(message, (err, info, response) => {
+          if (err) {
+            console.log("Error sending mail.");
+            console.log('err');
+          }
+        });
+      });
+
+    }
+  }
+
+  emailTest() {
   }
 
   /**
