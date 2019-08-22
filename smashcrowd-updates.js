@@ -105,7 +105,7 @@ async function runUpdates() {
         update_schema = parseInt(update_schema);
         const updates = getUpdates();
         let update = '';
-        if (updates.length > 0) {
+        if (Object.keys(updates).length > update_schema) {
           for (update in updates) {
             if (parseInt(update) > update_schema) {
               console.log(`Running update ${update}`);
@@ -147,6 +147,7 @@ function postInstall() {
       'value': [
         'snake',
         'free',
+        'scorecard',
       ].join(','),
       'type': 'array',
     }
@@ -198,6 +199,15 @@ function getUpdates() {
   //   },
   // }
   return {
-    "0000" : () => {},
+    "0001" : () => {
+      // Adds the new scorecard draft type.
+      SmashCrowd.setSystemValue('draft_types', [
+          'snake',
+          'free',
+          'scorecard',
+        ].join(','),
+      );
+      console.log('Added new draft type: Scorecard');
+    },
   };
 }

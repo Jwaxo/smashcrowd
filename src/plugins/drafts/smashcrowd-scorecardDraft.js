@@ -1,38 +1,49 @@
 /**
- * Definition of Free Draft.
+ * Definition of Scorecard Drafting
  *
- * Allows players to pick as many characters as they want, with no
- * restrictions. Good for planning ahead for what character will play which
- * ahead of time.
+ * "Scorecard" is, essentially, the opposite of a draft: it's meant for keeping
+ * track of wins and losses in an improvisational manner, with no planning of
+ * rounds or characters beforehand.
  *
- * Free Draft does not allow the game to start until all players have picked
- * the same amount of characters.
+ * Because of this, scorecard goes through a "full board" in a single round, and
+ * keeps the board's results for the next board.
  */
 
 const DraftAbstract = require('./../../factories/smashcrowd-draftfactory');
 const Character = require('./../../factories/smashcrowd-characterfactory');
 const Board = require('./../../factories/smashcrowd-boardfactory');
 
-class freeDraft extends DraftAbstract {
+class scorecardDraft extends DraftAbstract {
   constructor() {
     super();
-    this.machine_name = 'free';
-    this.label = 'Free Pick';
+    this.machine_name = 'scorecard';
+    this.label = 'Score Card';
   }
 
   startNew(board) {
   }
 
+  /**
+   *
+   * @param {Board} board.
+   */
   startDraft(board) {
+    board.setTotalRounds(board.getTotalRounds() + 1);
     const players = board.getPlayers();
     for (let player in players) {
       players[player].setActive(true);
     }
   }
 
+  /**
+   * Picks a character and adds it to the next upcoming round for the player.
+   * If the player already has a character for that round, replace it.
+   *
+   * @param {Board} board
+   * @param {Player} player
+   * @param {Character} character
+   */
   addCharacter(board, player, character) {
-
-    const charId = character.getId();
 
     // First check to make sure the default Draft checks succeed.
     const return_data = super.addCharacter(board, player, character);
@@ -42,14 +53,14 @@ class freeDraft extends DraftAbstract {
       const return_data = {};
       character = new Character(charId, board.char_data[charId]);
 
-      if (!player.isActive) {
-        return_data.type = 'error';
-        return_data.error = 'error_add_char_max_characters';
-        return_data.message = 'You have reached the maximum number of characters!';
+      if (player.getCharacterCount() === board.getTotalRounds()) {
+        // First remove the current character from the player's character array.
+        // Player characters is a 0-indexed array, so it will always be one less
+        // than the round we want to remove it from.
+        Board.dropCharacterFromPlayer(player, board.getTotalRounds() - 1);
       }
-      else {
-        Board.addCharacterToPlayer(player, character);
-      }
+
+      Board.addCharacterToPlayer(player, character);
     }
 
     return return_data;
@@ -69,9 +80,9 @@ class freeDraft extends DraftAbstract {
   }
 
   /**
-   * Since free pick doesn't have a nice, easy draft count of rounds when picking,
-   * we need to track how many characters each player has added, and update the
-   * board info/state if they've all picked.
+   * Drafting is complete once every player has chosen a character. Since we want
+   * to allow changing of characters up until the game starts, we never set active
+   * states or anything; we just check to make sure everyone has picked a character.
    *
    * @param {Board} board
    * @param {Client} client
@@ -80,30 +91,13 @@ class freeDraft extends DraftAbstract {
    *   Functions and arguments to run from the main server with draft calculations.
    */
   advanceDraft(board, client, unused = {}) {
-    const updatedPlayers = [];
-    const clientplayer = client.getPlayerByBoard(board.getId());
     const returned_functions = [];
-
-    // If the board has a round total, and the player's character count is at that
-    // level, stop them from adding more.
-    clientplayer.setActive((!board.getTotalRounds() || clientplayer.getCharacterCount() < board.getTotalRounds()));
-
-    // Disable/Enable picking for this user if the above conditions are met.
-    returned_functions.push({'updateCharactersSingle': [client, {allDisabled: !clientplayer.isActive}]});
-
-    updatedPlayers.push({
-      'playerId': clientplayer.getId(),
-      'isActive': clientplayer.isActive,
-    });
-
-    returned_functions.push({'updatePlayersInfo': [board, updatedPlayers]});
 
     // If any single player is not yet ready, don't update the board info.
     let draftComplete = true;
-    let maxRounds = board.getMaxRounds();
     for (let playerId in board.getPlayers()) {
       const player = board.getPlayer(playerId);
-      if (player.getCharacterCount() < maxRounds) {
+      if (player.getCharacterCount() < board.getTotalRounds()) {
         draftComplete = false;
       }
     }
@@ -132,4 +126,4 @@ class freeDraft extends DraftAbstract {
   }
 }
 
-module.exports = freeDraft;
+module.exports = scorecardDraft;

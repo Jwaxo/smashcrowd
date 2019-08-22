@@ -385,6 +385,17 @@ class SmashCrowd {
         });
       });
   }
+
+  /**
+   * Updates a stored system value.
+   *
+   * @param {string} key
+   *   The (unchanging) key of the system value.
+   * @param {string} value
+   *   The new value.
+   * @param {string} type
+   *   If the type of stored system value changes, add this here.
+   */
   setSystemValue(key, value, type = null) {
     const fieldvalues = {
       'value': value,

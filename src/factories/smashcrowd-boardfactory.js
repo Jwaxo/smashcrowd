@@ -34,7 +34,16 @@ class Board {
     this.status = 0;
     this.next_player_id = 0;
 
-    this.draftTypes = SmashCrowd.getSystemValue('draft_types');
+    const draftTypes = SmashCrowd.getSystemValue('draft_types');
+    this.draftTypes = {};
+
+    if (Array.isArray(draftTypes) && draftTypes.length > 0) {
+      for (let draft_type of draftTypes) {
+        const draft_definition = require(`./../plugins/drafts/smashcrowd-${draft_type}Draft.js`);
+        this.draftTypes[draft_type] = new draft_definition;
+      }
+    }
+
     this.setDraft('free');
 
     this.char_data = {};
@@ -244,8 +253,12 @@ class Board {
     return this.draft.getStateTypes();
   }
 
+  getDraftTypes() {
+    return this.draftTypes;
+  }
+
   setDraft(type, skip_save = false) {
-    if (this.draftTypes.indexOf(type) > -1) {
+    if (this.draftTypes.hasOwnProperty(type)) {
       const Draft = require(`./../plugins/drafts/smashcrowd-${type}Draft.js`);
       this.draft = new Draft;
 

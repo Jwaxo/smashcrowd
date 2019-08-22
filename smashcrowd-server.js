@@ -163,7 +163,6 @@ module.exports = (crowd, config) => {
     updateCharactersSingle(client, {allDisabled: !playerActive});
 
     if (clientSession.status) {
-      console.log('connection has status ' + clientSession.status);
       let message = '';
       switch (clientSession.status) {
         case 'email_verify_complete':
