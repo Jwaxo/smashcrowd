@@ -13,6 +13,7 @@ class User {
     this.email = null;
     this.username = null;
     this.label = '';
+    this.email_hash = null;
 
     this.clientId = 0;
     this.boards = {};
@@ -67,6 +68,13 @@ class User {
   }
   getEmail() {
     return this.email;
+  }
+
+  setEmailHash(hash) {
+    this.email_hash = hash;
+  }
+  getEmailHash() {
+    return this.email_hash;
   }
 
   setUsername(username) {
@@ -263,6 +271,16 @@ class User {
     return available;
   }
 
+  /**
+   * Check parameters sent via registration email to verify an address.
+   *
+   * @param {number} userid
+   * @param {string} email_hash
+   * @returns {Promise}
+   */
+  static verifyEmailHash(userid, email_hash) {
+    return SmashCrowd.dbSelectFirst('users', 'username', `id = "${userid}" AND email_hash = "${email_hash}"`);
+  }
 }
 
 module.exports = User;

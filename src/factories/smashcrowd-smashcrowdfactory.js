@@ -1,11 +1,18 @@
 /**
- * Logic, query, and other app-wide functions and services. This tracks all db
- * values and caches them, while also holding the functions to update the db.
+ * Logic, query, and other app-wide functions and services.
+ *
+ * This tracks:
+ *   - all db values, and caches them, while also holding the functions to update the db.
+ *   - all email services.
+ *   - master lists of characters, stages, users, and boards.
  */
 
 const Player = require('./smashcrowd-playerfactory.js');
 const Board = require('./smashcrowd-boardfactory');
 const User = require('./smashcrowd-userfactory');
+
+const Twig = require('twig');
+const nodemailer = require('nodemailer');
 
 class SmashCrowd {
 
@@ -22,8 +29,26 @@ class SmashCrowd {
     this.stages = [];
     this.users = {};
     this.boards = {};
+    this.mail = false;
 
     this.dbDiffString = this.constructor.constructDbDiffString(config.get('database.connection'));
+
+    // Get email configuration setup if we're not in debug mode. If we are, the
+    // mail object will just be false.
+    if (!config.has('email.debug')) {
+      this.mail = {};
+      this.mail.transporter = nodemailer.createTransport({
+        host: config.get('email.host'),
+        secure: config.get('email.secure'),
+        port: config.get('email.port'),
+        auth: {
+          user: config.get('email.user'),
+          pass: config.get('email.password'),
+        },
+      });
+
+      this.emailVerify();
+    }
   }
 
   static constructDbDiffString(db_connection) {
@@ -31,6 +56,69 @@ class SmashCrowd {
   }
   getDbDiffString() {
     return this.dbDiffString;
+  }
+
+  /**
+   * Using predefined mail settings, runs the Nodemailer verify function.
+   *
+   * If the verify function fails, we wipe the mail settings so that no more
+   * attempts are made, and the service can continue.
+   */
+  emailVerify() {
+    if (this.mail) {
+      this.mail.transporter.verify((error, success) => {
+        if (error) {
+          console.log("Error connecting to email server. Reason:" + error.reason);
+          this.mail = false;
+        }
+        else {
+          console.log("Server is ready to send mail.");
+        }
+      });
+    }
+  }
+
+  /**
+   * Send email to a willing participant.
+   *
+   * @param {string} recipient
+   * @param {string} subject
+   * @param {string} template
+   *   The location of the file to render. Most likely is in ./views.
+   * @param {Object} tokens
+   *   Tokens to pass along to the rendering file.
+   */
+  emailSend(recipient, subject, template, tokens) {
+    if (this.mail) {
+      Twig.renderFile(template, tokens, (error, rendered) => {
+        const message = {
+          from: this.config.get('email.user'),
+          to: recipient,
+          subject,
+          html: rendered,
+        };
+
+        this.mail.transporter.sendMail(message, (err, info, response) => {
+          if (err) {
+            console.log("Error sending mail.");
+            console.log(err);
+          }
+        });
+      });
+
+    }
+  }
+
+  /**
+   *
+   * @param {User} user
+   */
+  emailRegistration(user) {
+    this.emailSend(user.getEmail(), "Complete Your SmashCrowd Registration", "./views/mail/registration.twig", {
+      name: user.getUsername(),
+      url: `${this.config.get('server.domain')}/verify_email?userid=${user.getId()}&hash=${user.getEmailHash()}`,
+      domain: this.config.get('server.domain'),
+    });
   }
 
   /**
@@ -402,12 +490,18 @@ class SmashCrowd {
    * @returns {Promise<any>}
    */
   createUser(user, password) {
-    // This will insert a user, but currently we don't have anything actually registering users.
+    // This will insert a user and define an email hash for checking later when
+    // the user verifies their email.
+    // We want a random number 15 digits long with some random salting.
+    user.setEmailHash(Math.floor(Math.random() * Math.pow(10, 15)) + this.config.get('email.hashsalt'));
+
     return new Promise(resolve => {
       this.dbInsert('users', {
         username: user.getUsername(),
+        active: 'inactive',
         email: user.getEmail(),
         password: password,
+        email_hash: user.getEmailHash(),
       })
         .then(userId => {
           this.users[userId] = user;
@@ -631,6 +725,16 @@ class SmashCrowd {
   }
   getUsers() {
     return this.users;
+  }
+
+  /**
+   * Updates the main `users` table with new data.
+   *
+   * @param {number} userid
+   * @param {Object} fieldValues
+   */
+  updateUser(userid, field_values) {
+    this.dbUpdate('users', field_values, `id = "${userid}"`);
   }
 
   /**

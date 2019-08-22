@@ -11,6 +11,10 @@
     "export_path": "src/lib/table-schema.json",
     "debug": false
   },
+  "recaptcha":{
+    "secret": "default",
+    "key": "default"
+  },
   "server": {
     "port" : 8080,
     "console_colors": [
@@ -34,6 +38,15 @@
       "draft_type": "free",
       "owner": 1
     },
-    "default_avatar": "images/avatar_default.png"
+    "default_avatar": "images/avatar_default.png",
+    "domain": "http://smashcrowd.jeffwax.com"
+  },
+  "email": {
+    "secure": false,
+    "host": "example.hostname",
+    "port": 567,
+    "user": "example@hostname",
+    "password": "examplePass",
+    "hashsalt": 43257181
   }
 }

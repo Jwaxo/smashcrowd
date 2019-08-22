@@ -45,4 +45,3 @@ require('./smashcrowd-updates').updates(crowd)
       require('./smashcrowd-sass')();
     });
   });
-

@@ -37,6 +37,8 @@
     "jquery": "^3.4.1",
     "motion-ui": "^2.0.3",
     "mysql": "^2.17.0",
+    "nodemailer": "^6.3.0",
+    "request": "^2.88.0",
     "socket.io": "^2.2.0",
     "strip-ansi": "^5.0.0",
     "twig": "^1.13.2",
