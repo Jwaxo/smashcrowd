@@ -298,6 +298,9 @@ class SmashCrowd {
       if (Array.isArray(fieldvalues[field])) {
         const casewhens = [];
 
+        // If we have a series of field-values we need to build them out in what
+        // SQL calls "cases". Essential a number of "if:then" pairs that are grouped
+        // inside (case end).
         for (let i = 0; i < fieldvalues[field].length; i++) {
           const casewhen = fieldvalues[field][i];
           casewhens.push(`when ${casewhen.when} then "${casewhen.then}"`);
@@ -318,7 +321,7 @@ class SmashCrowd {
         }
         connection.query(`UPDATE ?? SET ${set.join(',')} WHERE ${where}`, [table], (error, results) => {
           if (error) {
-            console.log('Error running update');
+            console.log('Error running update ' + `UPDATE ${table} SET ${set.join(',')} WHERE ${where}`);
             throw error;
           }
           connection.release();
@@ -697,7 +700,9 @@ class SmashCrowd {
       });
     }
 
-    this.dbUpdate('player_characters', {'roster_number': character_indices}, `player_id = "${player.getId()}"`);
+    if (character_indices.length > 0) {
+      this.dbUpdate('player_characters', {'roster_number': character_indices}, `player_id = "${player.getId()}"`);
+    }
   }
 
   /**

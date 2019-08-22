@@ -411,6 +411,10 @@ module.exports = (crowd, config) => {
       else if (results['type'] === 'success') {
 
         switch (results['log']) {
+          case 'log_switch_char':
+            serverLog(`${client.getLabel(board.getId())} changing to character ${character.getName()}.`);
+            break;
+
           case 'log_add_char':
           default:
             serverLog(`${client.getLabel(board.getId())} adding character ${character.getName()}.`);

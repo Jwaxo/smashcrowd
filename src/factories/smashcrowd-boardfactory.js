@@ -418,25 +418,41 @@ class Board {
         });
     });
   }
+
+  /**
+   * @returns {{}}
+   */
   getPlayers() {
     return this.players;
   }
+  /**
+   * @returns {[]}
+   */
   getPlayersArray() {
     return Object.values(this.players);
   }
+  /**
+   * @returns {int}
+   */
   getPlayersCount() {
     return Object.keys(this.players).length;
   }
+  /**
+   * @returns {[]}
+   */
   getPlayersDisplayOrder() {
     return this.players_display_order;
   }
+  /**
+   * @returns {[]}
+   */
   getPlayersPickOrder() {
     return this.players_pick_order;
   }
   /**
    * Searches the players array for the player with the matching ID.
    *
-   * @param {integer} playerId
+   * @param {number} playerId
    *    The ID to look for.
    * @returns {Player|null}
    */

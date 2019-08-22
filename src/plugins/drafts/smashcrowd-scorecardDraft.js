@@ -50,7 +50,6 @@ class scorecardDraft extends DraftAbstract {
 
     if (return_data.type === 'success') {
       const charId = character.getId();
-      const return_data = {};
       character = new Character(charId, board.char_data[charId]);
 
       if (player.getCharacterCount() === board.getTotalRounds()) {
@@ -58,9 +57,11 @@ class scorecardDraft extends DraftAbstract {
         // Player characters is a 0-indexed array, so it will always be one less
         // than the round we want to remove it from.
         Board.dropCharacterFromPlayer(player, board.getTotalRounds() - 1);
+        return_data.log = 'log_switch_char';
       }
 
       Board.addCharacterToPlayer(player, character);
+
     }
 
     return return_data;
@@ -91,7 +92,15 @@ class scorecardDraft extends DraftAbstract {
    *   Functions and arguments to run from the main server with draft calculations.
    */
   advanceDraft(board, client, unused = {}) {
+    const updatedPlayers = [];
+    const clientplayer = client.getPlayerByBoard(board.getId());
     const returned_functions = [];
+
+    updatedPlayers.push({
+      'playerId': clientplayer.getId(),
+    });
+
+    returned_functions.push({'updatePlayersInfo': [board, updatedPlayers]});
 
     // If any single player is not yet ready, don't update the board info.
     let draftComplete = true;

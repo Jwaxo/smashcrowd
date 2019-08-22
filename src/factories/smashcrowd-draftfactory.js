@@ -51,11 +51,22 @@ class DraftAbstract {
     throw new TypeError(this.constructor.name + " does not initialize function advanceGame");
   }
 
+  /**
+   *
+   * @param {Board} board
+   * @param {Player} player
+   * @param {Character} character
+   * @returns {Object}
+   *  {
+   *    data: {},
+   *    type: string,
+ *    }
+   */
   addCharacter(board, player, character) {
 
     const return_data = {
       type: 'success',
-      data: {},
+      log: 'log_add_char',
     };
 
     if (board.getDraftRound() < 1) {
