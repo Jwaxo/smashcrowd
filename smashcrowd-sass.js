@@ -16,16 +16,18 @@ module.exports = () => {
   ];
 
   sass();
-  gulp.watch(['scss/*.scss'], () => {
-    sass();
+  gulp.task('sass', () => {
+    return sass();
   });
+
+  gulp.watch('scss/*.scss', gulp.series('sass'));
 
   /**
    * Build out the Sass located in scss/app.scss. Outputs to public/css.
    */
   function sass() {
     console.log('Rendering SCSS...');
-    return gulp.src('scss/app.scss')
+    const returned = gulp.src('scss/app.scss')
       .pipe($.sass({
         includePaths: sassPaths,
         outputStyle: 'compressed' // if css compressed **file size**
@@ -35,5 +37,7 @@ module.exports = () => {
         autoprefixer({ browsers: ['last 2 versions', 'ie >= 9'] })
       ]))
       .pipe(gulp.dest('public/css'));
+    console.log('Render complete!');
+    return returned;
   }
 };
