@@ -100,6 +100,10 @@ class scorecardDraft extends DraftAbstract {
       'playerId': clientplayer.getId(),
     });
 
+    // Ensure that we send "updateCharactersSingle" info to the client that just
+    // picked a character so that, after processing, their character board re-
+    // enables.
+    returned_functions.push({'updateCharactersSingle': [client, {allDisabled: false}]});
     returned_functions.push({'updatePlayersInfo': [board, updatedPlayers]});
 
     // If any single player is not yet ready, don't update the board info.
@@ -108,6 +112,7 @@ class scorecardDraft extends DraftAbstract {
       const player = board.getPlayer(playerId);
       if (player.getCharacterCount() < board.getTotalRounds()) {
         draftComplete = false;
+        break;
       }
     }
 

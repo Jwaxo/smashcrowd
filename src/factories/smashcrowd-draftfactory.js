@@ -56,11 +56,10 @@ class DraftAbstract {
    * @param {Board} board
    * @param {Player} player
    * @param {Character} character
-   * @returns {Object}
-   *  {
-   *    data: {},
-   *    type: string,
- *    }
+   * @returns {{
+   *   type: string,
+   *   log: string,
+   * }}
    */
   addCharacter(board, player, character) {
 

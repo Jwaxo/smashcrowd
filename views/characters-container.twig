@@ -4,7 +4,7 @@
 #}
 {% set characterGridClasses = [
   'character-grid',
-  (board.getStatus(true) != 'draft' ? 'character-grid--disabled' : ''),
+  (board.checkStatus('draft') ? '' : 'character-grid--disabled'),
   (board.checkStatus('game') ? 'character-grid--hidden' : ''),
 ]|join(' ')|trim %}
 
