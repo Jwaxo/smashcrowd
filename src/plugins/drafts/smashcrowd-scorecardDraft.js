@@ -136,11 +136,20 @@ class scorecardDraft extends DraftAbstract {
   }
 
   advanceGame(board) {
+    // In addition to standard game advancing, we want to be sure to regenerate
+    // characters, since they probably are re-enabling after we pick a winner.
+    const returned_functions = super.advanceGame(board);
 
+    returned_functions.push({'regenerateCharacters': [board]});
+
+    return returned_functions;
   }
 
   startGameComplete(board) {
-
+    // Since scorecards are just ongoing, we don't actually reach a "stop this
+    // draft" point, and instead just loop back to drafting.
+    board.setStatus('draft');
+    board.startDraft();
   }
 }
 

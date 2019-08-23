@@ -85,6 +85,7 @@ class DraftAbstract {
 
     if (round > board.getTotalRounds()) {
       board.setStatus('game-complete');
+      this.startByStatus('game-complete', board);
     }
 
     // Go through all players and update their rosters.
