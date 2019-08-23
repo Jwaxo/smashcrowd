@@ -1,5 +1,20 @@
 /**
  * Abstract definition of a Draft and what kind of functions it requires.
+ *
+ * Drafts are not meant to store information, and could probably be entirely made
+ * out of static functions, if not for the fact that they store a few things like
+ * labels and status types. All information about the current state of the draft,
+ * what characters are where, and what to do next, should all be stored by the
+ * board itself that has a draft type.
+ *
+ * Any extension of this class should work like a factory or a widget: taking
+ * information, bending it and shaping it, then sending information back based
+ * off of that. In this way we can maintain that the information will always be
+ * the same, and the draft types (which are complicated enough) won't have to
+ * "hold" the information which may get confusing for the individual debugger.
+ * Plus, it keeps the database information a lot more simple: boards are all
+ * comparable, it's just how that information changes between steps that
+ * differentiates Drafts.
  */
 
 const Character = require('./smashcrowd-characterfactory');
@@ -32,9 +47,17 @@ class DraftAbstract {
   }
 
   /**
+   * Probably the most basic implementation of a unique Draft, what happens when
+   * a player picks a character.
+   *
+   * There are a number of basic things that most drafts will do when they advance,
+   * but since that's a vital part of any draft that it will be customized, I'm
+   * okay with having some copy-pasting between drafts so that we can require
+   * every draft to have this function defined.
    *
    * @param {Board} board
    * @param {Client} client
+   * @param {Object} additional_data
    * @returns {Array}
    *   An array of objects that follow the following structure:
    *     {callbackName : [argument1, argument2, argument, 3]}
@@ -47,11 +70,35 @@ class DraftAbstract {
     return returned_functions;
   }
 
-  advanceGame() {
-    throw new TypeError(this.constructor.name + " does not initialize function advanceGame");
+  /**
+   * Advance the game by one round.
+   *
+   * This implementation is probably the least likely to be changed by a Draft
+   * subclass, but types such as a Scorecard, which routinely goes through a
+   * number of games, will want to overload this function.
+   *
+   * @param {Board} board
+   */
+  advanceGame(board) {
+    const returned_functions = [];
+    const round = board.advanceGameRound();
+
+    if (round > board.getTotalRounds()) {
+      board.setStatus('game-complete');
+    }
+
+    // Go through all players and update their rosters.
+    returned_functions.push({'regeneratePlayers': [board]});
+    returned_functions.push({'regenerateBoardInfo': [board]});
+
+    return returned_functions;
   }
 
   /**
+   * Add a character to a player.
+   *
+   * Drafts may potentially have unique requirements when picking a character,
+   * or may take unique actions after a character is picked.
    *
    * @param {Board} board
    * @param {Player} player

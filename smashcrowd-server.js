@@ -445,6 +445,7 @@ module.exports = (crowd, config) => {
       // The user is marking a winner of a round.
       if (board.getGameRound() === charRound) {
         if (charId !== 999) {
+          serverLog(`${client.getLabel(board.getId())} marked ${clickedPlayer.getName()} as the winner of round ${charRound} with ${board.getCharacter(charId).getName()}`);
           board.setPlayerWin(playerId, charRound);
 
           advanceGame(board);
@@ -657,17 +658,20 @@ function setClientPlayer(board, client, player) {
 }
 
 /**
- * Advances the game to the next round.
+ * Advances the game via draft function.
  */
 function advanceGame(board) {
-  const round = board.advanceGameRound();
-  if (round > board.getTotalRounds()) {
-    board.setStatus('game-complete');
-  }
 
-  // Go through all players and update their rosters.
-  regeneratePlayers(board);
-  regenerateBoardInfo(board);
+  // Ask our draft what to do when a game round advances.
+  const postGameFunctions = board.draft.advanceGame(board);
+
+  // Run all of the defined callbacks.
+  for (let functionIndex in postGameFunctions) {
+    const functionName = Object.keys(postGameFunctions[functionIndex])[0];
+    if (typeof eval(functionName) === 'function') {
+      eval(functionName)(...postGameFunctions[functionIndex][functionName]);
+    }
+  }
 }
 
 /**

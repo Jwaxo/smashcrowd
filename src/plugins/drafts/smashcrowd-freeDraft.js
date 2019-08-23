@@ -127,9 +127,6 @@ class freeDraft extends DraftAbstract {
 
   }
 
-  advanceGame(board) {
-
-  }
 }
 
 module.exports = freeDraft;

@@ -215,7 +215,6 @@ class Board {
   }
 
   advanceGameRound() {
-    this.draft.advanceGame();
     if (this.current_game_round === 0) {
       this.setStatus('game');
     }
@@ -294,6 +293,11 @@ class Board {
     this.draft.startByStatus(this.getStatus(true), this);
   }
 
+  /**
+   * Takes a string or int indicating a board status and updates the and stored status.
+   *
+   * @param {string|int} state
+   */
   setStatus(state) {
     if (typeof state === 'string') {
       const found = this.draft.statusTypes.indexOf(state);

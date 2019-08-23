@@ -138,6 +138,10 @@ class scorecardDraft extends DraftAbstract {
   advanceGame(board) {
 
   }
+
+  startGameComplete(board) {
+
+  }
 }
 
 module.exports = scorecardDraft;

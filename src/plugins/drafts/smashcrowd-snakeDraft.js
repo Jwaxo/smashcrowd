@@ -174,10 +174,6 @@ class snakeDraft extends DraftAbstract {
   startGame(board) {
 
   }
-
-  advanceGame(board) {
-
-  }
 }
 
 module.exports = snakeDraft;
