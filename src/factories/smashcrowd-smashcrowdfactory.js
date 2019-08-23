@@ -319,9 +319,10 @@ class SmashCrowd {
           console.log('Error getting connection from pool');
           throw connect_error;
         }
-        connection.query(`UPDATE ?? SET ${set.join(',')} WHERE ${where}`, [table], (error, results) => {
+        const query = `UPDATE ?? SET ${set.join(',')} WHERE ${where}`;
+        connection.query(query, [table], (error, results) => {
           if (error) {
-            console.log('Error running update ' + `UPDATE ${table} SET ${set.join(',')} WHERE ${where}`);
+            console.log(`Error running update ${query.replace('??', table)}`);
             throw error;
           }
           connection.release();
@@ -690,9 +691,10 @@ class SmashCrowd {
    *
    * @param {Player} player
    */
-  updatePlayerRosterIndex(player) {
+  async updatePlayerRosterIndex(player) {
     // Get a list of character IDs and their new indices in the character array.
     const character_indices = [];
+    let returnPromises = [];
     for (let i = 0; i < player.getCharacterCount(); i++) {
       character_indices.push({
         when: `character_id = "${player.getCharacterByIndex(i).getId()}"`,
@@ -701,8 +703,10 @@ class SmashCrowd {
     }
 
     if (character_indices.length > 0) {
-      this.dbUpdate('player_characters', {'roster_number': character_indices}, `player_id = "${player.getId()}"`);
+       returnPromises.push(this.dbUpdate('player_characters', {'roster_number': character_indices}, `player_id = "${player.getId()}"`));
     }
+
+    return await Promise.all(returnPromises);
   }
 
   /**
