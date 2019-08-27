@@ -536,11 +536,12 @@ class SmashCrowd {
    * @returns {Promise<number>}
    */
   createPlayer(name, board, userId = null) {
+    userId = userId !== null ? userId : 0;
     return new Promise(resolve => {
       this.dbInsert('players', {
         name: name,
         board_id: board.getId(),
-        user_id: (userId !== null ? userId : 0),
+        user_id: userId,
       })
         .then(playerId => {
           const player = new Player(name, userId);
