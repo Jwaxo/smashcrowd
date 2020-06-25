@@ -502,7 +502,7 @@ class SmashCrowd {
    *
    * @param {User} user
    * @param {string} password
-   * @returns {Promise<any>}
+   * @returns {Promise<int>}
    */
   createUser(user, password) {
     // This will insert a user and define an email hash for checking later when
@@ -616,12 +616,11 @@ class SmashCrowd {
   /**
    * Updates the `player_characters` table with new data.
    *
-   * @param {number} player_id
-   * @param {number} roster_number
+   * @param {number} player_character_id
    * @param {Object}field_values
    */
-  updatePlayerCharacter(player_id, roster_number, field_values = {}) {
-    this.dbUpdate('player_characters', field_values, `player_id = "${player_id}" AND roster_number = "${roster_number}"`);
+  updatePlayerCharacter(player_character_id, field_values = {}) {
+    this.dbUpdate('player_characters', field_values, `player_character_id = "${player_character_id}"`);
   }
 
   /**
@@ -645,31 +644,38 @@ class SmashCrowd {
   /**
    * Adds a character assignment to the player-character table.
    *
-   * @param {number} player_id
-   * @param {number} character_id
+   * @param {Player} player
+   * @param {Character} character
    * @param {number} roster_position
+   *
+   * @returns {Promise<int>}
+   *   A DB Insert promise that resolves to the player_character_id.
    */
-  addCharacterToPlayer(player_id, character_id, roster_position) {
+  addCharacterToPlayer(player, character, roster_position) {
     const fieldValues = {
-      "player_id": player_id,
-      "character_id": character_id,
+      "player_id": player.getId(),
+      "character_id": character.getId(),
       "roster_number": roster_position,
     };
-    this.dbInsert('player_characters', fieldValues);
+
+    return new Promise(resolve => {
+      this.dbInsert('player_characters', fieldValues)
+        .then(playerCharacterId => {
+          character.setPlayerCharacterId(playerCharacterId);
+          resolve();
+        });
+    })
   }
 
   /**
    * Drops a character assignment from the player-character table.
    *
-   * @param {number} player_id
-   * @param {number} roster_number
+   * @param {Character} character
    */
-  dropCharacterFromPlayer(player_id, roster_number) {
-    const fieldValues = {
-      "player_id": player_id,
-      "roster_number": roster_number,
-    };
-    this.dbDelete('player_characters', `player_id = "${player_id}" AND roster_number = "${roster_number}"`);
+  dropCharacterFromPlayer(character) {
+    const player_character_id = character.getPlayerCharacterId();
+    this.dbDelete('player_characters', `player_character_id = "${player_character_id}"`);
+    character.setPlayerCharacterId(null);
   }
 
   /**
@@ -698,7 +704,7 @@ class SmashCrowd {
     let returnPromises = [];
     for (let i = 0; i < player.getCharacterCount(); i++) {
       character_indices.push({
-        when: `character_id = "${player.getCharacterByIndex(i).getId()}"`,
+        when: `player_character_id = "${player.getCharacterByIndex(i).getPlayerCharacterId()}"`,
         then: i,
       });
     }

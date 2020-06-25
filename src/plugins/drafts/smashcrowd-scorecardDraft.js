@@ -52,6 +52,7 @@ class scorecardDraft extends DraftAbstract {
       const charId = character.getId();
       character = new Character(charId, board.char_data[charId]);
 
+      // Swap characters if we're at the maximum rounds.
       if (player.getCharacterCount() === board.getTotalRounds()) {
         // First remove the current character from the player's character array.
         // Player characters is a 0-indexed array, so it will always be one less
@@ -59,7 +60,6 @@ class scorecardDraft extends DraftAbstract {
         Board.dropCharacterFromPlayer(player, board.getTotalRounds() - 1);
         return_data.log = 'log_switch_char';
       }
-
       Board.addCharacterToPlayer(player, character);
 
     }
@@ -67,6 +67,16 @@ class scorecardDraft extends DraftAbstract {
     return return_data;
   }
 
+  /**
+   * Removes a character from a roster and updates draft status as necessary.
+   *
+   * @param {Board} board
+   * @param {Client} client
+   * @param {Player} player
+   * @param {number} character_index
+   *   The roster location the character occupies.
+   * @returns {boolean}
+   */
   dropCharacter(board, client, player, character_index) {
     Board.dropCharacterFromPlayer(player, character_index);
 
@@ -136,10 +146,27 @@ class scorecardDraft extends DraftAbstract {
   }
 
   advanceGame(board) {
-    // In addition to standard game advancing, we want to be sure to regenerate
-    // characters, since they probably are re-enabling after we pick a winner.
-    const returned_functions = super.advanceGame(board);
+    // This mostly runs the same as a default draft, with the exception being that
+    // the game round only advances if it is not equal to the draft round.
+    // If they are equal, we go back to the draft, and let it advance the game
+    // round once drafting is complete.
+    const returned_functions = [];
 
+    if (board.getDraftRound() > board.getGameRound()) {
+      board.advanceGameRound();
+    }
+    else {
+      board.setStatus('game-complete');
+      this.startByStatus('game-complete', board);
+    }
+
+    // @todo: still getting some sort of draft round/game round mismatch. Maybe should
+    // @todo: just output those to the console constantly to see where they are/aren't changing.
+
+    // Go through all players and update their rosters, as well as re-enable the
+    // character selection.
+    returned_functions.push({'regeneratePlayers': [board]});
+    returned_functions.push({'regenerateBoardInfo': [board]});
     returned_functions.push({'regenerateCharacters': [board]});
 
     return returned_functions;

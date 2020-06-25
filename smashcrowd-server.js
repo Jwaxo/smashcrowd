@@ -51,6 +51,7 @@ module.exports = (crowd, config) => {
 
   // Currently we only run one board at a time, so load board 1.
   const board = crowd.getBoardById(1);
+  SmashCrowd.createBoard(board);
 
   // Listen at the port.
   server.listen(port, () => {
@@ -443,7 +444,8 @@ module.exports = (crowd, config) => {
       const character_index = charRound - 1;
 
       // The user is marking a winner of a round.
-      if (board.getGameRound() === charRound) {
+      console.log(`Character clicked! Current board stat is ${board.getStatus(true)}, character round clicked is ${charRound}, current game round is ${board.getGameRound()}`);
+      if (board.checkStatus("game") && board.getGameRound() === charRound) {
         if (charId !== 999) {
           serverLog(`${client.getLabel(board.getId())} marked ${clickedPlayer.getName()} as the winner of round ${charRound} with ${board.getCharacter(charId).getName()}`);
           board.setPlayerWin(playerId, charRound);
@@ -454,7 +456,8 @@ module.exports = (crowd, config) => {
           serverLog(`${client.getLabel(board.getId())} tried to mark a non-player as winner!`);
         }
       }
-      else if (clientPlayer.getId() === playerId) {
+      // The user is dropping a character while in draft mode.
+      else if (board.checkStatus(["draft", "draft-complete"]) && board.getGameRound() < charRound && clientPlayer.getId() === playerId) {
         if (board.draft.dropCharacter(board, client, clientPlayer, character_index)) {
           regenerateBoardInfo(board);
           regeneratePlayers(board);

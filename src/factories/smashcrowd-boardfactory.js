@@ -200,11 +200,12 @@ class Board {
   setPlayerWin(player_id, roster, skip_save = false) {
     const winnerPlayer = this.getPlayer(player_id);
     const character_index = roster - 1;
+    const player_character_id = winnerPlayer.getCharacterByIndex(character_index).getPlayerCharacterId();
     winnerPlayer.addStat('game_score');
     winnerPlayer.setCharacterState(character_index, 'win');
 
     if (!skip_save) {
-      SmashCrowd.updatePlayerCharacter(player_id, roster, {'win': 1});
+      SmashCrowd.updatePlayerCharacter(player_character_id, {'win': 1});
     }
     for (let board_player_id in this.getPlayers()) {
       const eachPlayer = this.getPlayer(board_player_id);
@@ -348,9 +349,12 @@ class Board {
     }
     else if (Array.isArray(state)) {
       if (typeof state[0] === 'string') {
-        isStatus = state.includes(this.status);
+        // If the first of the states is a string, we can assume all of them are,
+        // and are thus the "user friendly" style of states.
+        isStatus = state.includes(this.getStatus(true));
       }
       else {
+        // Otherwise the caller must be using the integer version of states.
         isStatus = (this.status in state);
       }
     }
@@ -488,12 +492,14 @@ class Board {
    *
    * @param {Player} player
    * @param {Character} character
+   *
+   * @returns {int} player_character_id
    */
   static addCharacterToPlayer(player, character) {
     const player_characters = player.addCharacter(character);
     character.setPlayer(player.getId());
 
-    SmashCrowd.addCharacterToPlayer(player.getId(), character.getId(), player_characters.length - 1);
+    SmashCrowd.addCharacterToPlayer(player, character, player_characters.length - 1);
   }
 
   /**
@@ -505,9 +511,9 @@ class Board {
    */
   static dropCharacterFromPlayer(player, character_index) {
     const character = player.dropCharacter(character_index);
+    SmashCrowd.dropCharacterFromPlayer(character);
     character.setPlayer(null);
 
-    SmashCrowd.dropCharacterFromPlayer(player.getId(), character_index);
     SmashCrowd.updatePlayerRosterIndex(player);
   }
 
