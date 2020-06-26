@@ -160,15 +160,13 @@ class scorecardDraft extends DraftAbstract {
     const returned_functions = [];
 
     if (board.getDraftRound() > board.getGameRound()) {
+      // We just completed a draft, so we're ready to move on to picking a winner.
       board.advanceGameRound();
     }
     else {
-      board.setStatus('game-complete');
+      // We just completed a game round, so run the completion items.
       this.startByStatus('game-complete', board);
     }
-
-    // @todo: still getting some sort of draft round/game round mismatch. Maybe should
-    // @todo: just output those to the console constantly to see where they are/aren't changing.
 
     // Go through all players and update their rosters, as well as re-enable the
     // character selection.
@@ -184,8 +182,10 @@ class scorecardDraft extends DraftAbstract {
     // "stop this draft" point, and instead just loop back to drafting.
     if (this.is_infinite) {
       board.setTotalRounds(board.getTotalRounds() + 1);
-      board.setStatus('draft');
       board.startDraft();
+    }
+    else {
+      board.setStatus('game-complete');
     }
   }
 }

@@ -173,6 +173,7 @@ class Board {
   }
 
   startDraft() {
+    this.setStatus('draft');
     this.draft.startByStatus('draft', this);
     this.advanceDraftRound();
   }
@@ -224,9 +225,7 @@ class Board {
   }
 
   advanceGameRound() {
-    if (this.current_game_round === 0) {
-      this.setStatus('game');
-    }
+    this.setStatus('game');
     this.current_game_round++;
     this.updateBoard({current_game_round: this.current_game_round});
     return this.current_game_round;
