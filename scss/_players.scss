@@ -54,6 +54,8 @@
 }
 
 .player-picker {
+  cursor: pointer;
+
   .player--owned:not(.player--current) & {
     display: none;
   }

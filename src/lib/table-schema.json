@@ -153,14 +153,19 @@
 					"name": "PRIMARY",
 					"type": "primary",
 					"columns": [
-						"player_id",
-						"character_id",
-						"roster_number"
+						"player_character_id"
 					]
 				}
 			],
 			"indexes": [],
 			"columns": [
+				{
+					"name": "player_character_id",
+					"nullable": false,
+					"default_value": null,
+					"type": "int(11)",
+					"extra": "auto_increment"
+				},
 				{
 					"name": "player_id",
 					"nullable": false,

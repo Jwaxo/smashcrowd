@@ -15,7 +15,7 @@
 
 .character {
   background-size: cover;
-  cursor: pointer;
+  cursor: url('../images/pointer.png'), pointer;
   flex: 0 0 auto;
   height: rem-calc(50px);
   overflow: hidden;

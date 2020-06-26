@@ -51,6 +51,7 @@ module.exports = (crowd, config) => {
 
   // Currently we only run one board at a time, so load board 1.
   const board = crowd.getBoardById(1);
+  SmashCrowd.createBoard(board);
 
   // Listen at the port.
   server.listen(port, () => {
@@ -163,7 +164,6 @@ module.exports = (crowd, config) => {
     updateCharactersSingle(client, {allDisabled: !playerActive});
 
     if (clientSession.status) {
-      console.log('connection has status ' + clientSession.status);
       let message = '';
       switch (clientSession.status) {
         case 'email_verify_complete':
@@ -412,6 +412,10 @@ module.exports = (crowd, config) => {
       else if (results['type'] === 'success') {
 
         switch (results['log']) {
+          case 'log_switch_char':
+            serverLog(`${client.getLabel(board.getId())} changing to character ${character.getName()}.`);
+            break;
+
           case 'log_add_char':
           default:
             serverLog(`${client.getLabel(board.getId())} adding character ${character.getName()}.`);
@@ -440,8 +444,10 @@ module.exports = (crowd, config) => {
       const character_index = charRound - 1;
 
       // The user is marking a winner of a round.
-      if (board.getGameRound() === charRound) {
+      console.log(`Character clicked! Current board stat is ${board.getStatus(true)}, character round clicked is ${charRound}, current game round is ${board.getGameRound()}`);
+      if (board.checkStatus("game") && board.getGameRound() === charRound) {
         if (charId !== 999) {
+          serverLog(`${client.getLabel(board.getId())} marked ${clickedPlayer.getName()} as the winner of round ${charRound} with ${board.getCharacter(charId).getName()}`);
           board.setPlayerWin(playerId, charRound);
 
           advanceGame(board);
@@ -450,7 +456,8 @@ module.exports = (crowd, config) => {
           serverLog(`${client.getLabel(board.getId())} tried to mark a non-player as winner!`);
         }
       }
-      else if (clientPlayer.getId() === playerId) {
+      // The user is dropping a character while in draft mode.
+      else if (board.checkStatus(["draft", "draft-complete"]) && board.getGameRound() < charRound && clientPlayer.getId() === playerId) {
         if (board.draft.dropCharacter(board, client, clientPlayer, character_index)) {
           regenerateBoardInfo(board);
           regeneratePlayers(board);
@@ -654,17 +661,20 @@ function setClientPlayer(board, client, player) {
 }
 
 /**
- * Advances the game to the next round.
+ * Advances the game via draft function.
  */
 function advanceGame(board) {
-  const round = board.advanceGameRound();
-  if (round > board.getTotalRounds()) {
-    board.setStatus('game-complete');
-  }
 
-  // Go through all players and update their rosters.
-  regeneratePlayers(board);
-  regenerateBoardInfo(board);
+  // Ask our draft what to do when a game round advances.
+  const postGameFunctions = board.draft.advanceGame(board);
+
+  // Run all of the defined callbacks.
+  for (let functionIndex in postGameFunctions) {
+    const functionName = Object.keys(postGameFunctions[functionIndex])[0];
+    if (typeof eval(functionName) === 'function') {
+      eval(functionName)(...postGameFunctions[functionIndex][functionName]);
+    }
+  }
 }
 
 /**

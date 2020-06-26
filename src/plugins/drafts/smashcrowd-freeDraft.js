@@ -1,5 +1,12 @@
 /**
- * Abstract definition of a Draft and what kind of functions it requires.
+ * Definition of Free Draft.
+ *
+ * Allows players to pick as many characters as they want, with no
+ * restrictions. Good for planning ahead for what character will play which
+ * ahead of time.
+ *
+ * Free Draft does not allow the game to start until all players have picked
+ * the same amount of characters.
  */
 
 const DraftAbstract = require('./../../factories/smashcrowd-draftfactory');
@@ -120,9 +127,10 @@ class freeDraft extends DraftAbstract {
 
   }
 
-  advanceGame(board) {
+  startGameComplete(board) {
 
   }
+
 }
 
 module.exports = freeDraft;

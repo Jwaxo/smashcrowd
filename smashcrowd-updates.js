@@ -105,7 +105,7 @@ async function runUpdates() {
         update_schema = parseInt(update_schema);
         const updates = getUpdates();
         let update = '';
-        if (updates.length > 0) {
+        if (Object.keys(updates).length > update_schema) {
           for (update in updates) {
             if (parseInt(update) > update_schema) {
               console.log(`Running update ${update}`);
@@ -147,6 +147,7 @@ function postInstall() {
       'value': [
         'snake',
         'free',
+        'scorecard',
       ].join(','),
       'type': 'array',
     }
@@ -168,18 +169,44 @@ function postInstall() {
     });
 
   // For now we create a default board.
-  // @todo: remove this once multiple boards are working.
-  const board_promise = SmashCrowd.dbInsert('boards', config.get('server.default_board'))
-    .then(() => {
+  // @todo: Adjust this once multiple boards are working.
+  const default_board = {
+    'name': config.get('server.default_board.name'),
+    'draft_type': config.get('server.default_board.draft_type'),
+    'owner': config.get('server.default_board.owner'),
+  };
+  const board_promise = SmashCrowd.dbInsert('boards', default_board)
+    .then((board_id) => {
+      console.log('id is ' + board_id);
       console.log('Default board created.');
     });
 
-  return Promise.all([
+  // ...and create default players on that board.
+  const default_players = config.get('server.default_board.players');
+  const player_promises = [];
+  if (Array.isArray(default_players) && default_players.length > 0) {
+    for (let player of default_players) {
+      player_promises.push(SmashCrowd.dbInsert('players', {
+        name: player,
+        board_id: 1,
+        user_id: 0,
+      })
+        .then(playerId => {
+          console.log(`Created default player ${player}.`);
+        }));
+    }
+  }
+
+  const promises = [
     system_promise,
     character_promise,
     stage_promise,
     board_promise,
-  ])
+  ];
+
+  promises.concat(player_promises);
+
+  return Promise.all(promises)
 }
 
 /**
@@ -198,6 +225,15 @@ function getUpdates() {
   //   },
   // }
   return {
-    "0000" : () => {},
+    "0001" : () => {
+      // Adds the new scorecard draft type.
+      SmashCrowd.setSystemValue('draft_types', [
+          'snake',
+          'free',
+          'scorecard',
+        ].join(','),
+      );
+      console.log('Added new draft type: Scorecard');
+    },
   };
 }

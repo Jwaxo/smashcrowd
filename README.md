@@ -26,19 +26,25 @@ To get it running on your own server:
 
 1. `cp config/default.json config/production.json`  
    Any variables you don't define in `production.json` will be automatically
-   read from `default.json`
+   read from `default.json`.
 1. `vim config/production.json`
 1. Update the file so that the "database.connection" information matches your database.  
    If you require assistance setting up a MySQL server and database, follow
    [these](https://dev.mysql.com/doc/mysql-getting-started/en/) instructions, or
    see your website host for additional information.
+1. Look at the "email" section of the config file and update it to match your
+   server's email address, etc. This is used for registration. If you're just
+   testing things out, add `debug: true` to the email property, or else your
+   server log will get clogged up with failed emails.
 1. `export NODE_ENV=production`  
    This tells the config module that you need to read from `production.json`.
    You can also add this to your bash profile if you need to make the variable
    permanent.
-1. `npm install`
-   If you do not yet have a database set up, this may take a while.
-1. `node .`
+1. `npm install`  
+   Installs all node dependencies. Can take a while.
+1. `node .`  
+   Starts running the server! If you do not yet have a database set up, this may
+   take a while.
 
 It should be that simple. Then connect to `127.0.0.1:8080` in your browser and
 you should see the SmashCrowd main page.
@@ -70,9 +76,23 @@ All" button at the top. It should set it all back to zero.
 
 ### How do I work on it?
 
+**Configuration**:
+
+
 **Node.JS (server)**:
-Currently all of the main JS is stored in index.js; this will probably be spread
-out a bit as new features get expanded upon.
+Currently all of the main logic is ran from index.js, although that gets spread
+to the main "smashcrowd-server.js" for server logic, "smashcrowd-sass.js" for styles,m
+and "smashcrowd-updates.js" to ensure the database is current with expected DB
+structure.
+
+To quickly remove all database structures, run `node uninstall.js`, and if you
+want to quickly restart from scratch, run `node reinstall.js`.
+
+To update the database schema, which is used in smashcrowd-updates.js to sync
+the database structure, run `node export-table-schema.js`. Differences between
+your current database structure and the one stored in the schema will result in
+`src/lib/table-schema.json` being updated. Be sure to commit these changes to
+the repo!
 
 **Frontend JS (client)**:
 Located under public/client.js, this is what the browser runs. Ideally this will
@@ -82,28 +102,28 @@ info back to the server.
 **Styles**:
 We use Foundation for some slightly pretty styles to be slapped on everything else,
 compiled from SCSS to public/css/app.css. To modify it, look in scss/app/scss.
-This could be updated to use Gulp in order to watch the files, but until then,
-the SCSS only gets recompiled when the server is started.
+This has been updated to use Gulp in order to watch the files, so if the server
+is running, it's also going to be automatically recompiling.
 
 ### Planned features/Todo
 
-* Bug reporting and feature requesting link.
 * Teams.
 * ~~Simple stage voting.~~
   * Option for anonymous voting or registered.
   * Remove stage votes when a player is deleted...
   * Display which stages have most votes
-  * Ban/vote against
+  * Ban/vote against/pick-and-ban
 * ~~User Profiles~~
-  * Email confirmation.
   * User and character stat-tracking
   * Player label customization.
 * Stage and roster shuffling.
+* Option for viewers (on streaming services or anonymously) to pick characters, levels, rules.
 * Player boxes shake when they become active.
 * Multiple drafts per server.
   * Can set them up like Discord channels, where "rooms" you're in show up on the side.
 * Game options:
   * "Score Card" style, used just for tracking games/characters.
+  * Option to allow drafts to happen all upfront OR on a per-round basis. IE draft all rounds immediately or just before each round.
   * Character limiting options: "None", "Per-Player", "Per-Board"
   * Squad-strike
     * Winner gets to keep a character
@@ -121,4 +141,3 @@ the SCSS only gets recompiled when the server is started.
 * Trades
 * Drag-and-drop arrangement.
 * Cursor becomes Smash Bros hand when over characters.
-* Level pick-and-ban.

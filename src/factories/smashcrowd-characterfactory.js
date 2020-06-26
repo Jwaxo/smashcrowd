@@ -9,6 +9,7 @@ class Character {
     this.charId = charId;
     this.setName(data.name);
     this.setImage(data.image);
+    this.playerCharacterId = null;
     this.player = null;
     this.state = null;
 
@@ -20,6 +21,13 @@ class Character {
   }
   getId() {
     return this.charId;
+  }
+
+  setPlayerCharacterId(playerCharacterId) {
+    this.playerCharacterId = playerCharacterId;
+  }
+  getPlayerCharacterId() {
+    return this.playerCharacterId;
   }
 
   setName(name) {

@@ -298,6 +298,9 @@ class SmashCrowd {
       if (Array.isArray(fieldvalues[field])) {
         const casewhens = [];
 
+        // If we have a series of field-values we need to build them out in what
+        // SQL calls "cases". Essential a number of "if:then" pairs that are grouped
+        // inside (case end).
         for (let i = 0; i < fieldvalues[field].length; i++) {
           const casewhen = fieldvalues[field][i];
           casewhens.push(`when ${casewhen.when} then "${casewhen.then}"`);
@@ -316,9 +319,10 @@ class SmashCrowd {
           console.log('Error getting connection from pool');
           throw connect_error;
         }
-        connection.query(`UPDATE ?? SET ${set.join(',')} WHERE ${where}`, [table], (error, results) => {
+        const query = `UPDATE ?? SET ${set.join(',')} WHERE ${where}`;
+        connection.query(query, [table], (error, results) => {
           if (error) {
-            console.log('Error running update');
+            console.log(`Error running update ${query.replace('??', table)}`);
             throw error;
           }
           connection.release();
@@ -385,6 +389,17 @@ class SmashCrowd {
         });
       });
   }
+
+  /**
+   * Updates a stored system value.
+   *
+   * @param {string} key
+   *   The (unchanging) key of the system value.
+   * @param {string} value
+   *   The new value.
+   * @param {string} type
+   *   If the type of stored system value changes, add this here.
+   */
   setSystemValue(key, value, type = null) {
     const fieldvalues = {
       'value': value,
@@ -487,7 +502,7 @@ class SmashCrowd {
    *
    * @param {User} user
    * @param {string} password
-   * @returns {Promise<any>}
+   * @returns {Promise<int>}
    */
   createUser(user, password) {
     // This will insert a user and define an email hash for checking later when
@@ -521,11 +536,12 @@ class SmashCrowd {
    * @returns {Promise<number>}
    */
   createPlayer(name, board, userId = null) {
+    userId = userId !== null ? userId : 0;
     return new Promise(resolve => {
       this.dbInsert('players', {
         name: name,
         board_id: board.getId(),
-        user_id: (userId !== null ? userId : 0),
+        user_id: userId,
       })
         .then(playerId => {
           const player = new Player(name, userId);
@@ -600,12 +616,11 @@ class SmashCrowd {
   /**
    * Updates the `player_characters` table with new data.
    *
-   * @param {number} player_id
-   * @param {number} roster_number
+   * @param {number} player_character_id
    * @param {Object}field_values
    */
-  updatePlayerCharacter(player_id, roster_number, field_values = {}) {
-    this.dbUpdate('player_characters', field_values, `player_id = "${player_id}" AND roster_number = "${roster_number}"`);
+  updatePlayerCharacter(player_character_id, field_values = {}) {
+    this.dbUpdate('player_characters', field_values, `player_character_id = "${player_character_id}"`);
   }
 
   /**
@@ -629,31 +644,38 @@ class SmashCrowd {
   /**
    * Adds a character assignment to the player-character table.
    *
-   * @param {number} player_id
-   * @param {number} character_id
+   * @param {Player} player
+   * @param {Character} character
    * @param {number} roster_position
+   *
+   * @returns {Promise<int>}
+   *   A DB Insert promise that resolves to the player_character_id.
    */
-  addCharacterToPlayer(player_id, character_id, roster_position) {
+  addCharacterToPlayer(player, character, roster_position) {
     const fieldValues = {
-      "player_id": player_id,
-      "character_id": character_id,
+      "player_id": player.getId(),
+      "character_id": character.getId(),
       "roster_number": roster_position,
     };
-    this.dbInsert('player_characters', fieldValues);
+
+    return new Promise(resolve => {
+      this.dbInsert('player_characters', fieldValues)
+        .then(playerCharacterId => {
+          character.setPlayerCharacterId(playerCharacterId);
+          resolve();
+        });
+    })
   }
 
   /**
    * Drops a character assignment from the player-character table.
    *
-   * @param {number} player_id
-   * @param {number} roster_number
+   * @param {Character} character
    */
-  dropCharacterFromPlayer(player_id, roster_number) {
-    const fieldValues = {
-      "player_id": player_id,
-      "roster_number": roster_number,
-    };
-    this.dbDelete('player_characters', `player_id = "${player_id}" AND roster_number = "${roster_number}"`);
+  dropCharacterFromPlayer(character) {
+    const player_character_id = character.getPlayerCharacterId();
+    this.dbDelete('player_characters', `player_character_id = "${player_character_id}"`);
+    character.setPlayerCharacterId(null);
   }
 
   /**
@@ -676,17 +698,25 @@ class SmashCrowd {
    *
    * @param {Player} player
    */
-  updatePlayerRosterIndex(player) {
+  async updatePlayerRosterIndex(player) {
     // Get a list of character IDs and their new indices in the character array.
     const character_indices = [];
+    const player_character_ids = [];
+    let returnPromises = [];
     for (let i = 0; i < player.getCharacterCount(); i++) {
+      const player_character_id = player.getCharacterByIndex(i).getPlayerCharacterId();
       character_indices.push({
-        when: `character_id = "${player.getCharacterByIndex(i).getId()}"`,
+        when: `player_character_id = "${player_character_id}"`,
         then: i,
       });
+      player_character_ids.push(player_character_id);
     }
 
-    this.dbUpdate('player_characters', {'roster_number': character_indices}, `player_id = "${player.getId()}"`);
+    if (character_indices.length > 0) {
+       returnPromises.push(this.dbUpdate('player_characters', {'roster_number': character_indices}, `player_id = "${player.getId()}" AND player_character_id IN (${player_character_ids.join(',')})`));
+    }
+
+    return await Promise.all(returnPromises);
   }
 
   /**

@@ -36,7 +36,11 @@
     "default_board": {
       "name": "SmashCrowd Default",
       "draft_type": "free",
-      "owner": 1
+      "owner": 1,
+      "players": [
+        "Jeff",
+        "JD"
+      ]
     },
     "default_avatar": "images/avatar_default.png",
     "domain": "http://smashcrowd.jeffwax.com"

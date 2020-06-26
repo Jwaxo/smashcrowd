@@ -1,5 +1,23 @@
 /**
- * Abstract definition of a Draft and what kind of functions it requires.
+ * Definition of Snake Draft.
+ *
+ * Has each player go through the draft one-at-a-time, picking their characters
+ * on a round-by-round basis.
+ *
+ * The "snake" comes from the fact that the order reverses itself after every
+ * round of picking. If one were to list out the drafters in a list, and draw a
+ * line through them in the order they pick characters, this results in a weaving
+ * pattern that resembles a snake:
+ *
+ * [Tom]->-[Dick]->-[Harry]
+ *                     |
+ *                     v
+ *                     |
+ * [Tom]-<-[Dick]-<-[Harry]
+ *   |
+ *   v
+ *   |
+ * [Tom]->-[Dick]->-[Harry]:C----< hsssssss
  */
 
 const DraftAbstract = require('./../../factories/smashcrowd-draftfactory');
@@ -154,10 +172,6 @@ class snakeDraft extends DraftAbstract {
   }
 
   startGame(board) {
-
-  }
-
-  advanceGame(board) {
 
   }
 }
