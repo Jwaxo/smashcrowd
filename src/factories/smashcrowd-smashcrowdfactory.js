@@ -701,16 +701,19 @@ class SmashCrowd {
   async updatePlayerRosterIndex(player) {
     // Get a list of character IDs and their new indices in the character array.
     const character_indices = [];
+    const player_character_ids = [];
     let returnPromises = [];
     for (let i = 0; i < player.getCharacterCount(); i++) {
+      const player_character_id = player.getCharacterByIndex(i).getPlayerCharacterId();
       character_indices.push({
-        when: `player_character_id = "${player.getCharacterByIndex(i).getPlayerCharacterId()}"`,
+        when: `player_character_id = "${player_character_id}"`,
         then: i,
       });
+      player_character_ids.push(player_character_id);
     }
 
     if (character_indices.length > 0) {
-       returnPromises.push(this.dbUpdate('player_characters', {'roster_number': character_indices}, `player_id = "${player.getId()}"`));
+       returnPromises.push(this.dbUpdate('player_characters', {'roster_number': character_indices}, `player_id = "${player.getId()}" AND player_character_id IN (${player_character_ids.join(',')})`));
     }
 
     return await Promise.all(returnPromises);
