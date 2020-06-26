@@ -197,6 +197,14 @@ class Board {
     this.updateBoard({current_draft_round: 0});
   }
 
+  /**
+   * Mark a player as having won a round. For hopefully obvious reasons, only
+   * one player should win per round (until teams are implemented).
+   *
+   * @param {number} player_id
+   * @param {number} roster
+   * @param {boolean} skip_save
+   */
   setPlayerWin(player_id, roster, skip_save = false) {
     const winnerPlayer = this.getPlayer(player_id);
     const character_index = roster - 1;

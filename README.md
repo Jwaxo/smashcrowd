@@ -123,6 +123,7 @@ is running, it's also going to be automatically recompiling.
   * Can set them up like Discord channels, where "rooms" you're in show up on the side.
 * Game options:
   * "Score Card" style, used just for tracking games/characters.
+  * Option to allow drafts to happen all upfront OR on a per-round basis. IE draft all rounds immediately or just before each round.
   * Character limiting options: "None", "Per-Player", "Per-Board"
   * Squad-strike
     * Winner gets to keep a character

@@ -18,6 +18,7 @@ class scorecardDraft extends DraftAbstract {
     super();
     this.machine_name = 'scorecard';
     this.label = 'Score Card';
+    this.is_infinite = false;
   }
 
   startNew(board) {
@@ -28,7 +29,13 @@ class scorecardDraft extends DraftAbstract {
    * @param {Board} board.
    */
   startDraft(board) {
-    board.setTotalRounds(board.getTotalRounds() + 1);
+    // If the total rounds are 0, we're in "round by round" mode, and can just
+    // keep adding 1 to the total rounds. The game is over when the players
+    // designate it so.
+    if (board.getTotalRounds() === 0) {
+      this.is_infinite = true;
+      board.setTotalRounds(1);
+    }
     const players = board.getPlayers();
     for (let player in players) {
       players[player].setActive(true);
@@ -173,10 +180,13 @@ class scorecardDraft extends DraftAbstract {
   }
 
   startGameComplete(board) {
-    // Since scorecards are just ongoing, we don't actually reach a "stop this
-    // draft" point, and instead just loop back to drafting.
-    board.setStatus('draft');
-    board.startDraft();
+    // Since scorecards with 0 rounds are ongoing, we don't actually reach a
+    // "stop this draft" point, and instead just loop back to drafting.
+    if (this.is_infinite) {
+      board.setTotalRounds(board.getTotalRounds() + 1);
+      board.setStatus('draft');
+      board.startDraft();
+    }
   }
 }
 
