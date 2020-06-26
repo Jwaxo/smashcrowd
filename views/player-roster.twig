@@ -7,7 +7,7 @@
 <div class="{{ playerRosterClasses }}">
   {% for character in player.getCharacters() %}
     {% include 'character.twig' with {
-      isDisabled: (board.getGameRound() > 0 and loop.index != board.getGameRound()),
+      isDisabled: (board.checkStatus("game") and board.getGameRound() > 0 and loop.index != board.getGameRound()) or (board.checkStatus("draft") and loop.index != board.getDraftRound()),
       isActive: (board.checkStatus("game") and loop.index == board.getGameRound()),
       characterRound: loop.index,
     } %}
