@@ -18,7 +18,7 @@ class Characters extends Component {
             if (character) {
               return (<Character
                   character={character}
-                  key={character.id}
+                  key={character.charId}
                 />
               )
             }

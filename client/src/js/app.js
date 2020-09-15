@@ -52,18 +52,27 @@ const App = () => {
       setPlayer(data);
     });
 
-    socket.on("update-chat", data => {
-      setChat(chat.unshift(data));
-    });
-
-    socket.on("set-status", data => {
-      setAlerts(alerts.unshift(data));
-    });
+    /**
+     * @todo: Having alerts and chat as deps caused an endless loop of clients
+     *   connecting and disconnecting. I do not know why.
+     */
+    // socket.on("update-chat", data => {
+    //   // chat.unshift(data);
+    //   // setChat(chat);
+    // });
+    //
+    // socket.on("set-status", data => {
+    //   // alerts.unshift(data);
+    //   // setAlerts(alerts);
+    // });
 
     socket.on("set-recaptcha-key", data => {
       setRecaptchaKey(data);
     })
-  }, []);
+  }, [
+    // alerts,
+    // chat,
+  ]);
 
   return (
     <div className="grid-container">

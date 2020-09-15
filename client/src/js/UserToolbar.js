@@ -26,7 +26,7 @@ class UserToolbar extends Component {
       <div className="user-toolbar">
         { userId ? (
           [
-            username,
+            `${label} (${username})`,
             (
               <button className="logout button">Logout</button>
             ),

@@ -23,7 +23,7 @@ class Stages extends Component {
                   id={stage.stageId}
                   key={stage.stageId}
                   players={stage.players}
-                  // active={player.stages !== null && player.stages.hasOwnProperty(stage.stageId)}
+                  active={player && player.stages ? player.stages.hasOwnProperty(stage.stageId) : false}
                   image={stage.image}
                   state={stage.state}
                 />

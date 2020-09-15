@@ -70,9 +70,9 @@ class Board extends Component {
 
         <Chatbox chat={chat} />
 
-        { alerts.length > 0 ? alerts.map((alert) => {
+        { alerts.length > 0 ? alerts.map((alert, index) => {
           return (
-            <Status type={alert.type} message={alert.status} />
+            <Status key={index} type={alert.type} message={alert.status} />
           )
         }) : ''}
 

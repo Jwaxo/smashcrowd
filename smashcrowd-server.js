@@ -72,6 +72,12 @@ module.exports = (crowd, config) => {
   });
 
   // Serve up the default page.
+  /**
+   * @todo: Continue into Character and Player information to ensure the toJSON
+   *   functions are created and sending properly.
+   * @todo: Actually have client app.js send information to the server to update
+   *   the board.
+   */
 
   app.get('/client_connection', (req, res) => {
     res.send({});

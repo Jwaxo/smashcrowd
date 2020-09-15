@@ -15,6 +15,28 @@ class Player extends Component {
       id ? 'player--owned' : null,
       current ? 'player--current' : null,
     ].filter(classString => (classString != null)).join(' ');
+
+    let playerPickButtons = '';
+
+    if (current) {
+      playerPickButtons = (
+        <button className="player-picker button expanded hollow"
+                data-player-pick-id="{{ player.getId() }}"
+                tabIndex="2">
+          This is You
+        </button>
+      )
+    } else if (!clientId && !userId && !isLoggedIn) {
+      playerPickButtons = (
+        <button className="player-picker button expanded" data-tooltip
+                tabIndex="2"
+                title="Select this player to start picking characters for them."
+                data-position="top" data-alignment="center"
+                data-player-pick-id="{{ player.getId() }}">
+          Be This Player
+        </button>
+      )
+    }
     
     return (
       <div className={playerClasses}
@@ -24,26 +46,7 @@ class Player extends Component {
           <h4>{name}</h4>
 
           <div className="player-picker-outer">
-            { () => {
-              if (current) {
-                return (
-                  <button className="player-picker button expanded hollow"
-                        data-player-pick-id="{{ player.getId() }}"
-                        tabIndex="2">This
-                    is You
-                  </button>
-                )
-              } else if (!clientId && !userId && !isLoggedIn) {
-                return (
-                  <button className="player-picker button expanded" data-tooltip
-                          tabIndex="2"
-                          title="Select this player to start picking characters for them."
-                          data-position="top" data-alignment="center"
-                          data-player-pick-id="{{ player.getId() }}">Be This
-                    Player
-                  </button>
-                )
-              } } }
+            { playerPickButtons }
           </div>
 
           <div className="player-score">

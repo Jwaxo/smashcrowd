@@ -10,15 +10,18 @@ class Players extends Component {
     return (
       <div className="grid-x grid-margin-x">
         {players ? players.map((playerInfo) => {
+          let playerCard = '';
           if (player) {
-            return (
+            playerCard = (
               <Player
                 player={playerInfo}
-                current={player.id === playerInfo.id}
+                key={playerInfo.playerId}
+                current={player.playerId === playerInfo.playerId}
                 isLoggedIn={isLoggedIn}
               />
             )
           }
+          return playerCard;
         }) : ''}
         {canAddPlayer ? (
           <div className="cell small-6 medium-3 large-auto">

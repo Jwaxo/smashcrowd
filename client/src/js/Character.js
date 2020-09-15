@@ -4,7 +4,7 @@ class Character extends Component {
 
   render() {
     const { character } = this.props;
-    const { name, id, image, disabled, state, active, round } = character;
+    const { name, charId: id, image, disabled, state, active, round } = character;
 
     const characterClasses = [
       'character',
