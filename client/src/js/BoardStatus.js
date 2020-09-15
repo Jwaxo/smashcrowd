@@ -1,13 +1,25 @@
 import React, { Component } from 'react';
 
+import Modal from './Modal';
+import FormBoardOptions from './FormBoardOptions';
+
 class BoardStatus extends Component {
 
-  newBoardModal = () => {
+  constructor(props) {
+    super(props);
 
+    this.state = {
+      showBoardModal: false,
+    };
+  }
+
+  toggleBoardModal = () => {
+    this.setState({showBoardModal: !this.state.showBoardModal});
   };
 
   render() {
-    const board = this.props.board;
+    const { board } = this.props;
+    const { showBoardModal } = this.state;
     let statusString = '';
 
     // Determine the status based off of our drafting and game status.
@@ -69,7 +81,7 @@ class BoardStatus extends Component {
 
         <div className="board-options grid-x grid-margin-x">
           <div className="cell auto">
-            <button id="reset" onClick={this.newBoardModal} className="reset button">New Board</button>
+            <button id="reset" onClick={this.toggleBoardModal} className="reset button">New Board</button>
             { board.status === 'new' ? ([
               <button key="randomize" id="randomize" className="randomize button"
                       title="Randomizes the player order. This option will disappear after picking has begun.">Shuffle
@@ -84,6 +96,11 @@ class BoardStatus extends Component {
             ) }
           </div>
         </div>
+        { showBoardModal ? (
+          <Modal closeFunction={this.toggleBoardModal}>
+            <FormBoardOptions draftTypes={board.draftTypes} defaultRounds={board.totalRounds} />
+          </Modal>
+        ) : null}
       </div>
     );
   }

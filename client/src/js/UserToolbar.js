@@ -50,25 +50,15 @@ class UserToolbar extends Component {
         )}
         {
           showLoginModal ? (
-            <Modal>
+            <Modal closeFunction={this.toggleLoginModal}>
               <FormUserLogin />
-              <button onClick={this.toggleLoginModal}
-                      className="close-button"
-                      aria-label="Close modal" type="button">
-                <span aria-hidden="true">&times;</span>
-              </button>
             </Modal>
           ) : null
         }
         {
           showRegisterModal ? (
-            <Modal>
+            <Modal closeFunction={this.toggleRegisterModal}>
               <FormUserRegister recaptchaKey={recaptchaKey} />
-              <button onClick={this.toggleRegisterModal}
-                      className="close-button"
-                      aria-label="Close modal" type="button">
-                <span aria-hidden="true">&times;</span>
-              </button>
             </Modal>
           ) : null
         }

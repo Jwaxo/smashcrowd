@@ -24,14 +24,18 @@ class Board extends Component {
       totalRounds: 0,
       draftRound: 0,
       gameRound: 0,
+      activeTab: 'characters',
     }
-
   }
+
+  changeTab(newTab) {
+    this.setState({activeTab: newTab});
+  };
 
   render() {
 
     const { board, client, player, characters, stages, players, chat, alerts } = this.props;
-    const { status, draftRound } = this.state;
+    const { status, draftRound, activeTab } = this.state;
 
     return (
       <div>
@@ -48,13 +52,16 @@ class Board extends Component {
           <BoardStatus board={board} />
         </div>
 
-        <div className="tabs-content">
-          <div id="characters"
-               className="grid-x grid-margin-x">
+        <ul className="tabs">
+          <li className={`tabs-title ${activeTab === 'characters' ? 'is-active' : ''}`}><Link to="#characters" onClick={() => this.changeTab('characters')}>Characters</Link></li>
+          <li className={`tabs-title ${activeTab === 'stages' ? 'is-active' : ''}`}><Link to="#stages" onClick={() => this.changeTab('stages')}>Stages</Link></li>
+        </ul>
+
+        <div className="tabs-content grid-x grid-margin-x">
+          <div className={`tabs-panel ${activeTab === 'characters' ? 'is-active' : ''}`}>
             <Characters characters={characters} disabled={status === 'draft'} hidden={status === 'game'} />
           </div>
-
-          <div id="stages" className="grid-x grid-margin-x">
+          <div className={`tabs-panel ${activeTab === 'stages' ? 'is-active' : ''}`}>
             <Stages stages={stages} disabled={status === 'game' || player === null} player={player} />
           </div>
         </div>
