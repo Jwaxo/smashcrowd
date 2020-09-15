@@ -39,7 +39,7 @@ class Stage {
    */
   setImage(image) {
     if (image) {
-      if (!fs.existsSync('public/' + image)) {
+      if (!fs.existsSync('client/public/' + image)) {
         image = null;
       }
     }

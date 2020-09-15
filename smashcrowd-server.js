@@ -3,7 +3,6 @@
  * Defines overall server and socket functionality of Smashcrowd.
  */
 
-const Twig = require('twig');
 const express = require('express');
 
 const socketio = require('socket.io');
@@ -73,12 +72,9 @@ module.exports = (crowd, config) => {
   });
 
   // Serve up the default page.
-  app.get('/', (req, res) => {
-    res.render('index.twig', {
-      board,
-      chatHistory,
-      recaptcha_key: config.get('recaptcha.key'),
-    });
+
+  app.get('/client_connection', (req, res) => {
+    res.send({});
   });
 
   // If a user is verifying an email address...
@@ -136,6 +132,7 @@ module.exports = (crowd, config) => {
 
     // Generate everything that may change based off of an existing client connection
     // or resumed session.
+    setRecaptchaKeySingle(config.get('recaptcha.key'), socket);
     setClientInfoSingle(client);
     regeneratePlayers(board);
     regenerateCharacters(board);
@@ -143,6 +140,7 @@ module.exports = (crowd, config) => {
     regenerateChatSingle(socket);
 
     const player = client.getPlayerByBoard(board.getId());
+    setPlayerSingle(player, socket);
     let playerActive = false;
 
     // Set a default status for a connection with help tips.
@@ -212,8 +210,8 @@ module.exports = (crowd, config) => {
       client.newUser();
 
       user = client.getUser();
-      regenerateUserToolbar(user, socket);
-      regeneratePlayersSingle(board, client);
+      setUser(user, socket);
+      regeneratePlayersSingle(board, socket);
     });
 
     /**
@@ -732,9 +730,9 @@ function renderPlayersRosters(board, updatedPlayers) {
 function renderPlayerRoster(board, player) {
   let rendered = '';
 
-  Twig.renderFile('./views/player-roster.twig', {player, board}, (error, html) => {
-    rendered = html;
-  });
+  // Twig.renderFile('./views/player-roster.twig', {player, board}, (error, html) => {
+  //   rendered = html;
+  // });
 
   return rendered;
 }
@@ -743,9 +741,7 @@ function renderPlayerRoster(board, player) {
  * Renders the board info and updates all clients with new board info.
  */
 function regenerateBoardInfo(board) {
-  Twig.renderFile('./views/board-data.twig', {board}, (error, html) => {
-    io.sockets.emit('rebuild-boardInfo', html);
-  });
+  io.sockets.emit('rebuild-boardInfo', board);
 }
 
 /**
@@ -757,23 +753,15 @@ function regeneratePlayers(board) {
   // The player listing is unique to each client, so we need to rebuild it and
   // send it out individually.
   clients.forEach(client => {
-    Twig.renderFile('./views/players-container.twig', {board, client}, (error, html) => {
-      client.getSocket().emit('rebuild-players', html);
-    });
+    client.getSocket().emit('rebuild-players', board.getPlayersArray());
   });
 }
 
 /**
- * Unlike other single regenerations, this requires client, since that needs to
- * be passed to the players template, anyway.
- *
- * @param {Board} board
- * @param {Client} client
+ * Renders the player listing specific to one player.
  */
-function regeneratePlayersSingle(board, client) {
-  Twig.renderFile('./views/players-container.twig', {board, client}, (error, html) => {
-    client.getSocket().emit('rebuild-players', html);
-  });
+function regeneratePlayersSingle(board, socket) {
+  socket.emit('rebuild-players', board.getPlayersArray());
 }
 
 /**
@@ -782,27 +770,22 @@ function regeneratePlayersSingle(board, client) {
  * @param {Board} board
  */
 function regenerateCharacters(board) {
-  Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
-    io.sockets.emit('rebuild-characters', html);
-  });
+  const characters = board.getCharacters();
+  io.sockets.emit('rebuild-characters', board.getCharacters());
 }
 
 /**
  * Renders the character select screen specific to one player and updates them.
  */
 function regenerateCharactersSingle(board, socket) {
-  Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
-    socket.emit('rebuild-characters', html);
-  });
+  socket.emit('rebuild-characters', board.getCharacters());
 }
 
 /**
  * Renders the players and updates all clients with new player info.
  */
 function regenerateChatSingle(socket) {
-  Twig.renderFile('./views/chat-container.twig', {chatHistory}, (error, html) => {
-    socket.emit('rebuild-chat', html);
-  });
+  socket.emit('rebuild-chat', chatHistory);
 }
 
 /**
@@ -812,22 +795,15 @@ function regenerateStages(board) {
   // The stage listing is unique to each client to show which votes are yours, so
   // we also need to update them whenever it changes.
   clients.forEach(client => {
-    Twig.renderFile('./views/stages-container.twig', {board, client}, (error, html) => {
-      client.getSocket().emit('rebuild-stages', html);
-    });
+    client.getSocket().emit('rebuild-stages', board.getStages());
   });
 }
 
 /**
- * Renders the user toolbar for a particular client/user.
- *
- * @param {User} user
- * @param {WebSocket} socket
+ * Sets the user for a particular client/user.
  */
-function regenerateUserToolbar(user, socket) {
-  Twig.renderFile('./views/user-toolbar.twig', {user, recaptcha_key: SmashCrowd.config.get('recaptcha.key')}, (error, html) => {
-    socket.emit('rebuild-usertoolbar', html);
-  });
+function setUser(user, socket) {
+  socket.emit('set-user', user);
 }
 
 /**
@@ -848,6 +824,21 @@ function setClientInfoSingle(socketClient, isUpdate = false) {
 }
 
 /**
+ * Sends player info to that client.
+ */
+function setPlayerSingle(player, socket) {
+  // Make sure to clean client before sending it.
+  socket.emit('set-player', player);
+}
+
+/**
+ * Sends recaptcha key info to single client.
+ */
+function setRecaptchaKeySingle(recaptchaKey, socket) {
+  socket.emit('set-recaptcha-key', recaptchaKey);
+}
+
+/**
  * Sends an array of players with changed data to inform clients without needing
  * to completely rebuild the player area.
  *
@@ -855,7 +846,7 @@ function setClientInfoSingle(socketClient, isUpdate = false) {
  * @param {Array} updatedPlayers
  */
 function updatePlayersInfo(board, updatedPlayers) {
-  io.sockets.emit('update-players', renderPlayersRosters(board, updatedPlayers));
+  io.sockets.emit('update-players', updatedPlayers);
 }
 
 /**
@@ -865,12 +856,7 @@ function updatePlayersInfo(board, updatedPlayers) {
  * @param {Stage} stage
  */
 function updateStageInfo(stage) {
-  clients.forEach(client => {
-    const player = client.getPlayerByBoard();
-    Twig.renderFile('./views/stage.twig', {stage, player}, (error, html) => {
-      client.getSocket().emit('update-stage', html, stage.getId());
-    });
-  });
+  io.sockets.emit('update-stage', stage);
 }
 
 /**
@@ -930,9 +916,7 @@ function setStatusAll(status, type = 'secondary') {
  */
 function setStatusSingle(client, status, type = 'secondary') {
   if (client && client.socket) {
-    Twig.renderFile('./views/status-message.twig', {status, type}, (error, html) => {
-      client.socket.emit('set-status', html);
-    });
+    client.socket.emit('set-status', {type, status});
   }
 }
 
@@ -948,10 +932,7 @@ function updateChat(message) {
   message = stripAnsi(message);
 
   chatHistory.unshift(message);
-
-  Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
-    io.sockets.emit('update-chat', html);
-  });
+  io.sockets.emit('update-chat', message);
 }
 
 /**
@@ -970,11 +951,10 @@ function clientLogin(client, user, board, socket) {
   // info.
   const player = board.getPlayerByUserId(user.getId());
   if (player !== null) {
-    console.log('found player with id ' + player.getId());
     user.setPlayer(board.getId(), player);
   }
-  regenerateUserToolbar(user, socket);
-  regeneratePlayersSingle(board, client);
+  setUser(user, socket);
+  regeneratePlayersSingle(board, client.getSocket());
 
   socket.emit('form-user-login-complete');
 }
