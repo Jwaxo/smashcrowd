@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
-import './css/app.css';
+import './build/css/app.css';
 import App from './js/app';
 
 render(

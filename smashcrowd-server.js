@@ -706,38 +706,6 @@ function resetGame(board, boardData) {
 }
 
 /**
- * Takes an array of info for updated player rosters and renders the rosters.
- *
- * @param {Board} board
- * @param {array} updatedPlayers
- * @returns {array}
- */
-function renderPlayersRosters(board, updatedPlayers) {
-  for (let i = 0; i < updatedPlayers.length; i++) {
-    const player = board.getPlayer(updatedPlayers[i].playerId);
-    updatedPlayers[i].roster_html = renderPlayerRoster(board, player);
-  }
-  return updatedPlayers;
-}
-
-/**
- * Twig renders out the list of characters in a given player's roster.
- *
- * @param {Board} board
- * @param {Player} player
- * @returns {string}
- */
-function renderPlayerRoster(board, player) {
-  let rendered = '';
-
-  // Twig.renderFile('./views/player-roster.twig', {player, board}, (error, html) => {
-  //   rendered = html;
-  // });
-
-  return rendered;
-}
-
-/**
  * Renders the board info and updates all clients with new board info.
  */
 function regenerateBoardInfo(board) {
@@ -899,9 +867,7 @@ function updateCharacters(character_data) {
  *   The type of message. Uses Foundation's callout styles: https://foundation.zurb.com/sites/docs/callout.html
  */
 function setStatusAll(status, type = 'secondary') {
-  Twig.renderFile('./views/status-message.twig', {status, type}, (error, html) => {
-    io.sockets.emit('set-status', html);
-  });
+  io.sockets.emit('set-status', {type, status});
 }
 
 /**

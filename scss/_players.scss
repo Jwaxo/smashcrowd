@@ -93,7 +93,7 @@
       border: rem-calc(3px) solid #ff0000; // Has to match the logo color exactly.
       position: relative;
       &:after {
-        background: url('../images/emblem-small-red.png') center center transparent;
+        background: url('./images/emblem-small-red.png') center center transparent;
         bottom: 0;
         content: '';
         display: block;

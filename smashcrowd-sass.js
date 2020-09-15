@@ -16,11 +16,16 @@ module.exports = () => {
   ];
 
   sass();
+  images();
   gulp.task('sass', () => {
     return sass();
   });
+  gulp.task('images', () => {
+    return images();
+  });
 
   gulp.watch('scss/*.scss', gulp.series('sass'));
+  gulp.watch('scss/images/*', gulp.series('images'));
 
   /**
    * Build out the Sass located in scss/app.scss. Outputs to public/css.
@@ -36,8 +41,19 @@ module.exports = () => {
       .pipe($.postcss([
         autoprefixer({ browsers: ['last 2 versions', 'ie >= 9'] })
       ]))
-      .pipe(gulp.dest('public/css'));
+      .pipe(gulp.dest('client/src/build/css'));
     console.log('Render complete!');
+    return returned;
+  }
+
+  /**
+   * Copy images located in scss/images to client/src/build/images.
+   */
+  function images() {
+    console.log('Copying images...');
+    const returned = gulp.src('scss/images/**/*.+(png|jpg|jpeg|gif|svg)')
+      .pipe(gulp.dest('client/src/build/css/images'));
+    console.log('Images copied!');
     return returned;
   }
 };
