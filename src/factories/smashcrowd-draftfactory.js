@@ -30,6 +30,7 @@ class DraftAbstract {
       'game',
       'game-complete',
     ];
+    this.status = null;
 
     if (new.target === DraftAbstract) {
       throw new TypeError("Cannot construct Abstract classes directly.");
@@ -44,6 +45,9 @@ class DraftAbstract {
   }
   getStatusTypes() {
     return this.statusTypes;
+  }
+  getStatus() {
+    return this.status;
   }
 
   /**
@@ -194,6 +198,15 @@ class DraftAbstract {
     else {
       throw new TypeError(`${this.constructor.name} does not initialize function ${functionName}`);
     }
+  }
+
+  toJSON() {
+    return {
+      machine_name: this.getMachineName(),
+      label: this.getLabel(),
+      status_types: this.getStatusTypes(),
+      status: this.getStatus(),
+    };
   }
 
 }

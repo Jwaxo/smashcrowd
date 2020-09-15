@@ -26,20 +26,20 @@ class BoardStatus extends Component {
     switch (board.status) {
       case "new":
         statusString = (
-          <h4 className="warning">Waiting to Start { board.totalRounds ? `${board.totalRounds} Round ` : '' }Draft</h4>
+          <h4 className="warning">Waiting to Start { board.total_rounds ? `${board.total_rounds} Round ` : '' }Draft</h4>
         );
 
         break;
 
       case 'draft':
-        if (board.draftType === 'free') {
+        if (board.draft_type === 'free') {
           statusString = (
-            <h4>Please Draft { board.totalRounds ? board.totalRounds : 'Your' } Characters</h4>
+            <h4>Please Draft { board.total_rounds ? board.total_rounds : 'Your' } Characters</h4>
           );
         }
         else {
           statusString = (
-            <h4>Draft Round: {board.draftRound}{ board.totalRounds ? ` out of ${board.totalRounds}` : '' }</h4>
+            <h4>Draft Round: {board.current_draft_round}{ board.total_rounds ? ` out of ${board.total_rounds}` : '' }</h4>
           );
         }
 
@@ -54,7 +54,7 @@ class BoardStatus extends Component {
 
       case 'game':
         statusString = (
-          <h4>Game Round: {board.gameRound}{ board.totalRounds ? ` out of ${board.totalRounds}` : ''}</h4>
+          <h4>Game Round: {board.current_game_round}{ board.total_rounds ? ` out of ${board.total_rounds}` : ''}</h4>
         );
 
         break;
@@ -89,7 +89,7 @@ class BoardStatus extends Component {
               <button key="start_picking" id="start_picking" className="start-draft button" title="Begin the drafting process.">Start Draft</button>
             ]) : (
               <div>
-                { !board.totalRounds || board.status === 'draft-complete' ? (
+                { !board.total_rounds || board.status === 'draft-complete' ? (
                   <button key="start_game" id = "start_game" className="start-game button" title="Begin going through rounds.">Start Game</button>
                 ) : '' }
               </div>
@@ -98,7 +98,7 @@ class BoardStatus extends Component {
         </div>
         { showBoardModal ? (
           <Modal closeFunction={this.toggleBoardModal}>
-            <FormBoardOptions draftTypes={board.draftTypes} defaultRounds={board.totalRounds} />
+            <FormBoardOptions draftTypes={board.draftTypes} defaultRounds={board.total_rounds} />
           </Modal>
         ) : null}
       </div>

@@ -134,6 +134,7 @@ module.exports = (crowd, config) => {
     // or resumed session.
     setRecaptchaKeySingle(config.get('recaptcha.key'), socket);
     setClientInfoSingle(client);
+    regenerateBoardInfo(board);
     regeneratePlayers(board);
     regenerateCharacters(board);
     regenerateStages(board);
@@ -709,7 +710,7 @@ function resetGame(board, boardData) {
  * Renders the board info and updates all clients with new board info.
  */
 function regenerateBoardInfo(board) {
-  io.sockets.emit('rebuild-boardInfo', board);
+  io.sockets.emit('rebuild-boardInfo', board.toJSON());
 }
 
 /**

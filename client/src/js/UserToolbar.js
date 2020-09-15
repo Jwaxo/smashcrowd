@@ -34,13 +34,16 @@ class UserToolbar extends Component {
         ) : (
           [
             (
-              <button className="login button"
+              <button
+                key="login"
+                className="login button"
                 onClick={this.toggleLoginModal}>
                 Login
               </button>
             ),
             (
               <button
+                key="register"
                 className="register button"
                 onClick={this.toggleRegisterModal}>
                 Register
