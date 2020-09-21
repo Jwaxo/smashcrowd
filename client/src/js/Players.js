@@ -4,19 +4,30 @@ import FormAddPlayer from './FormAddPlayer';
 
 class Players extends Component {
 
+  constructor(props) {
+    super(props);
+    this.handlePlayerChange = this.handlePlayerChange.bind(this);
+    this.state = {currentPlayer: this.props.currentPlayer};
+  }
+
+  handlePlayerChange(playerId) {
+    this.props.handlePlayerChange(playerId);
+  }
+
   render() {
-    const { players, player, canAddPlayer, isLoggedIn } = this.props;
+    const { players, canAddPlayer, isLoggedIn, currentPlayer } = this.props;
 
     return (
       <div className="grid-x grid-margin-x">
         {players ? players.map((playerInfo) => {
           let playerCard = '';
-          if (player) {
+          if (playerInfo) {
             playerCard = (
               <Player
                 player={playerInfo}
                 key={playerInfo.playerId}
-                current={player.playerId === playerInfo.playerId}
+                current={currentPlayer !== null && currentPlayer.playerId === playerInfo.playerId}
+                handlePlayerChange={this.handlePlayerChange}
                 isLoggedIn={isLoggedIn}
               />
             )

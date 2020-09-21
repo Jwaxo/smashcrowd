@@ -13,18 +13,15 @@ class Board extends Component {
   constructor(props) {
     super(props);
 
-    /** @todo The following is deprecated; I didn't understand props and state.
-     *    However, we need to be sure that the data passed from the server match
-     *    these.
-     */
+    this.handlePlayerChange = this.handlePlayerChange.bind(this);
     this.state = {
-      label: 'default',
-      draftType: 'free',
-      status: 'new',
-      totalRounds: 0,
-      draftRound: 0,
-      gameRound: 0,
-      activeTab: 'characters',
+      label: props.label ?? 'default',
+      draftType: props.draftType ?? 'free',
+      status: props.status ?? 'new',
+      totalRounds: props.totalRounds ?? 0,
+      draftRound: props.draftRound ?? 0,
+      gameRound: props.gameRound ?? 0,
+      activeTab: props.activeTab ?? 'characters',
     }
   }
 
@@ -32,9 +29,13 @@ class Board extends Component {
     this.setState({activeTab: newTab});
   };
 
+  handlePlayerChange(playerId) {
+    this.props.handlePlayerChange(playerId);
+  }
+
   render() {
 
-    const { board, client, player, characters, stages, players, chat, alerts } = this.props;
+    const { board, client, characters, stages, players, chat, alerts, currentPlayer } = this.props;
     const { status, draftRound, activeTab } = this.state;
 
     return (
@@ -62,11 +63,17 @@ class Board extends Component {
             <Characters characters={characters} disabled={status === 'draft'} hidden={status === 'game'} />
           </div>
           <div className={`tabs-panel ${activeTab === 'stages' ? 'is-active' : ''}`}>
-            <Stages stages={stages} disabled={status === 'game' || player === null} player={player} />
+            <Stages stages={stages} disabled={status === 'game' || currentPlayer === null} player={currentPlayer} />
           </div>
         </div>
 
-        <Players players={players} player={player} canAddPlayer={draftRound < 1 && player == null} isLoggedIn={client.isLoggedIn}/>
+        <Players
+          players={players}
+          currentPlayer={currentPlayer}
+          canAddPlayer={draftRound < 1 && currentPlayer == null}
+          isLoggedIn={client.isLoggedIn}
+          handlePlayerChange={this.handlePlayerChange}
+        />
 
         <Chatbox chat={chat} />
 

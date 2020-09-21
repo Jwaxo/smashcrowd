@@ -18,7 +18,7 @@ class PlayerCharacters extends Component {
             character={character}
             key={character.id}
           />
-        ))};
+        ))}
       </div>
     )
   }

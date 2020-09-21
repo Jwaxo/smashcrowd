@@ -3,6 +3,15 @@ import PlayerCharacters from './PlayerCharacters';
 
 class Player extends Component {
 
+  constructor(props) {
+    super(props);
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleChange(e) {
+    this.props.handlePlayerChange(parseInt(e.target.dataset.playerPickId));
+  }
+
   render() {
     const { player, current, isLoggedIn } = this.props;
     const { name, active, id, clientId, displayOrder, userId } = player;
@@ -17,25 +26,40 @@ class Player extends Component {
     ].filter(classString => (classString != null)).join(' ');
 
     let playerPickButtons = '';
+    let playerScore = '';
 
     if (current) {
       playerPickButtons = (
-        <button className="player-picker button expanded hollow"
-                data-player-pick-id="{{ player.getId() }}"
-                tabIndex="2">
+        <button
+          className="player-picker button expanded hollow"
+          data-player-pick-id={ player.playerId }
+          tabIndex="2"
+        >
           This is You
         </button>
       )
     } else if (!clientId && !userId && !isLoggedIn) {
       playerPickButtons = (
-        <button className="player-picker button expanded" data-tooltip
-                tabIndex="2"
-                title="Select this player to start picking characters for them."
-                data-position="top" data-alignment="center"
-                data-player-pick-id="{{ player.getId() }}">
+        <button
+          className="player-picker button expanded"
+          data-tooltip
+          tabIndex="2"
+          title="Select this player to start picking characters for them."
+          data-position="top" data-alignment="center"
+          data-player-pick-id={ player.playerId }
+          onClick={this.handleChange}
+        >
           Be This Player
         </button>
       )
+    }
+
+    if (player.stats.hasOwnProperty('game_score')) {
+      playerScore = (
+        <div className="player-score">
+          <h4>Wins: {player.stats.game_score}</h4>
+        </div>
+      );
     }
     
     return (
@@ -49,9 +73,7 @@ class Player extends Component {
             { playerPickButtons }
           </div>
 
-          <div className="player-score">
-            <h4>Wins: {player.stats.game_score}</h4>
-          </div>
+          { playerScore }
 
           <div className="player-roster-container">
             <PlayerCharacters characters={player.characters} />

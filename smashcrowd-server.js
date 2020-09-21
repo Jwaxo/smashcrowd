@@ -636,6 +636,7 @@ function serverLog(message, serverOnly = false) {
 function setClientPlayer(board, client, player) {
   const updatedPlayers = [];
   const user = client.getUser();
+  const socket = client.getSocket();
 
   // First remove the current client's player so it's empty again.
   if (user.getPlayerId(board.getId()) !== null) {
@@ -656,13 +657,13 @@ function setClientPlayer(board, client, player) {
     'clientId': client.getId(),
   });
 
-  // Send out updates to the specific client so that they know they are the player.
-  setClientInfoSingle(client, true);
-  updateCharactersSingle(client, {allDisabled: !player.isActive});
-
   // Send updates to all clients so they see the player being controlled.
   updatePlayersInfo(board, updatedPlayers);
   regenerateStages(board);
+
+  // Send out updates to the specific client so that they will know they are the player.
+  updateCharactersSingle(client, {allDisabled: !player.isActive});
+  setPlayerSingle(player, socket);
 }
 
 /**
@@ -727,8 +728,9 @@ function regenerateBoardInfo(board) {
 function regeneratePlayers(board) {
   // The player listing is unique to each client, so we need to rebuild it and
   // send it out individually.
+  const playersArray = board.getPlayersArray();
   clients.forEach(client => {
-    client.getSocket().emit('rebuild-players', board.getPlayersArray());
+    client.getSocket().emit('rebuild-players', playersArray);
   });
 }
 
