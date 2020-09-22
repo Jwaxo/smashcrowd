@@ -23,13 +23,15 @@ class Players extends Component {
           let playerCard = '';
           if (playerInfo) {
             playerCard = (
-              <Player
-                player={playerInfo}
-                key={playerInfo.playerId}
-                current={currentPlayer !== null && currentPlayer.playerId === playerInfo.playerId}
-                handlePlayerChange={this.handlePlayerChange}
-                isLoggedIn={isLoggedIn}
-              />
+              <div class="cell small-6 medium-4 large-auto">
+                <Player
+                  player={playerInfo}
+                  key={playerInfo.playerId}
+                  current={currentPlayer !== null && currentPlayer.playerId === playerInfo.playerId}
+                  handlePlayerChange={this.handlePlayerChange}
+                  isLoggedIn={isLoggedIn}
+                />
+              </div>
             )
           }
           return playerCard;

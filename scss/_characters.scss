@@ -3,10 +3,12 @@
  */
 
 .character-grid {
+  background-color: black;
   display: flex;
   flex-flow: row wrap;
   justify-content: center;
   margin-bottom: rem-calc(30px);
+  padding: rem-calc(6px 0);
 
   &.character-grid--hidden {
     display: none;
@@ -15,13 +17,14 @@
 
 .character {
   background-size: cover;
+  border: rem-calc(2px) solid black;
   cursor: url('./images/pointer.png'), pointer;
   flex: 0 0 auto;
-  height: rem-calc(50px);
+  height: rem-calc(64px);
   overflow: hidden;
   position: relative;
   transition: width .25s;
-  width: rem-calc(90px);
+  width: rem-calc(110px);
   &:nth-child(3n+1) {
     background-color: red;
   }

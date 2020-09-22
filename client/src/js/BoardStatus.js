@@ -76,31 +76,33 @@ class BoardStatus extends Component {
 
     return (
       <div className="cell medium-6 large-4">
-        <h4>Draft Type: {board.draftType}</h4>
-        {statusString}
+        <div className="board-info">
+          <h4>Draft Type: {board.draftType}</h4>
+          {statusString}
 
-        <div className="board-options grid-x grid-margin-x">
-          <div className="cell auto">
-            <button id="reset" onClick={this.toggleBoardModal} className="reset button">New Board</button>
-            { board.status === 'new' ? ([
-              <button key="randomize" id="randomize" className="randomize button"
-                      title="Randomizes the player order. This option will disappear after picking has begun.">Shuffle
-                Players</button>,
-              <button key="start_picking" id="start_picking" className="start-draft button" title="Begin the drafting process.">Start Draft</button>
-            ]) : (
-              <div>
-                { !board.total_rounds || board.status === 'draft-complete' ? (
-                  <button key="start_game" id = "start_game" className="start-game button" title="Begin going through rounds.">Start Game</button>
-                ) : '' }
-              </div>
-            ) }
+          <div className="board-options grid-x grid-margin-x">
+            <div className="cell auto">
+              <button id="reset" onClick={this.toggleBoardModal} className="reset button">New Board</button>
+              { board.status === 'new' ? ([
+                <button key="randomize" id="randomize" className="randomize button"
+                        title="Randomizes the player order. This option will disappear after picking has begun.">Shuffle
+                  Players</button>,
+                <button key="start_picking" id="start_picking" className="start-draft button" title="Begin the drafting process.">Start Draft</button>
+              ]) : (
+                <div>
+                  { !board.total_rounds || board.status === 'draft-complete' ? (
+                    <button key="start_game" id = "start_game" className="start-game button" title="Begin going through rounds.">Start Game</button>
+                  ) : '' }
+                </div>
+              ) }
+            </div>
           </div>
+          { showBoardModal ? (
+            <Modal closeFunction={this.toggleBoardModal}>
+              <FormBoardOptions draftTypes={board.draftTypes} defaultRounds={board.total_rounds} />
+            </Modal>
+          ) : null}
         </div>
-        { showBoardModal ? (
-          <Modal closeFunction={this.toggleBoardModal}>
-            <FormBoardOptions draftTypes={board.draftTypes} defaultRounds={board.total_rounds} />
-          </Modal>
-        ) : null}
       </div>
     );
   }
