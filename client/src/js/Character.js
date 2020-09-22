@@ -4,13 +4,14 @@ class Character extends Component {
 
   render() {
     const { character } = this.props;
-    const { name, charId: id, image, disabled, state, active, round } = character;
+    console.log(character);
+    const { name, charId, image, disabled, state, active, round } = character;
 
     const characterClasses = [
       'character',
       `character--${state}`,
       disabled ? 'character--disabled' : null,
-      active && id !== 999 ? 'character--active' : null,
+      active && charId !== 999 ? 'character--active' : null,
     ].filter(classString => (classString != null)).join(' ');
 
     const characterStyles = {
@@ -21,7 +22,7 @@ class Character extends Component {
     return (
       <div className={ characterClasses }
            data-character-round={ round ? round : 0 }
-           data-character-id={ id }
+           data-character-id={ charId }
            style={ characterStyles }>
         <span className="character-name">{name}</span>
       </div>

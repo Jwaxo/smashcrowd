@@ -3,13 +3,13 @@
  */
 
 .player {
-  border-color: $dark-gray;
+  @include bevel(top, left, red, rem-calc(60px));
+  border: solid $black;
+  border-width: rem-calc(0 2px 2px 0);
+  filter: drop-shadow(0 -8px 0 $black);
   position: relative;
   transition: border-width .25s, border-color .25s, height .25s, padding .25s;
 
-  &.player--current {
-    border-width: rem-calc(4px);
-  }
   &.player--active {
     border-color: map-get($foundation-palette, alert);
   }
@@ -29,32 +29,66 @@
     }
   }
 
-  &:not(.player--current) {
-    padding: rem-calc(3px);
-  }
-
   &.player--owned:not(.player--current) {
     .close-button {
       display: none;
     }
   }
 
+  .player-content {
+    border-left: rem-calc(2px) solid $black !important;
+    margin-top: rem-calc(-1px);
+  }
+
+  .card-section {
+    position: relative;
+    top: rem-calc(-60px);
+  }
+
   h4 {
     @include smashtext;
+    -webkit-text-stroke: 1px black;
     font-size: rem-calc(35px);
     text-align: center;
   }
 
-  @include map-apply('&.player--player', $player-main-palette, 'color', ' h4');
+  .close-button {
+    color: $white;
+  }
+
+  @include map-apply('&.player--player', $player-main-palette, 'background-color', ' .player-content');
+  @include map-apply('&.player--player', $player-main-palette, 'border-color', ' .player-content');
+  @include map-apply('&.player--player', $player-main-palette, 'border-right-color', ':before');
+  @include map-apply('&.player--player', $player-main-palette, 'border-bottom-color', ':before');
 }
 
 .player-picker-outer {
   min-height: rem-calc(60px);
   overflow: hidden;
+  text-align: center;
 }
 
 .player-picker {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 2px solid $black;
+  border-radius: 2px;
+  color: $black;
   cursor: pointer;
+  font-size: rem-calc(20px);
+  font-family: 'Open Sans', 'Work Sans', sans-serif;
+  font-weight: 600;
+  min-width: 50%;
+  padding: rem-calc(6px 20px);
+
+  &.hollow {
+    border: 2px solid $black;
+    color: $black;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 1);
+    color: $black;
+  }
 
   .player--owned:not(.player--current) & {
     display: none;

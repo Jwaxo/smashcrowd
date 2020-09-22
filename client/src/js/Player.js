@@ -17,7 +17,6 @@ class Player extends Component {
     const { name, active, id, clientId, displayOrder, userId } = player;
 
     const playerClasses = [
-      'card',
       'player',
       `player--player${displayOrder}`,
       active ? 'player--active' : null,
@@ -31,7 +30,7 @@ class Player extends Component {
     if (current) {
       playerPickButtons = (
         <button
-          className="player-picker button expanded hollow"
+          className="player-picker button hollow"
           data-player-pick-id={ player.playerId }
           tabIndex="2"
         >
@@ -41,7 +40,7 @@ class Player extends Component {
     } else if (!clientId && !userId && !isLoggedIn) {
       playerPickButtons = (
         <button
-          className="player-picker button expanded"
+          className="player-picker button"
           data-tooltip
           tabIndex="2"
           title="Select this player to start picking characters for them."
@@ -66,24 +65,27 @@ class Player extends Component {
       <div className={playerClasses}
            data-player-id={id}
            data-client-id={clientId}>
-        <div className="card-section">
-          <h4>{name}</h4>
+        <div className="player-content">
+          <div className="card-section">
 
-          <div className="player-picker-outer">
-            { playerPickButtons }
+            <h4>{name}</h4>
+
+            <div className="player-picker-outer">
+              { playerPickButtons }
+            </div>
+
+            { playerScore }
+
+            <div className="player-roster-container">
+              <PlayerCharacters characters={player.characters} />
+            </div>
           </div>
 
-          { playerScore }
-
-          <div className="player-roster-container">
-            <PlayerCharacters characters={player.characters} />
-          </div>
+          <button className="close-button player-close"
+                  aria-label="Remove this player" type="button" data-close>
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
-
-        <button className="close-button player-close"
-                aria-label="Remove this player" type="button" data-close>
-          <span aria-hidden="true">&times;</span>
-        </button>
       </div>
     )
   }

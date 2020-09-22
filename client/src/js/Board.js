@@ -38,6 +38,22 @@ class Board extends Component {
     const { board, client, characters, stages, players, chat, alerts, currentPlayer } = this.props;
     const { status, draftRound, activeTab } = this.state;
 
+    const tabs = [
+      'Characters',
+      'Stages',
+    ].map((tab) => {
+      const value = tab.toLowerCase();
+      const isActive = activeTab === value;
+      return (<li
+        className={`tabs-title ${isActive ? 'is-active' : ''}`}
+        key={tab}
+      >
+        <Link to={`#${value}`} onClick={() => this.changeTab(value)} aria-selected={isActive ? 'true' : 'false'}>
+          {tab}
+        </Link>
+      </li>
+    )});
+
     return (
       <div>
         <div className="grid-x grid-margin-x">
@@ -54,8 +70,7 @@ class Board extends Component {
         </div>
 
         <ul className="tabs">
-          <li className={`tabs-title ${activeTab === 'characters' ? 'is-active' : ''}`}><Link to="#characters" onClick={() => this.changeTab('characters')}>Characters</Link></li>
-          <li className={`tabs-title ${activeTab === 'stages' ? 'is-active' : ''}`}><Link to="#stages" onClick={() => this.changeTab('stages')}>Stages</Link></li>
+          { tabs }
         </ul>
 
         <div className="tabs-content grid-x grid-margin-x">
