@@ -3,14 +3,10 @@ import PlayerCharacters from './PlayerCharacters';
 
 class Player extends Component {
 
-  constructor(props) {
-    super(props);
-    this.handleChange = this.handleChange.bind(this);
-  }
-
-  handleChange(e) {
-    this.props.handlePlayerChange(parseInt(e.target.dataset.playerPickId));
-  }
+  pickPlayer = () => {
+    const { player, socket } = this.props;
+    socket.emit('pick-player', player.playerId);
+  };
 
   render() {
     const { player, current, isLoggedIn } = this.props;
@@ -45,8 +41,7 @@ class Player extends Component {
           tabIndex="2"
           title="Select this player to start picking characters for them."
           data-position="top" data-alignment="center"
-          data-player-pick-id={ player.playerId }
-          onClick={this.handleChange}
+          onClick={this.pickPlayer}
         >
           Be This Player
         </button>

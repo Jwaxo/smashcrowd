@@ -70,8 +70,11 @@ class App extends Component {
         if (playerId !== null) {
           const newPlayer = playerUtilities.getPlayerById(playerId, players);
           this.setState({player: newPlayer});
-          socket.emit('pick-player', parseInt(playerId));
+          socket.emit('pick-player', playerId);
         }
+      }
+      else {
+        localStorage.setItem(client.playerStorage, data.playerId);
       }
       this.setState({player: data});
     });
@@ -93,27 +96,15 @@ class App extends Component {
     })
   }
 
-  handlePlayerChange = (newPlayerId) => {
-    const { player, players, client } = this.state;
-    if (!player || (newPlayerId && player && player.hasOwnProperty('playerId') && player.playerId !== newPlayerId)) {
-      const newPlayer = playerUtilities.getPlayerById(newPlayerId, players);
-      this.setState({player: newPlayer});
-      socket.emit('pick-player', newPlayerId);
-      localStorage.setItem(client.playerStorage, newPlayerId);
-    }
-  };
-
   render() {
     const { board, players, characters, stages, player, client, chat, alerts, user, recaptchaKey} = this.state;
-    console.log('chat is updated');
-    console.log(chat);
 
     return (
       <div className="grid-container">
         <div className="grid-x grid-padding-x">
           <div className="cell medium-2">
-            <UserToolbar user={user} recaptchaKey={recaptchaKey}/>
-            <BoardToolbar/>
+            <UserToolbar user={user} recaptchaKey={recaptchaKey} socket={socket} />
+            <BoardToolbar socket={socket} />
           </div>
           <div className="cell auto">
             <Board
@@ -125,8 +116,7 @@ class App extends Component {
               client={client}
               chat={chat}
               alerts={alerts}
-
-              handlePlayerChange={this.handlePlayerChange}
+              socket={socket}
             />
           </div>
         </div>

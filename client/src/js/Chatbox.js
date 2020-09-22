@@ -7,9 +7,9 @@ class Chatbox extends Component {
 
     return (
       <div className="chat-box">
-        { chat.length > 0 ? chat.map((message) => {
+        { chat.length > 0 ? chat.map((message, index) => {
           return (
-            <div className="chat-item">{message}</div>
+            <div className="chat-item" key={index}>{message}</div>
           )
         }) : ''}
       </div>

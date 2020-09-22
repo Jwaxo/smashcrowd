@@ -6,16 +6,11 @@ class Players extends Component {
 
   constructor(props) {
     super(props);
-    this.handlePlayerChange = this.handlePlayerChange.bind(this);
     this.state = {currentPlayer: this.props.currentPlayer};
   }
 
-  handlePlayerChange(playerId) {
-    this.props.handlePlayerChange(playerId);
-  }
-
   render() {
-    const { players, canAddPlayer, isLoggedIn, currentPlayer } = this.props;
+    const { players, canAddPlayer, isLoggedIn, currentPlayer, socket } = this.props;
 
     return (
       <div className="grid-x grid-margin-x">
@@ -23,13 +18,15 @@ class Players extends Component {
           let playerCard = '';
           if (playerInfo) {
             playerCard = (
-              <div class="cell small-6 medium-4 large-auto">
+              <div
+                className="cell small-6 medium-4 large-auto"
+                key={playerInfo.playerId}
+              >
                 <Player
                   player={playerInfo}
-                  key={playerInfo.playerId}
                   current={currentPlayer !== null && currentPlayer.playerId === playerInfo.playerId}
-                  handlePlayerChange={this.handlePlayerChange}
                   isLoggedIn={isLoggedIn}
+                  socket={socket}
                 />
               </div>
             )

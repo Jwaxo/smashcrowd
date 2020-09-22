@@ -13,7 +13,6 @@ class Board extends Component {
   constructor(props) {
     super(props);
 
-    this.handlePlayerChange = this.handlePlayerChange.bind(this);
     this.state = {
       label: props.label ?? 'default',
       draftType: props.draftType ?? 'free',
@@ -29,14 +28,10 @@ class Board extends Component {
     this.setState({activeTab: newTab});
   };
 
-  handlePlayerChange(playerId) {
-    this.props.handlePlayerChange(playerId);
-  }
-
   render() {
 
-    const { board, client, characters, stages, players, chat, alerts, currentPlayer } = this.props;
-    const { status, draftRound, activeTab } = this.state;
+    const { board, client, characters, stages, players, chat, alerts, currentPlayer, socket } = this.props;
+    const { status, draftRound, activeTab, draftType, totalRounds, gameRound } = this.state;
 
     const tabs = [
       'Characters',
@@ -66,7 +61,7 @@ class Board extends Component {
               Queue!</Link></em>
           </div>
 
-          <BoardStatus board={board} />
+          <BoardStatus board={board} socket={socket} />
         </div>
 
         <ul className="tabs">
@@ -75,19 +70,19 @@ class Board extends Component {
 
         <div className="tabs-content grid-x grid-margin-x">
           <div className={`tabs-panel ${activeTab === 'characters' ? 'is-active' : ''}`}>
-            <Characters characters={characters} disabled={status === 'draft'} hidden={status === 'game'} />
+            <Characters characters={characters} disabled={status !== 'draft'} hidden={status === 'game'} socket={socket} />
           </div>
           <div className={`tabs-panel ${activeTab === 'stages' ? 'is-active' : ''}`}>
-            <Stages stages={stages} disabled={status === 'game' || currentPlayer === null} player={currentPlayer} />
+            <Stages stages={stages} disabled={status === 'game' || currentPlayer === null} player={currentPlayer} socket={socket} />
           </div>
         </div>
 
         <Players
           players={players}
           currentPlayer={currentPlayer}
-          canAddPlayer={draftRound < 1 && currentPlayer == null}
+          canAddPlayer={draftRound < 1 && client.boards == null}
           isLoggedIn={client.isLoggedIn}
-          handlePlayerChange={this.handlePlayerChange}
+          socket={socket}
         />
 
         <Chatbox chat={chat} />

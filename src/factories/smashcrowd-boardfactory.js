@@ -796,6 +796,7 @@ class Board {
       name: this.getName(),
       status: this.getStatus(true),
       draft_type: this.getDraftType(),
+      draft_type_label: this.draft.label,
       draftTypes,
     };
   }

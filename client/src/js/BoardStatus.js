@@ -17,6 +17,11 @@ class BoardStatus extends Component {
     this.setState({showBoardModal: !this.state.showBoardModal});
   };
 
+  startDraft = () => {
+    const { socket } = this.props;
+    socket.emit('start-draft');
+  };
+
   render() {
     const { board } = this.props;
     const { showBoardModal } = this.state;
@@ -77,21 +82,38 @@ class BoardStatus extends Component {
     return (
       <div className="cell medium-6 large-4">
         <div className="board-info">
-          <h4>Draft Type: {board.draftType}</h4>
+          <h4>Draft Type: {board.draft_type_label}</h4>
           {statusString}
 
           <div className="board-options grid-x grid-margin-x">
             <div className="cell auto">
               <button id="reset" onClick={this.toggleBoardModal} className="reset button">New Board</button>
-              { board.status === 'new' ? ([
-                <button key="randomize" id="randomize" className="randomize button"
-                        title="Randomizes the player order. This option will disappear after picking has begun.">Shuffle
-                  Players</button>,
-                <button key="start_picking" id="start_picking" className="start-draft button" title="Begin the drafting process.">Start Draft</button>
-              ]) : (
+              { board.status === 'new' ? (
+                [
+                  <button
+                    key="randomize"
+                    id="randomize"
+                    className="randomize button"
+                    title="Randomizes the player order. This option will disappear after picking has begun."
+                  >Shuffle
+                    Players</button>,
+                  <button
+                    key="start_picking"
+                    id="start_picking"
+                    className="start-draft button"
+                    title="Begin the drafting process."
+                    onClick={this.startDraft}
+                  >Start Draft</button>
+                ]
+              ) : (
                 <div>
                   { !board.total_rounds || board.status === 'draft-complete' ? (
-                    <button key="start_game" id = "start_game" className="start-game button" title="Begin going through rounds.">Start Game</button>
+                    <button
+                      key="start_game"
+                      id="start_game"
+                      className="start-game button"
+                      title="Begin going through rounds."
+                    >Start Game</button>
                   ) : '' }
                 </div>
               ) }
