@@ -43,6 +43,11 @@ const session = require('express-session')({
 // we need to track sessions using some middleware.
 const sharedSession = require("express-socket.io-session");
 
+/**
+ *
+ * @param {SmashCrowd} crowd
+ * @param {config} config
+ */
 module.exports = (crowd, config) => {
   const port = config.get('server.port');
   SmashCrowd = crowd;
@@ -50,7 +55,6 @@ module.exports = (crowd, config) => {
 
   // Currently we only run one board at a time, so load board 1.
   const board = crowd.getBoardById(1);
-  SmashCrowd.createBoard(board);
 
   // Listen at the port.
   server.listen(port, () => {

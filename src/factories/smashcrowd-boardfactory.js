@@ -41,7 +41,7 @@ class Board {
     }
 
     this.draft = {};
-    this.setDraft('free');
+    this.setDraft('free', true);
 
     this.char_data = {};
     this.level_data = {};
@@ -116,6 +116,9 @@ class Board {
   }
 
   updateBoard(field_values) {
+    if (this.getId() === null) {
+      throw new Error('Trying to update a board with a null ID.');
+    }
     SmashCrowd.updateBoard(this.getId(), field_values);
   }
 

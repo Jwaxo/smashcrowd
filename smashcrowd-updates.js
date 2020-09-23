@@ -177,7 +177,6 @@ function postInstall() {
   };
   const board_promise = SmashCrowd.dbInsert('boards', default_board)
     .then((board_id) => {
-      console.log('id is ' + board_id);
       console.log('Default board created.');
     });
 
