@@ -6,7 +6,7 @@ import Characters from "./Characters";
 import Players from "./Players";
 import Stages from "./Stages";
 import Chatbox from "./Chatbox";
-import Status from "./Status";
+import Alert from "./Alert";
 
 class Board extends Component {
 
@@ -113,11 +113,13 @@ class Board extends Component {
 
         <Chatbox chat={chat} />
 
-        { alerts.length > 0 ? alerts.map((alert, index) => {
-          return (
-            <Status key={index} type={alert.type} message={alert.status} />
-          )
-        }) : ''}
+        <div className='status-box'>
+          { alerts.length > 0 ? alerts.map((alert, index) => {
+            return (
+              <Alert key={index} type={alert.type} message={alert.status} />
+            )
+          }) : ''}
+        </div>
 
       </div>
     )

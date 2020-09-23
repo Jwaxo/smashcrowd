@@ -25,10 +25,16 @@ body {
 }
 
 .status-box {
+  bottom: 0;
+  left: 50%;
   margin: 0 auto;
   max-width: $global-width;
   position: fixed;
-  bottom: 0;
+  transform: translateX(-50%);
   width: 100%;
   z-index: 1000;
+}
+
+.alert.hidden {
+  display: none;
 }
