@@ -16,7 +16,7 @@ class PlayerCharacters extends Component {
         {characters.map((character) => (
           <Character
             character={character}
-            key={character.id}
+            key={character.charId}
           />
         ))}
       </div>

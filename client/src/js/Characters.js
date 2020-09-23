@@ -3,6 +3,12 @@ import Character from "./Character";
 
 class Characters extends Component {
 
+  onCharacterChoose = (characterId) => {
+    const { socket } = this.props;
+
+    socket.emit('add-character', characterId);
+  };
+
   render() {
 
     const gridClasses = [
@@ -19,6 +25,7 @@ class Characters extends Component {
               return (<Character
                   character={character}
                   key={character.charId}
+                  onCharacterClick={this.onCharacterChoose}
                 />
               )
             }

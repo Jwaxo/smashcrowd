@@ -733,9 +733,7 @@ function regeneratePlayers(board) {
   // The player listing is unique to each client, so we need to rebuild it and
   // send it out individually.
   const playersArray = board.getPlayersArray();
-  clients.forEach(client => {
-    client.getSocket().emit('rebuild-players', playersArray);
-  });
+  io.sockets.emit('rebuild-players', playersArray);
 }
 
 /**
