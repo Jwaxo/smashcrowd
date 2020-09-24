@@ -96,7 +96,7 @@ class freeDraft extends DraftAbstract {
       'isActive': clientplayer.isActive,
     });
 
-    returned_functions.push({'updatePlayersInfo': [board, updatedPlayers]});
+    returned_functions.push({'regeneratePlayers': [board]});
 
     // If any single player is not yet ready, don't update the board info.
     let draftComplete = true;

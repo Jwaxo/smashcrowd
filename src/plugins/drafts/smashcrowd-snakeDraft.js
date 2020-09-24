@@ -158,7 +158,7 @@ class snakeDraft extends DraftAbstract {
           'isActive': prevPlayer.isActive,
         });
 
-        returned_functions.push({'updatePlayersInfo': [board, updatedPlayers]});
+        returned_functions.push({'regeneratePlayers': [board]});
       }
 
       returned_functions.push({'updateCharacters': [characterUpdateData]});

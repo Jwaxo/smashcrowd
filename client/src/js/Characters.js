@@ -5,8 +5,9 @@ class Characters extends Component {
 
   onCharacterChoose = (characterId) => {
     const { socket } = this.props;
-
-    socket.emit('add-character', characterId);
+    if (!this.props.disabled) {
+      socket.emit('add-character', characterId);
+    }
   };
 
   render() {

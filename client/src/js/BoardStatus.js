@@ -22,8 +22,22 @@ class BoardStatus extends Component {
     socket.emit('start-draft');
   };
 
+  startGame = () => {
+    const { socket } = this.props;
+    socket.emit('start-game');
+  };
+
+  shufflePlayers = () => {
+    const { socket } = this.props;
+    socket.emit('players-shuffle');
+  };
+
+  newGame = () => {
+    this.setState({showBoardModal: false});
+  };
+
   render() {
-    const { board } = this.props;
+    const { board, socket } = this.props;
     const { showBoardModal } = this.state;
     let statusString = '';
 
@@ -95,6 +109,7 @@ class BoardStatus extends Component {
                     id="randomize"
                     className="randomize button"
                     title="Randomizes the player order. This option will disappear after picking has begun."
+                    onClick={this.shufflePlayers}
                   >Shuffle
                     Players</button>,
                   <button
@@ -113,6 +128,7 @@ class BoardStatus extends Component {
                       id="start_game"
                       className="start-game button"
                       title="Begin going through rounds."
+                      onClick={this.startGame}
                     >Start Game</button>
                   ) : '' }
                 </div>
@@ -121,7 +137,13 @@ class BoardStatus extends Component {
           </div>
           { showBoardModal ? (
             <Modal closeFunction={this.toggleBoardModal}>
-              <FormBoardOptions draftTypes={board.draftTypes} defaultRounds={board.total_rounds} />
+              <FormBoardOptions
+                draftTypes={board.draftTypes}
+                currentDraftType={board.draft_type}
+                defaultRounds={board.total_rounds}
+                newGame={this.newGame}
+                socket={socket}
+              />
             </Modal>
           ) : null}
         </div>

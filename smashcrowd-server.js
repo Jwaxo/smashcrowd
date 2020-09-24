@@ -662,7 +662,7 @@ function setClientPlayer(board, client, player) {
   });
 
   // Send updates to all clients so they see the player being controlled.
-  updatePlayersInfo(board, updatedPlayers);
+  regeneratePlayers(board);
   regenerateStages(board);
 
   // Send out updates to the specific client so that they will know they are the player.
@@ -815,17 +815,6 @@ function setPlayerSingle(player, socket) {
  */
 function setRecaptchaKeySingle(recaptchaKey, socket) {
   socket.emit('set-recaptcha-key', recaptchaKey);
-}
-
-/**
- * Sends an array of players with changed data to inform clients without needing
- * to completely rebuild the player area.
- *
- * @param {Board} board
- * @param {Array} updatedPlayers
- */
-function updatePlayersInfo(board, updatedPlayers) {
-  io.sockets.emit('update-players', updatedPlayers);
 }
 
 /**

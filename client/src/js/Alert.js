@@ -1,32 +1,55 @@
 import React, { Component } from 'react';
 
 class Alert extends Component {
+  timeoutTypes = [
+    null,
+    'secondary',
+  ];
+  closeSpeed = 500;
 
   constructor(props) {
     super(props);
 
     this.state = {
-      open: true
+      open: true,
+      opacity: 1,
     };
   }
 
+  componentDidMount() {
+    if (this.timeoutTypes.includes(this.props.type)) {
+      setTimeout(() => this.close(), 5000);
+    }
+  }
+
   close = () => {
-    this.setState({open: false});
+    // Get opacity from the state just in case the alert has already started closing.
+    let { opacity } = this.state;
+    const interval = setInterval(() => {
+      if (opacity <= 0) {
+        this.setState({open: false});
+        clearInterval(interval);
+      }
+      else {
+        opacity = opacity - .01;
+        console.log(`setting opacity to ${opacity}`);
+        this.setState({opacity})
+      }
+    }, this.closeSpeed / 100);
   };
 
   render() {
     const { type, message } = this.props;
-    const { open } = this.state;
+    const { open, opacity } = this.state;
 
     const alertClasses = [
-      'alert',
       'callout',
       type ? type : null,
       !open ? 'hidden' : null,
     ].filter(classString => (classString != null)).join(' ');
 
     return (
-      <div className={ alertClasses } data-closable>
+      <div className={ alertClasses } style={ {opacity} } data-closable>
         {message}
         <button className="close-button" aria-label="Dismiss alert"
                 type="button" onClick={this.close}>
