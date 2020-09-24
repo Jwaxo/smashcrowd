@@ -798,8 +798,8 @@ class Board {
       total_rounds: this.getTotalRounds(),
       name: this.getName(),
       status: this.getStatus(true),
+      draft: this.getDraft(),
       draft_type: this.getDraftType(),
-      draft_type_label: this.draft.label,
       draftTypes,
     };
   }

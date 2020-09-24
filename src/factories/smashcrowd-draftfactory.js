@@ -31,6 +31,7 @@ class DraftAbstract {
       'game-complete',
     ];
     this.status = null;
+    this.isLimited = false;
 
     if (new.target === DraftAbstract) {
       throw new TypeError("Cannot construct Abstract classes directly.");
@@ -206,6 +207,7 @@ class DraftAbstract {
       label: this.getLabel(),
       status_types: this.getStatusTypes(),
       status: this.getStatus(),
+      isLimited: this.isLimited,
     };
   }
 

@@ -3,6 +3,10 @@ import Character from './Character';
 
 class PlayerCharacters extends Component {
 
+  playerCharacterClick = (characterId, round) => {
+
+  };
+
   render() {
     const { characters } = this.props;
 
@@ -17,6 +21,7 @@ class PlayerCharacters extends Component {
           <Character
             character={character}
             key={character.charId}
+            onCharacterClick={this.playerCharacterClick}
           />
         ))}
       </div>

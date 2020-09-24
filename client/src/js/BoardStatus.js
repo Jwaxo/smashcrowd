@@ -5,12 +5,29 @@ import FormBoardOptions from './FormBoardOptions';
 
 class BoardStatus extends Component {
 
+  draftStates = {
+    label: 'label',
+  };
+
   constructor(props) {
     super(props);
 
     this.state = {
       showBoardModal: false,
+      label: props.board.draft ? props.board.draft.label : 'draft',
     };
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+
+    // If anything in the board prop was updated, we need to update the Board's
+    // states.
+    for (const draftState in this.draftStates) {
+      const draftProp = this.draftStates[draftState];
+      if (this.props.board.draft && (!prevProps.board.draft || this.props.board.draft[draftProp] !== prevProps.board.draft[draftProp])) {
+        this.setState({[draftState]: this.props.board.draft[draftProp]});
+      }
+    }
   }
 
   toggleBoardModal = () => {
@@ -38,7 +55,7 @@ class BoardStatus extends Component {
 
   render() {
     const { board, socket } = this.props;
-    const { showBoardModal } = this.state;
+    const { showBoardModal, label } = this.state;
     let statusString = '';
 
     // Determine the status based off of our drafting and game status.
@@ -96,7 +113,7 @@ class BoardStatus extends Component {
     return (
       <div className="cell medium-6 large-4">
         <div className="board-info">
-          <h4>Draft Type: {board.draft_type_label}</h4>
+          <h4>Draft Type: {label}</h4>
           {statusString}
 
           <div className="board-options grid-x grid-margin-x">

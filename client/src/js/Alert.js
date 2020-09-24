@@ -32,7 +32,6 @@ class Alert extends Component {
       }
       else {
         opacity = opacity - .01;
-        console.log(`setting opacity to ${opacity}`);
         this.setState({opacity})
       }
     }, this.closeSpeed / 100);

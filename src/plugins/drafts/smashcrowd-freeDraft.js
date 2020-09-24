@@ -89,7 +89,7 @@ class freeDraft extends DraftAbstract {
     clientplayer.setActive((!board.getTotalRounds() || clientplayer.getCharacterCount() < board.getTotalRounds()));
 
     // Disable/Enable picking for this user if the above conditions are met.
-    returned_functions.push({'updateCharactersSingle': [client, {allDisabled: !clientplayer.isActive}]});
+    returned_functions.push({'regenerateCharacters': [board]});
 
     updatedPlayers.push({
       'playerId': clientplayer.getId(),

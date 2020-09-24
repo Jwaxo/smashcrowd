@@ -18,14 +18,17 @@ class Characters extends Component {
       this.props.hidden ? 'character-grid--hidden' : null,
     ].filter(classString => (classString != null)).join(' ');
 
+    const { isLimited, characters } = this.props;
+
     return (
       <div className="cell">
         <div className={gridClasses}>
-          {this.props.characters ? this.props.characters.map((character) => {
+          {characters ? characters.map((character) => {
             if (character) {
               return (<Character
                   character={character}
                   key={character.charId}
+                  disabled={character.player && isLimited}
                   onCharacterClick={this.onCharacterChoose}
                 />
               )

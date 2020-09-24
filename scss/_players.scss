@@ -4,6 +4,9 @@
 
 .player-wrapper {
   filter: drop-shadow(0 -8px 0 $black);
+  &.player-wrapper--active {
+    filter: drop-shadow(0 -8px 0 $red);
+  }
 }
 
 .player {
@@ -25,7 +28,7 @@
   transition: border-width .25s, border-color .25s, height .25s, padding .25s;
 
   &.player--active {
-    border-color: map-get($foundation-palette, alert);
+    border-color: $red;
   }
 
   &.player--new {

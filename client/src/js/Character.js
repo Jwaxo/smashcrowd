@@ -4,16 +4,18 @@ class Character extends Component {
 
   constructor(props) {
     super(props);
-    this.handleClick = this.handleClick.bind(this);
   }
 
-  handleClick(e) {
+  handleClick = (e) => {
+    // Since the context of where this character icon appears could be either in
+    // the character select screen or on a player's roster, we need to let the
+    // parent context handle what happens.
     this.props.onCharacterClick(e.target.dataset.characterId);
-  }
+  };
 
   render() {
-    const { character } = this.props;
-    const { name, charId, image, disabled, state, active, round } = character;
+    const { character, disabled } = this.props;
+    const { name, charId, image, state, active, round } = character;
 
     const characterClasses = [
       'character',

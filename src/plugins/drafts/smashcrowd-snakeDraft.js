@@ -17,7 +17,7 @@
  *   |
  *   v
  *   |
- * [Tom]->-[Dick]->-[Harry]:C----< hsssssss
+ * [Tom]->-[Dick]->-[Harry]--:3----< hsssssss
  */
 
 const DraftAbstract = require('./../../factories/smashcrowd-draftfactory');
@@ -29,6 +29,7 @@ class snakeDraft extends DraftAbstract {
     super();
     this.machine_name = 'snake';
     this.label = 'Snake Draft';
+    this.isLimited = true;
   }
 
   startNew(board) {
@@ -49,7 +50,17 @@ class snakeDraft extends DraftAbstract {
   }
 
   addCharacter(board, player, character) {
-    const charId = character.getId();
+    // In some strange cases the ID is returning null, so we're going to make
+    // sure an error pops up to troubleshoot.
+    let charId = null;
+    try {
+      charId = character.getId();
+    }
+    catch (e) {
+      console.log('tried to add the following character:');
+      console.log(character);
+      throw new Error(e);
+    }
 
     // First check to make sure the default Draft checks succeed.
     const return_data = super.addCharacter(board, player, character);
@@ -139,11 +150,6 @@ class snakeDraft extends DraftAbstract {
 
         prevPlayer.setActive(false);
         currentPlayer.setActive(true);
-
-        updatedPlayers.push({
-          'playerId': currentPlayer.getId(),
-          'isActive': true,
-        });
       }
 
       // If we're at a new round in snake draft we need to regenerate the player
@@ -153,15 +159,11 @@ class snakeDraft extends DraftAbstract {
         returned_functions.push({'regeneratePlayers': [board]});
       }
       else {
-        updatedPlayers.push({
-          'playerId': prevPlayer.getId(),
-          'isActive': prevPlayer.isActive,
-        });
 
         returned_functions.push({'regeneratePlayers': [board]});
       }
 
-      returned_functions.push({'updateCharacters': [characterUpdateData]});
+      returned_functions.push({'regenerateCharacters': [board]});
     }
 
     return returned_functions;

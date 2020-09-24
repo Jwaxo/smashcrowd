@@ -144,11 +144,6 @@ module.exports = (crowd, config) => {
     // or resumed session.
     setRecaptchaKeySingle(config.get('recaptcha.key'), socket);
     setClientInfoSingle(client);
-    regenerateBoardInfo(board);
-    regeneratePlayers(board);
-    regenerateCharacters(board);
-    regenerateStages(board);
-    regenerateChatSingle(socket);
 
     const player = client.getPlayerByBoard(board.getId());
     setPlayerSingle(player, socket);
@@ -164,13 +159,12 @@ module.exports = (crowd, config) => {
         setStatusSingle(client, 'Pick a player to draft.')
       }
     }
-    else {
-      playerActive = player.getActive();
-    }
 
-    // Finally, manually disable character picking if we don't have a player and
-    // that player isn't active.
-    updateCharactersSingle(client, {allDisabled: !playerActive});
+    regenerateBoardInfo(board);
+    regeneratePlayers(board);
+    regenerateCharacters(board);
+    regenerateStages(board);
+    regenerateChatSingle(socket);
 
     if (clientSession.status) {
       let message = '';
@@ -664,9 +658,9 @@ function setClientPlayer(board, client, player) {
   // Send updates to all clients so they see the player being controlled.
   regeneratePlayers(board);
   regenerateStages(board);
+  regenerateCharacters(board);
 
   // Send out updates to the specific client so that they will know they are the player.
-  updateCharactersSingle(client, {allDisabled: !player.isActive});
   setPlayerSingle(player, socket);
 }
 
@@ -825,37 +819,6 @@ function setRecaptchaKeySingle(recaptchaKey, socket) {
  */
 function updateStageInfo(stage) {
   io.sockets.emit('update-stage', stage);
-}
-
-/**
- * Sends character select data with changed info to one client.
- *
- * @see updateCharacters().
- *
- * @param {Client} client
- * @param {Object} character_data
- */
-function updateCharactersSingle(client, character_data) {
-  client.socket.emit('update-characters', character_data);
-}
-
-/**
- * Sends character select data with changed data to all clients.
- *
- * Used to inform clients without needing to completely rebuild the character area.
- *
- * @param {Object} character_data
- *   {boolean} allDisabled
- *     If the character select sheet should be disabled or enabled.
- *   {Array} chars
- *     An array of objects describing characters by their ID and how to update
- *     them. Current allowed properties:
- *     - {integer} charId: the ID of the character to update.
- *     - {boolean} disabled: whether or not the character should be removed from
- *       the list.
- */
-function updateCharacters(character_data) {
-  io.sockets.emit('update-characters', character_data);
 }
 
 /**

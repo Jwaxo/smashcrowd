@@ -111,10 +111,7 @@ class scorecardDraft extends DraftAbstract {
   advanceDraft(board, client, unused = {}) {
     const returned_functions = [];
 
-    // Ensure that we send "updateCharactersSingle" info to the client that just
-    // picked a character so that, after processing, their character board re-
-    // enables.
-    returned_functions.push({'updateCharactersSingle': [client, {allDisabled: false}]});
+    returned_functions.push({'regenerateCharacters': [board]});
     returned_functions.push({'regeneratePlayers': [board]});
 
     // If any single player is not yet ready, don't update the board info.

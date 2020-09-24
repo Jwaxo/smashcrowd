@@ -10,12 +10,17 @@ class Player extends Component {
 
   render() {
     const { player, current, isLoggedIn } = this.props;
-    const { name, active, id, clientId, displayOrder, userId } = player;
+    const { name, isActive, id, clientId, displayOrder, userId } = player;
+
+    const playerWrapperClasses = [
+      'player-wrapper',
+      isActive ? 'player-wrapper--active' : null,
+    ].filter(classString => (classString != null)).join(' ');
 
     const playerClasses = [
       'player',
       `player--player${displayOrder}`,
-      active ? 'player--active' : null,
+      isActive ? 'player--active' : null,
       id ? 'player--owned' : null,
       current ? 'player--current' : null,
     ].filter(classString => (classString != null)).join(' ');
@@ -57,7 +62,7 @@ class Player extends Component {
     }
     
     return (
-      <div className='player-wrapper'>
+      <div className={playerWrapperClasses}>
         <div className={playerClasses}
            data-player-id={id}
            data-client-id={clientId}>

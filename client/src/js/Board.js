@@ -19,6 +19,10 @@ class Board extends Component {
     gameRound: 'game_round',
   };
 
+  draftStates = {
+    draftIsLimited: 'isLimited',
+  };
+
   constructor(props) {
     super(props);
 
@@ -31,6 +35,7 @@ class Board extends Component {
       draftRound: props.board.current_draft_round ?? 0,
       gameRound: props.board.current_game_round ?? 0,
       activeTab: props.activeTab ?? 'characters',
+      isLimited: props.board.draft ? props.board.draft.isLimited : false,
     };
   }
 
@@ -44,6 +49,13 @@ class Board extends Component {
         this.setState({[boardState]: this.props.board[boardProp]});
       }
     }
+
+    for (const draftState in this.draftStates) {
+      const draftProp = this.draftStates[draftState];
+      if (this.props.board.draft && (!prevProps.board.draft || this.props.board.draft[draftProp] !== prevProps.board.draft[draftProp])) {
+        this.setState({[draftState]: this.props.board.draft[draftProp]});
+      }
+    }
   }
 
   changeTab(newTab) {
@@ -53,7 +65,7 @@ class Board extends Component {
   render() {
 
     const { board, client, characters, stages, players, chat, alerts, currentPlayer, socket } = this.props;
-    const { status, draftRound, activeTab } = this.state;
+    const { status, draftRound, activeTab, draftIsLimited } = this.state;
 
     const tabs = [
       'Characters',
@@ -93,7 +105,13 @@ class Board extends Component {
         <div className="tabs-content grid-x grid-margin-x">
           <div className={`tabs-panel ${activeTab === 'characters' ? 'is-active' : ''}`}>
 
-            <Characters characters={characters} disabled={status !== 'draft'} hidden={status === 'game'} socket={socket} />
+            <Characters
+              characters={characters}
+              disabled={status !== 'draft' || (draftIsLimited && (!currentPlayer || !currentPlayer.isActive))}
+              isLimited={draftIsLimited}
+              hidden={status === 'game'}
+              socket={socket}
+            />
 
           </div>
           <div className={`tabs-panel ${activeTab === 'stages' ? 'is-active' : ''}`}>
