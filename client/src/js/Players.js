@@ -16,7 +16,7 @@ class Players extends Component {
   };
 
   render() {
-    const { players, canAddPlayer, isLoggedIn, currentPlayer, socket } = this.props;
+    const { players, canAddPlayer, isLoggedIn, currentPlayer, socket, gameRound, draftRound } = this.props;
 
     return (
       <div className="grid-x grid-margin-x">
@@ -33,6 +33,8 @@ class Players extends Component {
                   current={currentPlayer !== null && currentPlayer.playerId === playerInfo.playerId}
                   isLoggedIn={isLoggedIn}
                   socket={socket}
+                  gameRound={gameRound}
+                  draftRound={draftRound}
                 />
               </div>
             )

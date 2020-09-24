@@ -9,8 +9,8 @@ class Player extends Component {
   };
 
   render() {
-    const { player, current, isLoggedIn } = this.props;
-    const { name, isActive, id, clientId, displayOrder, userId } = player;
+    const { player, current, isLoggedIn, socket, gameRound, draftRound } = this.props;
+    const { name, isActive, id, clientId, displayOrder, userId, playerId } = player;
 
     const playerWrapperClasses = [
       'player-wrapper',
@@ -77,12 +77,18 @@ class Player extends Component {
             { playerScore }
 
             <div className="player-roster-container">
-              <PlayerCharacters characters={player.characters} />
+              <PlayerCharacters
+                characters={player.characters}
+                playerId={playerId}
+                socket={socket}
+                gameRound={gameRound}
+                draftRound={draftRound}
+              />
             </div>
           </div>
 
           <button className="close-button player-close"
-                  aria-label="Remove this player" type="button" data-close>
+            aria-label="Remove this player" type="button" data-close>
             <span aria-hidden="true">&times;</span>
           </button>
         </div>

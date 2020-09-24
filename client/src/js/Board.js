@@ -65,7 +65,7 @@ class Board extends Component {
   render() {
 
     const { board, client, characters, stages, players, chat, currentPlayer, socket } = this.props;
-    const { status, draftRound, activeTab, draftIsLimited } = this.state;
+    const { status, draftRound, gameRound, activeTab, draftIsLimited } = this.state;
 
     const disabled = status !== 'draft' || (draftIsLimited && (!currentPlayer || !currentPlayer.isActive));
 
@@ -128,6 +128,8 @@ class Board extends Component {
           currentPlayer={currentPlayer}
           canAddPlayer={draftRound < 1 && client.boards == null}
           isLoggedIn={client.isLoggedIn}
+          gameRound={gameRound}
+          draftRound={draftRound}
           socket={socket}
         />
 

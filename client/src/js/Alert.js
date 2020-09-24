@@ -30,14 +30,13 @@ class Alert extends Component {
       if (opacity <= 0) {
         this.setState({open: false});
         clearInterval(interval);
+        onClose(index);
       }
       else {
         opacity = opacity - .01;
         this.setState({opacity})
       }
     }, this.closeSpeed / 100);
-
-    onClose(index);
   };
 
   render() {

@@ -4,11 +4,12 @@ import Character from './Character';
 class PlayerCharacters extends Component {
 
   playerCharacterClick = (characterId, round) => {
-
+    const { socket, playerId } = this.props;
+    socket.emit('player-character-click', characterId, round, playerId)
   };
 
   render() {
-    const { characters } = this.props;
+    const { characters, draftRound, gameRound } = this.props;
 
     const playerRosterClasses = [
       'player-roster',
@@ -17,13 +18,21 @@ class PlayerCharacters extends Component {
 
     return (
       <div className={playerRosterClasses}>
-        {characters.map((character) => (
-          <Character
-            character={character}
-            key={character.charId}
-            onCharacterClick={this.playerCharacterClick}
-          />
-        ))}
+        {characters.map((character, index) => {
+          const rosterKey = index + 1;
+          const disabled = (gameRound > 0 && rosterKey !== gameRound) || (draftRound > 0 && rosterKey !== draftRound);
+          // console.log(character.name);
+          // console.log(`(${gameRound} > 0 && ${rosterKey} !== ${gameRound}) || (${draftRound} > 0 && ${rosterKey} !== ${draftRound})`);
+          return (
+            <Character
+              character={character}
+              round={rosterKey}
+              key={rosterKey}
+              disabled={disabled}
+              onCharacterClick={this.playerCharacterClick}
+            />
+          )
+        })}
       </div>
     )
   }

@@ -120,7 +120,8 @@ class freeDraft extends DraftAbstract {
   }
 
   startDraftComplete(board) {
-
+    board.resetDraftRound();
+    return [{'regenerateBoard': [board]}];
   }
 
   startGame(board) {
@@ -128,7 +129,8 @@ class freeDraft extends DraftAbstract {
   }
 
   startGameComplete(board) {
-
+    board.resetGameRound();
+    return [{'regenerateBoard': [board]}];
   }
 
 }
