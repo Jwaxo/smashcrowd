@@ -53,7 +53,7 @@ class Board extends Component {
   render() {
 
     const { board, client, characters, stages, players, chat, alerts, currentPlayer, socket } = this.props;
-    const { status, draftRound, activeTab, draftType, totalRounds, gameRound } = this.state;
+    const { status, draftRound, activeTab } = this.state;
 
     const tabs = [
       'Characters',

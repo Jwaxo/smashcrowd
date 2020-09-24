@@ -9,6 +9,12 @@ class Players extends Component {
     this.state = {currentPlayer: this.props.currentPlayer};
   }
 
+  addPlayer = (playerName) => {
+    const { socket } = this.props;
+
+    socket.emit('add-player', playerName);
+  };
+
   render() {
     const { players, canAddPlayer, isLoggedIn, currentPlayer, socket } = this.props;
 
@@ -35,7 +41,10 @@ class Players extends Component {
         }) : ''}
         {canAddPlayer ? (
           <div className="cell small-6 medium-3 large-auto">
-            <FormAddPlayer isLoggedIn={isLoggedIn }/>
+            <FormAddPlayer
+              isLoggedIn={isLoggedIn }
+              addPlayer={this.addPlayer}
+            />
           </div>
         ) : ''}
       </div>
