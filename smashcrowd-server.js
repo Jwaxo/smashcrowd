@@ -682,7 +682,6 @@ function resetGame(board, boardData) {
 
   clients.forEach(client => {
     const user = client.getUser();
-    user.unsetPlayer(board.getId());
     user.setGameId(board.getGameId());
     setClientInfoSingle(client, true);
     serverLog(`Wiping player info for ${client.getLabel(board.getId())}`);

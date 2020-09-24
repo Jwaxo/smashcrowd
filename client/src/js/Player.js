@@ -8,6 +8,13 @@ class Player extends Component {
     socket.emit('pick-player', player.playerId);
   };
 
+  closePlayer = () => {
+    //@todo: ensure only the player or the board owner can remove an unowned
+    //  player.
+    const { player, socket } = this.props;
+    socket.emit('player-remove-click', player.playerId);
+  };
+
   render() {
     const { player, current, isLoggedIn, socket, gameRound, draftRound } = this.props;
     const { name, isActive, id, clientId, displayOrder, userId, playerId } = player;
@@ -87,8 +94,11 @@ class Player extends Component {
             </div>
           </div>
 
-          <button className="close-button player-close"
-            aria-label="Remove this player" type="button" data-close>
+          <button
+            className="close-button player-close"
+            aria-label="Remove this player"
+            type="button"
+            onClick={this.closePlayer}>
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
