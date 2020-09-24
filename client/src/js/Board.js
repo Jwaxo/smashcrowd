@@ -64,7 +64,7 @@ class Board extends Component {
 
   render() {
 
-    const { board, client, characters, stages, players, chat, alerts, currentPlayer, socket } = this.props;
+    const { board, client, characters, stages, players, chat, currentPlayer, socket } = this.props;
     const { status, draftRound, activeTab, draftIsLimited } = this.state;
 
     const disabled = status !== 'draft' || (draftIsLimited && (!currentPlayer || !currentPlayer.isActive));
@@ -132,14 +132,6 @@ class Board extends Component {
         />
 
         <Chatbox chat={chat} />
-
-        <div className='status-box'>
-          { alerts.length > 0 ? alerts.map((alert, index) => {
-            return (
-              <Alert key={index} type={alert.type} message={alert.status} />
-            )
-          }) : ''}
-        </div>
 
       </div>
     )

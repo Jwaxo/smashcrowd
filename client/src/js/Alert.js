@@ -24,6 +24,7 @@ class Alert extends Component {
 
   close = () => {
     // Get opacity from the state just in case the alert has already started closing.
+    const { onClose, index } = this.props;
     let { opacity } = this.state;
     const interval = setInterval(() => {
       if (opacity <= 0) {
@@ -35,6 +36,8 @@ class Alert extends Component {
         this.setState({opacity})
       }
     }, this.closeSpeed / 100);
+
+    onClose(index);
   };
 
   render() {

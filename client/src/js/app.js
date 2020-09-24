@@ -6,6 +6,7 @@ import Board from './Board';
 
 import socketIOClient from "socket.io-client";
 import playerUtilities from "./utils/players";
+import Alert from "./Alert";
 const socket = socketIOClient();
 
 class App extends Component {
@@ -103,6 +104,12 @@ class App extends Component {
     })
   }
 
+  onAlertClose = (index) => {
+    const { alerts } = this.state;
+    alerts.splice(index, 1);
+    this.setState({alerts: alerts});
+  };
+
   render() {
     const { board, players, characters, stages, player, client, chat, alerts, user, recaptchaKey} = this.state;
 
@@ -122,9 +129,22 @@ class App extends Component {
               currentPlayer={player}
               client={client}
               chat={chat}
-              alerts={alerts}
               socket={socket}
             />
+
+            <div className='status-box'>
+              { alerts.length > 0 ? alerts.map((alert, index) => {
+                return (
+                  <Alert
+                    key={index}
+                    index={index}
+                    type={alert.type}
+                    message={alert.status}
+                    onClose={this.onAlertClose}
+                  />
+                )
+              }) : ''}
+            </div>
           </div>
         </div>
       </div>
