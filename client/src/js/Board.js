@@ -67,6 +67,8 @@ class Board extends Component {
     const { board, client, characters, stages, players, chat, alerts, currentPlayer, socket } = this.props;
     const { status, draftRound, activeTab, draftIsLimited } = this.state;
 
+    const disabled = status !== 'draft' || (draftIsLimited && (!currentPlayer || !currentPlayer.isActive));
+
     const tabs = [
       'Characters',
       'Stages',
@@ -107,7 +109,7 @@ class Board extends Component {
 
             <Characters
               characters={characters}
-              disabled={status !== 'draft' || (draftIsLimited && (!currentPlayer || !currentPlayer.isActive))}
+              disabled={disabled}
               isLimited={draftIsLimited}
               hidden={status === 'game'}
               socket={socket}

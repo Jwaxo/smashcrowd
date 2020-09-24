@@ -515,9 +515,7 @@ module.exports = (crowd, config) => {
       serverLog(`${client.getLabel(board.getId())} started the draft.`);
       board.startDraft();
 
-      regenerateBoardInfo(board);
-      regenerateCharacters(board);
-      regeneratePlayers(board);
+      regenerateBoard(board);
       setStatusAll('The draft has begun!', 'success');
     });
 
@@ -632,7 +630,6 @@ function serverLog(message, serverOnly = false) {
  * @param {Player} player
  */
 function setClientPlayer(board, client, player) {
-  const updatedPlayers = [];
   const user = client.getUser();
   const socket = client.getSocket();
 
@@ -641,24 +638,12 @@ function setClientPlayer(board, client, player) {
     const prevPlayer = user.getPlayer(board.getId());
     serverLog(`Removing ${client.getColor()(`Client ${client.getId()}`)} from player ${prevPlayer.getName()}`, true);
     user.setPlayer(board.getId(), null);
-
-    updatedPlayers.push({
-      'playerId': prevPlayer.getId(),
-      'clientId': 0,
-    });
   }
 
   user.setPlayer(board.getId(), player);
 
-  updatedPlayers.push({
-    'playerId': player.getId(),
-    'clientId': client.getId(),
-  });
-
   // Send updates to all clients so they see the player being controlled.
-  regeneratePlayers(board);
-  regenerateStages(board);
-  regenerateCharacters(board);
+  regenerateBoard(board);
 
   // Send out updates to the specific client so that they will know they are the player.
   setPlayerSingle(player, socket);
@@ -703,12 +688,27 @@ function resetGame(board, boardData) {
     serverLog(`Wiping player info for ${client.getLabel(board.getId())}`);
   });
 
+  regenerateBoard(board);
+
+  serverLog(`New game board generated with ID ${gameId}`);
+}
+
+/**
+ * Re-sends all board information to all clients.
+ *
+ * Necessary when a large amount of things change at once, such as a draft round
+ * starts or a game resets. Note that the order of information sent is important!
+ * Player information can alter which stages and characters are available, so
+ * players may need to be re-sent first.
+ *
+ *
+ * @param board
+ */
+function regenerateBoard(board) {
   regenerateBoardInfo(board);
   regeneratePlayers(board);
   regenerateCharacters(board);
   regenerateStages(board);
-
-  serverLog(`New game board generated with ID ${gameId}`);
 }
 
 /**
@@ -726,7 +726,7 @@ function regenerateBoardInfo(board) {
 function regeneratePlayers(board) {
   // The player listing is unique to each client, so we need to rebuild it and
   // send it out individually.
-  const playersArray = board.getPlayersArray();
+  const playersArray = board.getPlayersPickOrder();
   io.sockets.emit('rebuild-players', playersArray);
 }
 
@@ -734,7 +734,7 @@ function regeneratePlayers(board) {
  * Renders the player listing specific to one player.
  */
 function regeneratePlayersSingle(board, socket) {
-  socket.emit('rebuild-players', board.getPlayersArray());
+  socket.emit('rebuild-players', board.getPlayersPickOrder());
 }
 
 /**

@@ -18,6 +18,8 @@
  *   v
  *   |
  * [Tom]->-[Dick]->-[Harry]--:3----< hsssssss
+ *
+ * @todo: add option for a game round to be played between each draft.
  */
 
 const DraftAbstract = require('./../../factories/smashcrowd-draftfactory');
@@ -52,15 +54,7 @@ class snakeDraft extends DraftAbstract {
   addCharacter(board, player, character) {
     // In some strange cases the ID is returning null, so we're going to make
     // sure an error pops up to troubleshoot.
-    let charId = null;
-    try {
-      charId = character.getId();
-    }
-    catch (e) {
-      console.log('tried to add the following character:');
-      console.log(character);
-      throw new Error(e);
-    }
+    const charId = character.getId();
 
     // First check to make sure the default Draft checks succeed.
     const return_data = super.addCharacter(board, player, character);
@@ -138,6 +132,7 @@ class snakeDraft extends DraftAbstract {
         board.advanceDraftRound();
         board.reversePlayersPick();
         board.resetPick();
+        returned_functions.push({'regenerateBoardInfo': [board]});
       }
 
       const currentPlayer = board.getPlayerByPickOrder(board.getPick());
@@ -146,23 +141,12 @@ class snakeDraft extends DraftAbstract {
       if (prevPlayer !== currentPlayer) {
         // Make sure the characters stay disabled, since this player is no longer
         // active.
-        characterUpdateData.allDisabled = true;
 
         prevPlayer.setActive(false);
         currentPlayer.setActive(true);
       }
 
-      // If we're at a new round in snake draft we need to regenerate the player
-      // area entirely so that they reorder. Otherwise just update stuff!
-      if (newRound) {
-        returned_functions.push({'regenerateBoardInfo': [board]});
-        returned_functions.push({'regeneratePlayers': [board]});
-      }
-      else {
-
-        returned_functions.push({'regeneratePlayers': [board]});
-      }
-
+      returned_functions.push({'regeneratePlayers': [board]});
       returned_functions.push({'regenerateCharacters': [board]});
     }
 

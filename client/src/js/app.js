@@ -25,6 +25,7 @@ class App extends Component {
       // Things specific to this user.
       client: {},
       user: {},
+      playerId: null,
       player: {},
       alerts: [],
     }
@@ -37,7 +38,11 @@ class App extends Component {
     });
 
     socket.on("rebuild-players", data => {
+      const { playerId } = this.state;
+
       this.setState({players: data});
+      const newPlayer = playerUtilities.getPlayerById(playerId, data);
+      this.setState({player: newPlayer});
     });
 
     socket.on("rebuild-characters", data => {
@@ -69,12 +74,14 @@ class App extends Component {
         // are strings, this will return TRUE even if '0'.
         if (playerId !== null) {
           const newPlayer = playerUtilities.getPlayerById(playerId, players);
+          this.setState({playerId: playerId});
           this.setState({player: newPlayer});
           socket.emit('pick-player', playerId);
         }
       }
       else {
         localStorage.setItem(client.playerStorage, data.playerId);
+        this.setState({playerId: data.playerId});
       }
       this.setState({player: data});
     });

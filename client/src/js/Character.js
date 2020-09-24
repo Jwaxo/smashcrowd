@@ -2,24 +2,21 @@ import React, { Component } from 'react';
 
 class Character extends Component {
 
-  constructor(props) {
-    super(props);
-  }
-
   handleClick = (e) => {
+    const { character } = this.props;
     // Since the context of where this character icon appears could be either in
     // the character select screen or on a player's roster, we need to let the
     // parent context handle what happens.
-    this.props.onCharacterClick(e.target.dataset.characterId);
+    this.props.onCharacterClick(character.charId);
   };
 
   render() {
     const { character, disabled } = this.props;
-    const { name, charId, image, state, active, round } = character;
+    const { name, charId, image, state, active } = character;
 
     const characterClasses = [
       'character',
-      `character--${state}`,
+      state ? `character--${state}` : null,
       disabled ? 'character--disabled' : null,
       active && charId !== 999 ? 'character--active' : null,
     ].filter(classString => (classString != null)).join(' ');
@@ -31,8 +28,6 @@ class Character extends Component {
 
     return (
       <div className={ characterClasses }
-           data-character-round={ round ? round : 0 }
-           data-character-id={ charId }
            style={ characterStyles }
            onClick={this.handleClick}
       >
