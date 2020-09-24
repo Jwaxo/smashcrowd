@@ -2,11 +2,25 @@
  * Styles defining how player columns appear.
  */
 
-.player {
-  @include bevel(top, left, red, rem-calc(60px));
-  border: solid $black;
-  border-width: rem-calc(0 2px 2px 0);
+.player-wrapper {
   filter: drop-shadow(0 -8px 0 $black);
+}
+
+.player {
+
+  &:before {
+    content: '';
+    height: 100%;
+    left: 0;
+    mask: url('./images/player_alpha.png') right top;
+    position: absolute;
+    top: 0;
+    width: 100%;
+  }
+  background-color: $light-gray;
+  border: solid 2px $black;
+  border-top-width: 1px;
+  clip-path: polygon(50px 0, 100% 0, 100% 100%, 0 100%, 0 50px);
   position: relative;
   transition: border-width .25s, border-color .25s, height .25s, padding .25s;
 
@@ -15,17 +29,8 @@
   }
 
   &.player--new {
-    border-color: $medium-gray;
-    border-style: dashed;
-    border-width: rem-calc(4px);
-    &:after {
-      color: $medium-gray;
-      content: '+';
-      display: block;
-      font-size: rem-calc(30px);
-      font-weight: bold;
-      margin: rem-calc(10px 0 60px);
-      text-align: center;
+    &:before {
+      background-color: $medium-gray;
     }
   }
 
@@ -35,14 +40,8 @@
     }
   }
 
-  .player-content {
-    border-left: rem-calc(2px) solid $black !important;
-    margin-top: rem-calc(-1px);
-  }
-
   .card-section {
     position: relative;
-    top: rem-calc(-60px);
   }
 
   h4 {
@@ -56,10 +55,7 @@
     color: $white;
   }
 
-  @include map-apply('&.player--player', $player-main-palette, 'background-color', ' .player-content');
-  @include map-apply('&.player--player', $player-main-palette, 'border-color', ' .player-content');
-  @include map-apply('&.player--player', $player-main-palette, 'border-right-color', ':before');
-  @include map-apply('&.player--player', $player-main-palette, 'border-bottom-color', ':before');
+  @include map-apply('&.player--player', $player-main-palette, 'background-color', ':before');
 }
 
 .player-picker-outer {

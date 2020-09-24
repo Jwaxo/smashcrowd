@@ -76,20 +76,32 @@ $foundation-palette: (
   alert: #cc4b37,
 );
 $light-gray: #e6e6e6;
-$medium-gray: #cacaca;
+$medium-gray: #a1a1a1;
 $dark-gray: #8a8a8a;
 $black: #0a0a0a;
 $white: #fefefe;
+
+$red: #eb2d28;
+$blue: #4c5cdb;
+$yellow: #f9cc16;
+$green: #49c068;
+$orange: #fa691a;
+$teal: #26d9c9;
+$magenta: #da1ce6;
+$darkest-gray: #394052;
+
 $player-main-palette: (
-  0: #eb2d28,
-  1: #4c5cdb,
-  2: #f9cc16,
-  3: #49c068,
-  4: #fa691a,
-  5: #26d9c9,
-  6: #da1ce6,
-  7: #394052,
+  0: $red,
+  1: $blue,
+  2: $yellow,
+  3: $green,
+  4: $orange,
+  5: $teal,
+  6: $magenta,
+  7: $darkest-gray,
 );
+$player-new: $medium-gray;
+
 $body-background: $white;
 $body-font-color: $black;
 $body-font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;

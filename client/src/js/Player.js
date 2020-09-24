@@ -57,29 +57,31 @@ class Player extends Component {
     }
     
     return (
-      <div className={playerClasses}
-           data-player-id={id}
-           data-client-id={clientId}>
-        <div className="player-content">
-          <div className="card-section">
+      <div className='player-wrapper'>
+        <div className={playerClasses}
+             data-player-id={id}
+             data-client-id={clientId}>
+          <div className="player-content">
+            <div className="card-section">
 
-            <h4>{name}</h4>
+              <h4>{name}</h4>
 
-            <div className="player-picker-outer">
-              { playerPickButtons }
+              <div className="player-picker-outer">
+                { playerPickButtons }
+              </div>
+
+              { playerScore }
+
+              <div className="player-roster-container">
+                <PlayerCharacters characters={player.characters} />
+              </div>
             </div>
 
-            { playerScore }
-
-            <div className="player-roster-container">
-              <PlayerCharacters characters={player.characters} />
-            </div>
+            <button className="close-button player-close"
+                    aria-label="Remove this player" type="button" data-close>
+              <span aria-hidden="true">&times;</span>
+            </button>
           </div>
-
-          <button className="close-button player-close"
-                  aria-label="Remove this player" type="button" data-close>
-            <span aria-hidden="true">&times;</span>
-          </button>
         </div>
       </div>
     )
