@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
 
 import UserToolbar from './UserToolbar';
 import BoardToolbar from './BoardToolbar';
@@ -121,16 +122,18 @@ class App extends Component {
             <BoardToolbar socket={socket} />
           </div>
           <div className="cell auto">
-            <Board
-              board={board}
-              players={players}
-              characters={characters}
-              stages={stages}
-              currentPlayer={player}
-              client={client}
-              chat={chat}
-              socket={socket}
-            />
+            <Router>
+              <Board
+                board={board}
+                players={players}
+                characters={characters}
+                stages={stages}
+                currentPlayer={player}
+                client={client}
+                chat={chat}
+                socket={socket}
+              />
+            </Router>
 
             <div className='status-box'>
               { alerts.length > 0 ? alerts.map((alert, index) => {

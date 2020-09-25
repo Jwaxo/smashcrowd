@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
 import { Link } from "@reach/router";
 
 import BoardStatus from "./BoardStatus";
@@ -25,6 +26,13 @@ class Board extends Component {
   constructor(props) {
     super(props);
 
+    // Set the tab to be the one that's active in the URL, defaulting to
+    // Characters.
+    let activeTab = 'characters';
+    if (props.location && props.location.hasOwnProperty('hash') && props.location.hash) {
+      activeTab = props.location.hash.substr(1);
+    }
+
     // Set defaults on any states if they aren't in the board prop.
     this.state = {
       label: props.board.name ?? 'default',
@@ -33,7 +41,7 @@ class Board extends Component {
       totalRounds: props.board.total_rounds ?? 0,
       draftRound: props.board.current_draft_round ?? 0,
       gameRound: props.board.current_game_round ?? 0,
-      activeTab: props.activeTab ?? 'characters',
+      activeTab: activeTab,
       isLimited: props.board.draft ? props.board.draft.isLimited : false,
     };
   }
@@ -139,4 +147,4 @@ class Board extends Component {
   }
 }
 
-export default Board;
+export default withRouter(Board);
