@@ -411,6 +411,30 @@
     {
       "name": "Dracula's Castle",
       "image": "images/stages/stage_img103.jpg"
+    },
+    {
+      "name": "Mementos",
+      "image": "images/stages/stage_addition_img1.jpg"
+    },
+    {
+      "name": "Yggdrasil's Altar",
+      "image": "images/stages/stage_addition_img2.jpg"
+    },
+    {
+      "name": "Spiral Mountain",
+      "image": "images/stages/stage_addition_img3.jpg"
+    },
+    {
+      "name": "King of Fighters Stadium",
+      "image": "images/stages/stage_addition_img4.jpg"
+    },
+    {
+      "name": "Garreg Mach Monastery",
+      "image": "images/stages/stage_addition_img5.jpg"
+    },
+    {
+      "name": "Spring Stadium",
+      "image": "images/stages/stage_addition_img6.jpg"
     }
   ]
 }
