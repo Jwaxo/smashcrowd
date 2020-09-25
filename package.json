@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/Jwaxo/smashcrowd#readme",
   "dependencies": {
-    "bcrypt": "^3.0.6",
+    "bcrypt": "^5.0.0",
     "chalk": "^2.4.2",
     "config": "^3.0.1",
     "dbdiff": "^0.5.3",
