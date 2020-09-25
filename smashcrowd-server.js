@@ -147,7 +147,6 @@ module.exports = (crowd, config) => {
 
     const player = client.getPlayerByBoard(board.getId());
     setPlayerSingle(player, socket);
-    let playerActive = false;
 
     // Set a default status for a connection with help tips.
     if (player === null) {
@@ -160,10 +159,7 @@ module.exports = (crowd, config) => {
       }
     }
 
-    regenerateBoardInfo(board);
-    regeneratePlayers(board);
-    regenerateCharacters(board);
-    regenerateStages(board);
+    regenerateBoard(board);
     regenerateChatSingle(socket);
 
     if (clientSession.status) {
@@ -507,7 +503,7 @@ module.exports = (crowd, config) => {
           Board.dropStageFromPlayer(player, stage);
         }
 
-        updateStageInfo(stage);
+        regenerateStages(board);
       }
     });
 
@@ -742,7 +738,6 @@ function regeneratePlayersSingle(board, socket) {
  * @param {Board} board
  */
 function regenerateCharacters(board) {
-  const characters = board.getCharacters();
   io.sockets.emit('rebuild-characters', board.getCharacters());
 }
 
@@ -754,21 +749,17 @@ function regenerateCharactersSingle(board, socket) {
 }
 
 /**
+ * Renders the stage select screen and votes.
+ */
+function regenerateStages(board) {
+  io.sockets.emit('rebuild-stages', board.getStages());
+}
+
+/**
  * Renders the players and updates all clients with new player info.
  */
 function regenerateChatSingle(socket) {
   socket.emit('rebuild-chat', chatHistory);
-}
-
-/**
- * Renders the stage select screen and votes.
- */
-function regenerateStages(board) {
-  // The stage listing is unique to each client to show which votes are yours, so
-  // we also need to update them whenever it changes.
-  clients.forEach(client => {
-    client.getSocket().emit('rebuild-stages', board.getStages());
-  });
 }
 
 /**
@@ -799,7 +790,6 @@ function setClientInfoSingle(socketClient, isUpdate = false) {
  * Sends player info to that client.
  */
 function setPlayerSingle(player, socket) {
-  // Make sure to clean client before sending it.
   socket.emit('set-player', player);
 }
 
@@ -808,16 +798,6 @@ function setPlayerSingle(player, socket) {
  */
 function setRecaptchaKeySingle(recaptchaKey, socket) {
   socket.emit('set-recaptcha-key', recaptchaKey);
-}
-
-/**
- * Sends an array of stages with changed data to inform clients without needing
- * to completely rebuild the stage area.
- *
- * @param {Stage} stage
- */
-function updateStageInfo(stage) {
-  io.sockets.emit('update-stage', stage);
 }
 
 /**
@@ -895,7 +875,8 @@ function clientLogin(client, user, board, socket) {
  *
  * Note that the cloned client also has no functions, only properties. It is,
  * essentially, static.
- * @param client
+ *
+ * @param {Client} client
  * @returns {{}}
  */
 function cleanClient(client) {

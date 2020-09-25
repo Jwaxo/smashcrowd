@@ -3,6 +3,12 @@ import Stage from './Stage';
 
 class Stages extends Component {
 
+  stageClick = (stageId) => {
+    const { socket } = this.props;
+
+    socket.emit('click-stage', stageId);
+  };
+
   render() {
     const gridClasses = [
       'stages-grid',
@@ -26,6 +32,7 @@ class Stages extends Component {
                   active={player && player.stages ? player.stages.hasOwnProperty(stage.stageId) : false}
                   image={stage.image}
                   state={stage.state}
+                  onStageClick={this.stageClick}
                 />
               )
             }

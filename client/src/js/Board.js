@@ -6,7 +6,6 @@ import Characters from "./Characters";
 import Players from "./Players";
 import Stages from "./Stages";
 import Chatbox from "./Chatbox";
-import Alert from "./Alert";
 
 class Board extends Component {
 

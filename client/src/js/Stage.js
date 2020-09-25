@@ -2,6 +2,12 @@ import React, { Component } from 'react';
 
 class Stage extends Component {
 
+  handleClick = () => {
+    const { id, onStageClick} = this.props;
+
+    onStageClick(id);
+  };
+
   render() {
     const { id, name, disabled, active, state, image, players } = this.props;
 
@@ -18,13 +24,14 @@ class Stage extends Component {
     };
 
     let tokens = [];
+    const playerKeys = Object.keys(players);
 
-    if (players.hasOwnProperty('map')) {
-
-      tokens = players.map((player) => {
+    if (playerKeys > 0) {
+      tokens = playerKeys.map((playerKey) => {
+        const player = players[playerKey];
         const tokenClasses = [
           'stage-token',
-          `stage-token--slot${player.slot}`,
+          `stage-token--slot${playerKey}`,
           `stage-token--player${player.displayOrder}`,
         ].join(' ');
         return (
@@ -36,9 +43,12 @@ class Stage extends Component {
     }
 
     return (
-      <div className={ stageClasses }
-           data-stage-id={ id }
-           style={ stageStyles }>
+      <div
+        className={ stageClasses }
+        data-stage-id={ id }
+        style={ stageStyles }
+        onClick={this.handleClick}
+      >
         {tokens}
         <span className="stage-name">{name}</span>
       </div>
