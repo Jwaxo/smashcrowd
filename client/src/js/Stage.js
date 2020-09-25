@@ -26,7 +26,7 @@ class Stage extends Component {
     let tokens = [];
     const playerKeys = Object.keys(players);
 
-    if (playerKeys > 0) {
+    if (playerKeys.length > 0) {
       tokens = playerKeys.map((playerKey) => {
         const player = players[playerKey];
         const tokenClasses = [
@@ -35,8 +35,12 @@ class Stage extends Component {
           `stage-token--player${player.displayOrder}`,
         ].join(' ');
         return (
-          <span className={tokenClasses}><span
-            className="stage-token-inner"></span></span>
+          <span
+            className={tokenClasses}
+            key={playerKey}
+          >
+            <span className="stage-token-inner"></span>
+          </span>
         );
       });
 
