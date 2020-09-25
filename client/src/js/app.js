@@ -118,7 +118,7 @@ class App extends Component {
       <div className="grid-container">
         <div className="grid-x grid-padding-x">
           <div className="cell medium-2">
-            <UserToolbar user={user} recaptchaKey={recaptchaKey} socket={socket} />
+            {/*<UserToolbar user={user} recaptchaKey={recaptchaKey} socket={socket} />*/}
             <BoardToolbar socket={socket} />
           </div>
           <div className="cell auto">

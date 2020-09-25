@@ -42,12 +42,23 @@ To get it running on your own server:
    permanent.
 1. `npm install`  
    Installs all node dependencies. Can take a while.
+1. `npm run build`
+   Renders out the Sass and does some image processing prior to the React process.
+   This is probably overly convoluted, and will eventually be folded into the
+   React side of things.
+1. `cd client`
+1. `npm install`
+   The client app has separate requirements, so you'll need those.
+1. `npm run build`
+   Builds out our static site.
+1. `cd ../`
+   Back out to the main server.
 1. `npm run start`
    Starts running the server! If you do not yet have a database set up, this may
    take a while.
 
-It should be that simple. Then connect to `127.0.0.1:8080` in your browser and
-you should see the SmashCrowd main page.
+It should be that simple. Then connect to `127.0.0.1:8080` (or your relevant URL)
+in your browser and you should see the SmashCrowd main page.
 
 ### How do I use it?
 

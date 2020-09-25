@@ -17,7 +17,7 @@ class Player extends Component {
 
   render() {
     const { player, current, owned, socket, gameRound, draftRound } = this.props;
-    const { name, isActive, id, clientId, displayOrder, userId, playerId } = player;
+    const { name, isActive, id, clientId, displayOrder, playerId } = player;
 
     const playerWrapperClasses = [
       'player-wrapper',

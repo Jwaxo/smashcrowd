@@ -52,5 +52,6 @@ function taskWatch(cb) {
   cb();
 }
 
-exports.default = series(taskSass, taskImages);
+exports.default = series(taskSass, taskImages, taskServer);
+exports.build = series(taskSass, taskImages);
 exports.dev = parallel(taskWatch, series(taskSass, taskImages, taskServer));

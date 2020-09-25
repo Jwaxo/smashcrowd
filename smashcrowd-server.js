@@ -8,6 +8,7 @@ const express = require('express');
 const socketio = require('socket.io');
 const http = require('http');
 const request = require('request');
+const path = require('path');
 
 const chalk = require('chalk');
 const stripAnsi = require('strip-ansi');
@@ -64,7 +65,7 @@ module.exports = (crowd, config) => {
   serverLog(`New game board generated with ID ${board.getGameId()}`, true);
 
   // Do basic server setup stuff.
-  app.use(express.static(__dirname + '/public'));
+  app.use(express.static(path.join(__dirname, 'client', 'build')));
 
   // Here we do the Express/IO shared session magic.
   app.use(session);
@@ -76,15 +77,8 @@ module.exports = (crowd, config) => {
   });
 
   // Serve up the default page.
-  /**
-   * @todo: Continue into Character and Player information to ensure the toJSON
-   *   functions are created and sending properly.
-   * @todo: Actually have client app.js send information to the server to update
-   *   the board.
-   */
-
-  app.get('/client_connection', (req, res) => {
-    res.send({});
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
   });
 
   // If a user is verifying an email address...
