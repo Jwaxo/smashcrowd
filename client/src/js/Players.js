@@ -23,6 +23,14 @@ class Players extends Component {
         {players ? players.map((playerInfo) => {
           let playerCard = '';
           if (playerInfo) {
+            // This player is the current user's player if the current user has
+            // chosen a player and that player's ID matches this player's ID.
+            // Pretty simple.
+            const isCurrent = currentPlayer !== null && currentPlayer.playerId === playerInfo.playerId;
+
+            // This player is OWNED if it has a clientID.
+            const isOwned = isCurrent || playerInfo.clientId !== 0;
+
             playerCard = (
               <div
                 className="cell small-6 medium-4 large-auto"
@@ -30,8 +38,8 @@ class Players extends Component {
               >
                 <Player
                   player={playerInfo}
-                  current={currentPlayer !== null && currentPlayer.playerId === playerInfo.playerId}
-                  isLoggedIn={isLoggedIn}
+                  current={isCurrent}
+                  owned={isOwned}
                   socket={socket}
                   gameRound={gameRound}
                   draftRound={draftRound}

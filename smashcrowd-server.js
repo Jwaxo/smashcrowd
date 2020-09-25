@@ -136,6 +136,7 @@ module.exports = (crowd, config) => {
     else {
       // No session, so create an anonymous user (for now).
       user.setGameId(board.getGameId());
+      user.setClientId(client.getId());
     }
 
     serverLog(`${client.getLabel(board.getId())} assigned to socket ${socket.id}`, true);

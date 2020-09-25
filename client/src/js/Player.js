@@ -16,7 +16,7 @@ class Player extends Component {
   };
 
   render() {
-    const { player, current, isLoggedIn, socket, gameRound, draftRound } = this.props;
+    const { player, current, owned, socket, gameRound, draftRound } = this.props;
     const { name, isActive, id, clientId, displayOrder, userId, playerId } = player;
 
     const playerWrapperClasses = [
@@ -45,7 +45,7 @@ class Player extends Component {
           This is You
         </button>
       )
-    } else if (!clientId && !userId && !isLoggedIn) {
+    } else if (!owned) {
       playerPickButtons = (
         <button
           className="player-picker button"
