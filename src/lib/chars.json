@@ -170,7 +170,7 @@
     },
     {
       "name": "Olimar",
-      "image": "images/characters/C.png"
+      "image": "images/characters/olimar.png"
     },
     {
       "name": "Lucario",
@@ -287,6 +287,30 @@
     {
       "name": "Piranha Plant",
       "image": "images/characters/piranha_plant.png"
+    },
+    {
+      "name": "Joker",
+      "image": "images/characters/joker.png"
+    },
+    {
+      "name": "Hero",
+      "image": "images/characters/hero.png"
+    },
+    {
+      "name": "Banjo & Kazooie",
+      "image": "images/characters/banjo_n_kazooie.png"
+    },
+    {
+      "name": "Terry",
+      "image": "images/characters/terry.png"
+    },
+    {
+      "name": "Byleth",
+      "image": "images/characters/byleth.png"
+    },
+    {
+      "name": "Min Min",
+      "image": "images/characters/min_min.png"
     },
     {
       "name": "Mii Brawler",

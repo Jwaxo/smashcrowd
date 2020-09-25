@@ -3,12 +3,12 @@
  * Defines overall server and socket functionality of Smashcrowd.
  */
 
-const Twig = require('twig');
 const express = require('express');
 
 const socketio = require('socket.io');
 const http = require('http');
 const request = require('request');
+const path = require('path');
 
 const chalk = require('chalk');
 const stripAnsi = require('strip-ansi');
@@ -44,6 +44,11 @@ const session = require('express-session')({
 // we need to track sessions using some middleware.
 const sharedSession = require("express-socket.io-session");
 
+/**
+ *
+ * @param {SmashCrowd} crowd
+ * @param {config} config
+ */
 module.exports = (crowd, config) => {
   const port = config.get('server.port');
   SmashCrowd = crowd;
@@ -51,7 +56,6 @@ module.exports = (crowd, config) => {
 
   // Currently we only run one board at a time, so load board 1.
   const board = crowd.getBoardById(1);
-  SmashCrowd.createBoard(board);
 
   // Listen at the port.
   server.listen(port, () => {
@@ -61,7 +65,7 @@ module.exports = (crowd, config) => {
   serverLog(`New game board generated with ID ${board.getGameId()}`, true);
 
   // Do basic server setup stuff.
-  app.use(express.static(__dirname + '/public'));
+  app.use(express.static(path.join(__dirname, 'client', 'build')));
 
   // Here we do the Express/IO shared session magic.
   app.use(session);
@@ -74,11 +78,7 @@ module.exports = (crowd, config) => {
 
   // Serve up the default page.
   app.get('/', (req, res) => {
-    res.render('index.twig', {
-      board,
-      chatHistory,
-      recaptcha_key: config.get('recaptcha.key'),
-    });
+    res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
   });
 
   // If a user is verifying an email address...
@@ -130,20 +130,18 @@ module.exports = (crowd, config) => {
     else {
       // No session, so create an anonymous user (for now).
       user.setGameId(board.getGameId());
+      user.setClientId(client.getId());
     }
 
     serverLog(`${client.getLabel(board.getId())} assigned to socket ${socket.id}`, true);
 
     // Generate everything that may change based off of an existing client connection
     // or resumed session.
+    setRecaptchaKeySingle(config.get('recaptcha.key'), socket);
     setClientInfoSingle(client);
-    regeneratePlayers(board);
-    regenerateCharacters(board);
-    regenerateStages(board);
-    regenerateChatSingle(socket);
 
     const player = client.getPlayerByBoard(board.getId());
-    let playerActive = false;
+    setPlayerSingle(player, socket);
 
     // Set a default status for a connection with help tips.
     if (player === null) {
@@ -155,13 +153,9 @@ module.exports = (crowd, config) => {
         setStatusSingle(client, 'Pick a player to draft.')
       }
     }
-    else {
-      playerActive = player.getActive();
-    }
 
-    // Finally, manually disable character picking if we don't have a player and
-    // that player isn't active.
-    updateCharactersSingle(client, {allDisabled: !playerActive});
+    regenerateBoard(board);
+    regenerateChatSingle(socket);
 
     if (clientSession.status) {
       let message = '';
@@ -212,8 +206,8 @@ module.exports = (crowd, config) => {
       client.newUser();
 
       user = client.getUser();
-      regenerateUserToolbar(user, socket);
-      regeneratePlayersSingle(board, client);
+      setUser(user, socket);
+      regeneratePlayersSingle(board, socket);
     });
 
     /**
@@ -504,7 +498,7 @@ module.exports = (crowd, config) => {
           Board.dropStageFromPlayer(player, stage);
         }
 
-        updateStageInfo(stage);
+        regenerateStages(board);
       }
     });
 
@@ -512,9 +506,7 @@ module.exports = (crowd, config) => {
       serverLog(`${client.getLabel(board.getId())} started the draft.`);
       board.startDraft();
 
-      regenerateBoardInfo(board);
-      regenerateCharacters(board);
-      regeneratePlayers(board);
+      regenerateBoard(board);
       setStatusAll('The draft has begun!', 'success');
     });
 
@@ -629,35 +621,23 @@ function serverLog(message, serverOnly = false) {
  * @param {Player} player
  */
 function setClientPlayer(board, client, player) {
-  const updatedPlayers = [];
   const user = client.getUser();
+  const socket = client.getSocket();
 
   // First remove the current client's player so it's empty again.
   if (user.getPlayerId(board.getId()) !== null) {
     const prevPlayer = user.getPlayer(board.getId());
     serverLog(`Removing ${client.getColor()(`Client ${client.getId()}`)} from player ${prevPlayer.getName()}`, true);
     user.setPlayer(board.getId(), null);
-
-    updatedPlayers.push({
-      'playerId': prevPlayer.getId(),
-      'clientId': 0,
-    });
   }
 
   user.setPlayer(board.getId(), player);
 
-  updatedPlayers.push({
-    'playerId': player.getId(),
-    'clientId': client.getId(),
-  });
-
-  // Send out updates to the specific client so that they know they are the player.
-  setClientInfoSingle(client, true);
-  updateCharactersSingle(client, {allDisabled: !player.isActive});
-
   // Send updates to all clients so they see the player being controlled.
-  updatePlayersInfo(board, updatedPlayers);
-  regenerateStages(board);
+  regenerateBoard(board);
+
+  // Send out updates to the specific client so that they will know they are the player.
+  setPlayerSingle(player, socket);
 }
 
 /**
@@ -693,59 +673,39 @@ function resetGame(board, boardData) {
 
   clients.forEach(client => {
     const user = client.getUser();
-    user.unsetPlayer(board.getId());
     user.setGameId(board.getGameId());
     setClientInfoSingle(client, true);
     serverLog(`Wiping player info for ${client.getLabel(board.getId())}`);
   });
 
-  regenerateBoardInfo(board);
-  regeneratePlayers(board);
-  regenerateCharacters(board);
-  regenerateStages(board);
+  regenerateBoard(board);
 
   serverLog(`New game board generated with ID ${gameId}`);
 }
 
 /**
- * Takes an array of info for updated player rosters and renders the rosters.
+ * Re-sends all board information to all clients.
  *
- * @param {Board} board
- * @param {array} updatedPlayers
- * @returns {array}
- */
-function renderPlayersRosters(board, updatedPlayers) {
-  for (let i = 0; i < updatedPlayers.length; i++) {
-    const player = board.getPlayer(updatedPlayers[i].playerId);
-    updatedPlayers[i].roster_html = renderPlayerRoster(board, player);
-  }
-  return updatedPlayers;
-}
-
-/**
- * Twig renders out the list of characters in a given player's roster.
+ * Necessary when a large amount of things change at once, such as a draft round
+ * starts or a game resets. Note that the order of information sent is important!
+ * Player information can alter which stages and characters are available, so
+ * players may need to be re-sent first.
  *
- * @param {Board} board
- * @param {Player} player
- * @returns {string}
+ *
+ * @param board
  */
-function renderPlayerRoster(board, player) {
-  let rendered = '';
-
-  Twig.renderFile('./views/player-roster.twig', {player, board}, (error, html) => {
-    rendered = html;
-  });
-
-  return rendered;
+function regenerateBoard(board) {
+  regenerateBoardInfo(board);
+  regeneratePlayers(board);
+  regenerateCharacters(board);
+  regenerateStages(board);
 }
 
 /**
  * Renders the board info and updates all clients with new board info.
  */
 function regenerateBoardInfo(board) {
-  Twig.renderFile('./views/board-data.twig', {board}, (error, html) => {
-    io.sockets.emit('rebuild-boardInfo', html);
-  });
+  io.sockets.emit('rebuild-boardInfo', board.toJSON());
 }
 
 /**
@@ -756,24 +716,15 @@ function regenerateBoardInfo(board) {
 function regeneratePlayers(board) {
   // The player listing is unique to each client, so we need to rebuild it and
   // send it out individually.
-  clients.forEach(client => {
-    Twig.renderFile('./views/players-container.twig', {board, client}, (error, html) => {
-      client.getSocket().emit('rebuild-players', html);
-    });
-  });
+  const playersArray = board.getPlayersPickOrder();
+  io.sockets.emit('rebuild-players', playersArray);
 }
 
 /**
- * Unlike other single regenerations, this requires client, since that needs to
- * be passed to the players template, anyway.
- *
- * @param {Board} board
- * @param {Client} client
+ * Renders the player listing specific to one player.
  */
-function regeneratePlayersSingle(board, client) {
-  Twig.renderFile('./views/players-container.twig', {board, client}, (error, html) => {
-    client.getSocket().emit('rebuild-players', html);
-  });
+function regeneratePlayersSingle(board, socket) {
+  socket.emit('rebuild-players', board.getPlayersPickOrder());
 }
 
 /**
@@ -782,52 +733,35 @@ function regeneratePlayersSingle(board, client) {
  * @param {Board} board
  */
 function regenerateCharacters(board) {
-  Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
-    io.sockets.emit('rebuild-characters', html);
-  });
+  io.sockets.emit('rebuild-characters', board.getCharacters());
 }
 
 /**
  * Renders the character select screen specific to one player and updates them.
  */
 function regenerateCharactersSingle(board, socket) {
-  Twig.renderFile('./views/characters-container.twig', {board}, (error, html) => {
-    socket.emit('rebuild-characters', html);
-  });
-}
-
-/**
- * Renders the players and updates all clients with new player info.
- */
-function regenerateChatSingle(socket) {
-  Twig.renderFile('./views/chat-container.twig', {chatHistory}, (error, html) => {
-    socket.emit('rebuild-chat', html);
-  });
+  socket.emit('rebuild-characters', board.getCharacters());
 }
 
 /**
  * Renders the stage select screen and votes.
  */
 function regenerateStages(board) {
-  // The stage listing is unique to each client to show which votes are yours, so
-  // we also need to update them whenever it changes.
-  clients.forEach(client => {
-    Twig.renderFile('./views/stages-container.twig', {board, client}, (error, html) => {
-      client.getSocket().emit('rebuild-stages', html);
-    });
-  });
+  io.sockets.emit('rebuild-stages', board.getStages());
 }
 
 /**
- * Renders the user toolbar for a particular client/user.
- *
- * @param {User} user
- * @param {WebSocket} socket
+ * Renders the players and updates all clients with new player info.
  */
-function regenerateUserToolbar(user, socket) {
-  Twig.renderFile('./views/user-toolbar.twig', {user, recaptcha_key: SmashCrowd.config.get('recaptcha.key')}, (error, html) => {
-    socket.emit('rebuild-usertoolbar', html);
-  });
+function regenerateChatSingle(socket) {
+  socket.emit('rebuild-chat', chatHistory);
+}
+
+/**
+ * Sets the user for a particular client/user.
+ */
+function setUser(user, socket) {
+  socket.emit('set-user', user);
 }
 
 /**
@@ -848,60 +782,17 @@ function setClientInfoSingle(socketClient, isUpdate = false) {
 }
 
 /**
- * Sends an array of players with changed data to inform clients without needing
- * to completely rebuild the player area.
- *
- * @param {Board} board
- * @param {Array} updatedPlayers
+ * Sends player info to that client.
  */
-function updatePlayersInfo(board, updatedPlayers) {
-  io.sockets.emit('update-players', renderPlayersRosters(board, updatedPlayers));
+function setPlayerSingle(player, socket) {
+  socket.emit('set-player', player);
 }
 
 /**
- * Sends an array of stages with changed data to inform clients without needing
- * to completely rebuild the stage area.
- *
- * @param {Stage} stage
+ * Sends recaptcha key info to single client.
  */
-function updateStageInfo(stage) {
-  clients.forEach(client => {
-    const player = client.getPlayerByBoard();
-    Twig.renderFile('./views/stage.twig', {stage, player}, (error, html) => {
-      client.getSocket().emit('update-stage', html, stage.getId());
-    });
-  });
-}
-
-/**
- * Sends character select data with changed info to one client.
- *
- * @see updateCharacters().
- *
- * @param {Client} client
- * @param {Object} character_data
- */
-function updateCharactersSingle(client, character_data) {
-  client.socket.emit('update-characters', character_data);
-}
-
-/**
- * Sends character select data with changed data to all clients.
- *
- * Used to inform clients without needing to completely rebuild the character area.
- *
- * @param {Object} character_data
- *   {boolean} allDisabled
- *     If the character select sheet should be disabled or enabled.
- *   {Array} chars
- *     An array of objects describing characters by their ID and how to update
- *     them. Current allowed properties:
- *     - {integer} charId: the ID of the character to update.
- *     - {boolean} disabled: whether or not the character should be removed from
- *       the list.
- */
-function updateCharacters(character_data) {
-  io.sockets.emit('update-characters', character_data);
+function setRecaptchaKeySingle(recaptchaKey, socket) {
+  socket.emit('set-recaptcha-key', recaptchaKey);
 }
 
 /**
@@ -913,9 +804,7 @@ function updateCharacters(character_data) {
  *   The type of message. Uses Foundation's callout styles: https://foundation.zurb.com/sites/docs/callout.html
  */
 function setStatusAll(status, type = 'secondary') {
-  Twig.renderFile('./views/status-message.twig', {status, type}, (error, html) => {
-    io.sockets.emit('set-status', html);
-  });
+  io.sockets.emit('set-status', {type, status});
 }
 
 /**
@@ -930,9 +819,7 @@ function setStatusAll(status, type = 'secondary') {
  */
 function setStatusSingle(client, status, type = 'secondary') {
   if (client && client.socket) {
-    Twig.renderFile('./views/status-message.twig', {status, type}, (error, html) => {
-      client.socket.emit('set-status', html);
-    });
+    client.socket.emit('set-status', {type, status});
   }
 }
 
@@ -948,10 +835,7 @@ function updateChat(message) {
   message = stripAnsi(message);
 
   chatHistory.unshift(message);
-
-  Twig.renderFile('./views/chat-item.twig', {message}, (error, html) => {
-    io.sockets.emit('update-chat', html);
-  });
+  io.sockets.emit('update-chat', message);
 }
 
 /**
@@ -970,11 +854,10 @@ function clientLogin(client, user, board, socket) {
   // info.
   const player = board.getPlayerByUserId(user.getId());
   if (player !== null) {
-    console.log('found player with id ' + player.getId());
     user.setPlayer(board.getId(), player);
   }
-  regenerateUserToolbar(user, socket);
-  regeneratePlayersSingle(board, client);
+  setUser(user, socket);
+  regeneratePlayersSingle(board, client.getSocket());
 
   socket.emit('form-user-login-complete');
 }
@@ -987,7 +870,8 @@ function clientLogin(client, user, board, socket) {
  *
  * Note that the cloned client also has no functions, only properties. It is,
  * essentially, static.
- * @param client
+ *
+ * @param {Client} client
  * @returns {{}}
  */
 function cleanClient(client) {

@@ -99,6 +99,15 @@ class Player {
   getStageCount() {
     return this.stages.length;
   }
+  getStagesArray() {
+    const stagesArray = [];
+    for (let i = 0;i < this.stages.length;i++) {
+      stagesArray.push({
+        stageId: this.stages[i].stageId,
+      });
+    }
+    return stagesArray;
+  }
   dropStage(stage) {
     const index = this.stages.indexOf(stage);
     if (index !== -1) {
@@ -130,6 +139,9 @@ class Player {
   setStat(stat, val) {
     this.stats[stat] = val;
   }
+  getStats() {
+    return this.stats;
+  }
   getStat(stat) {
     let data = 0;
     if (this.stats.hasOwnProperty(stat)) {
@@ -148,6 +160,22 @@ class Player {
     else {
       this.stats[stat] = 1;
     }
+  }
+
+  toJSON() {
+    return {
+      name: this.getName(),
+      characters: this.getCharacters(),
+      stages: this.getStagesArray(),
+      userId: this.getUserId(),
+      clientId: this.getClientId(),
+      isActive: this.getActive(),
+      playerId: this.getId(),
+      stats: this.getStats(),
+      pickOrder: this.getPickOrder(),
+      displayOrder: this.getDisplayOrder(),
+      board_id: this.getBoardId(),
+    };
   }
 
 }

@@ -69,3 +69,5 @@ Promise.all(drop_table_promises).then(() => {
       process.exit(1);
     });
 });
+
+return true;

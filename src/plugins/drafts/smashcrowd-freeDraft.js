@@ -89,14 +89,14 @@ class freeDraft extends DraftAbstract {
     clientplayer.setActive((!board.getTotalRounds() || clientplayer.getCharacterCount() < board.getTotalRounds()));
 
     // Disable/Enable picking for this user if the above conditions are met.
-    returned_functions.push({'updateCharactersSingle': [client, {allDisabled: !clientplayer.isActive}]});
+    returned_functions.push({'regenerateCharacters': [board]});
 
     updatedPlayers.push({
       'playerId': clientplayer.getId(),
       'isActive': clientplayer.isActive,
     });
 
-    returned_functions.push({'updatePlayersInfo': [board, updatedPlayers]});
+    returned_functions.push({'regeneratePlayers': [board]});
 
     // If any single player is not yet ready, don't update the board info.
     let draftComplete = true;
@@ -120,7 +120,8 @@ class freeDraft extends DraftAbstract {
   }
 
   startDraftComplete(board) {
-
+    board.resetDraftRound();
+    return [{'regenerateBoard': [board]}];
   }
 
   startGame(board) {
@@ -128,7 +129,8 @@ class freeDraft extends DraftAbstract {
   }
 
   startGameComplete(board) {
-
+    board.resetGameRound();
+    return [{'regenerateBoard': [board]}];
   }
 
 }

@@ -20,11 +20,11 @@
 /**
  * Converts font to the bold Smash Text.
  */
-@mixin smashtext() {
+@mixin smashtext($dropshadow: 3px 3px 0px) {
   color: white;
   font-family: 'Open Sans', 'Work Sans', sans-serif;
   font-weight: 800;
-  text-shadow: rem-calc(0 0 2px) black, rem-calc(2px 2px 3px) black;
+  text-shadow: rem-calc(0 0 2px) black, rem-calc($dropshadow) black;
   text-transform: uppercase;
 }
 
@@ -32,7 +32,7 @@
  * Creates a small label to appear in a character portrait or stage image.
  */
 @mixin smashtext-label() {
-  @include smashtext;
+  @include smashtext(2px 2px 0px);
 
   bottom: rem-calc(2px);
   font-size: rem-calc(14px);
@@ -40,4 +40,48 @@
   position: absolute;
   text-align: center;
   width: 100%;
+}
+
+@mixin bevel($vertical: top, $horizontal: left, $color: $white, $width: rem-calc(15px)) {
+  $selector: before;
+
+  @if $vertical == top {
+    $selector: before;
+  }
+  @else {
+    $selector: after;
+  }
+
+  &:#{$selector} {
+    border: $width $color solid;
+  }
+
+  &:#{$selector} {
+    content: '';
+    display: block;
+    height: 0;
+    width: 100%;
+  }
+
+  @if $vertical == top {
+    &:before {
+      border-top: 0;
+    }
+  }
+  @else if $vertical == bottom {
+    &:after {
+      border-bottom: 0;
+    }
+  }
+
+  @if $horizontal == right {
+    &:#{$selector} {
+      border-right-color: transparent;
+    }
+  }
+  @else if $horizontal == left {
+    &:#{$selector} {
+      border-left-color: transparent;
+    }
+  }
 }

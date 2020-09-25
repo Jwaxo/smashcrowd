@@ -2,35 +2,39 @@
  * Styles defining how player columns appear.
  */
 
+.player-wrapper {
+  filter: drop-shadow(0 -8px 0 $black);
+  &.player-wrapper--active {
+    filter: drop-shadow(0 -8px 0 $red);
+  }
+}
+
 .player {
-  border-color: $dark-gray;
+
+  &:before {
+    content: '';
+    height: 100%;
+    left: 0;
+    mask: url('./images/player_alpha.png') right top;
+    position: absolute;
+    top: 0;
+    width: 100%;
+  }
+  background-color: $light-gray;
+  border: solid 2px $black;
+  border-top-width: 1px;
+  clip-path: polygon(50px 0, 100% 0, 100% 100%, 0 100%, 0 50px);
   position: relative;
   transition: border-width .25s, border-color .25s, height .25s, padding .25s;
 
-  &.player--current {
-    border-width: rem-calc(4px);
-  }
   &.player--active {
-    border-color: map-get($foundation-palette, alert);
+    border-color: $red;
   }
 
   &.player--new {
-    border-color: $medium-gray;
-    border-style: dashed;
-    border-width: rem-calc(4px);
-    &:after {
-      color: $medium-gray;
-      content: '+';
-      display: block;
-      font-size: rem-calc(30px);
-      font-weight: bold;
-      margin: rem-calc(10px 0 60px);
-      text-align: center;
+    &:before {
+      background-color: $medium-gray;
     }
-  }
-
-  &:not(.player--current) {
-    padding: rem-calc(3px);
   }
 
   &.player--owned:not(.player--current) {
@@ -39,22 +43,51 @@
     }
   }
 
+  .card-section {
+    position: relative;
+  }
+
   h4 {
     @include smashtext;
+    -webkit-text-stroke: 1px black;
     font-size: rem-calc(35px);
     text-align: center;
   }
 
-  @include map-apply('&.player--player', $player-main-palette, 'color', ' h4');
+  .close-button {
+    color: $white;
+  }
+
+  @include map-apply('&.player--player', $player-main-palette, 'background-color', ':before');
 }
 
 .player-picker-outer {
   min-height: rem-calc(60px);
   overflow: hidden;
+  text-align: center;
 }
 
 .player-picker {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 2px solid $black;
+  border-radius: 2px;
+  color: $black;
   cursor: pointer;
+  font-size: rem-calc(20px);
+  font-family: 'Open Sans', 'Work Sans', sans-serif;
+  font-weight: 600;
+  min-width: 50%;
+  padding: rem-calc(6px 20px);
+
+  &.hollow {
+    border: 2px solid $black;
+    color: $black;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 1);
+    color: $black;
+  }
 
   .player--owned:not(.player--current) & {
     display: none;
@@ -93,7 +126,7 @@
       border: rem-calc(3px) solid #ff0000; // Has to match the logo color exactly.
       position: relative;
       &:after {
-        background: url('../images/emblem-small-red.png') center center transparent;
+        background: url('./images/emblem-small-red.png') center center transparent;
         bottom: 0;
         content: '';
         display: block;

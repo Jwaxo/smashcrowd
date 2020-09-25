@@ -40,8 +40,5 @@ require('./smashcrowd-updates').updates(crowd)
     crowd.setupAll().then(() => {
       // We silo all of the main server logic to a separate file.
       require('./smashcrowd-server')(crowd, config);
-
-      // Build the sass and start to watch for style or JS changes.
-      require('./smashcrowd-sass')();
     });
   });

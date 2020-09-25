@@ -39,7 +39,7 @@ class Stage {
    */
   setImage(image) {
     if (image) {
-      if (!fs.existsSync('public/' + image)) {
+      if (!fs.existsSync('client/public/' + image)) {
         image = null;
       }
     }
@@ -70,11 +70,11 @@ class Stage {
 
     const newPlayerIndex = openPositions[Math.floor(Math.random() * Math.floor(openPositions.length))];
 
-    this.players[newPlayerIndex] = player;
+    this.players[newPlayerIndex] = player.toJSON();
   }
   dropPlayer(playerId) {
     for (let i = 0; i < this.maxPlayers; i++) {
-      if (this.players.hasOwnProperty(i) && this.players[i].getId() === playerId) {
+      if (this.players.hasOwnProperty(i) && this.players[i].playerId === playerId) {
         delete this.players[i];
         break;
       }

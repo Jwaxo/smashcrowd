@@ -109,19 +109,10 @@ class scorecardDraft extends DraftAbstract {
    *   Functions and arguments to run from the main server with draft calculations.
    */
   advanceDraft(board, client, unused = {}) {
-    const updatedPlayers = [];
-    const clientplayer = client.getPlayerByBoard(board.getId());
     const returned_functions = [];
 
-    updatedPlayers.push({
-      'playerId': clientplayer.getId(),
-    });
-
-    // Ensure that we send "updateCharactersSingle" info to the client that just
-    // picked a character so that, after processing, their character board re-
-    // enables.
-    returned_functions.push({'updateCharactersSingle': [client, {allDisabled: false}]});
-    returned_functions.push({'updatePlayersInfo': [board, updatedPlayers]});
+    returned_functions.push({'regenerateCharacters': [board]});
+    returned_functions.push({'regeneratePlayers': [board]});
 
     // If any single player is not yet ready, don't update the board info.
     let draftComplete = true;

@@ -45,7 +45,7 @@ class Character {
    */
   setImage(image) {
     if (image) {
-      const imagestring = 'public/' + image;
+      const imagestring = 'client/public/' + image;
       if (!fs.existsSync(imagestring)) {
         image = null;
       }

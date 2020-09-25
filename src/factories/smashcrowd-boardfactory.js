@@ -19,11 +19,6 @@ class Board {
   constructor(crowd, options = {}) {
     SmashCrowd = crowd;
 
-    /**
-     * The types of drafts currently able to pick.
-     * @todo: create a draftfactory, then plugin different draft types.
-     */
-
     this.id = null;
     this.owner = 0;
     this.current_pick = 0;
@@ -32,6 +27,7 @@ class Board {
     this.total_rounds = 0;
     this.name = null;
     this.status = 0;
+    this.draft_type = '';
     this.next_player_id = 0;
 
     const draftTypes = SmashCrowd.getSystemValue('draft_types');
@@ -44,7 +40,8 @@ class Board {
       }
     }
 
-    this.setDraft('free');
+    this.draft = {};
+    this.setDraft('free', true);
 
     this.char_data = {};
     this.level_data = {};
@@ -54,9 +51,6 @@ class Board {
     this.characters = [];
     this.stages = [];
 
-    // @todo: Determine if we still need to have these unique hashes. Probably
-    // @todo: not, once we have real sessions going. But we can use this to
-    // @todo: create session IDs.
     this.gameId = this.constructor.generateGameId();
 
     if (typeof options !== 'object') {
@@ -122,6 +116,9 @@ class Board {
   }
 
   updateBoard(field_values) {
+    if (this.getId() === null) {
+      throw new Error('Trying to update a board with a null ID.');
+    }
     SmashCrowd.updateBoard(this.getId(), field_values);
   }
 
@@ -784,6 +781,27 @@ class Board {
     this.resetPick();
     this.setStatus('new');
     this.gameId = this.constructor.generateGameId();
+  }
+
+  toJSON() {
+    const draftTypes = [];
+    for (const [draftName, draftDefinition] of Object.entries(this.getDraftTypes())) {
+      draftTypes.push(draftDefinition.toJSON());
+    }
+
+    return {
+      id: this.getId(),
+      owner: this.getOwner(),
+      current_pick: this.getPick(),
+      current_draft_round: this.getDraftRound(),
+      current_game_round: this.getGameRound(),
+      total_rounds: this.getTotalRounds(),
+      name: this.getName(),
+      status: this.getStatus(true),
+      draft: this.getDraft(),
+      draft_type: this.getDraftType(),
+      draftTypes,
+    };
   }
 
   static generateGameId() {

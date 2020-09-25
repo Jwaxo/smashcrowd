@@ -3,10 +3,12 @@
  */
 
 .character-grid {
+  background-color: black;
   display: flex;
   flex-flow: row wrap;
   justify-content: center;
-  margin-bottom: rem-calc(30px);
+  margin: rem-calc(0 -50px 30px);
+  padding: rem-calc(50px);
 
   &.character-grid--hidden {
     display: none;
@@ -15,13 +17,14 @@
 
 .character {
   background-size: cover;
-  cursor: url('../images/pointer.png'), pointer;
+  border: rem-calc(2px) solid black;
+  cursor: url('./images/pointer.png'), pointer;
   flex: 0 0 auto;
-  height: rem-calc(50px);
+  height: rem-calc(64px);
   overflow: hidden;
   position: relative;
   transition: width .25s;
-  width: rem-calc(90px);
+  width: rem-calc(110px);
   &:nth-child(3n+1) {
     background-color: red;
   }
@@ -34,6 +37,7 @@
 
   &.character--disabled {
     width: 0;
+    border: 0;
   }
 
   .character-grid--disabled & {

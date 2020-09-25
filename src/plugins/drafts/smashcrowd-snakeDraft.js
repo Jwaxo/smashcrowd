@@ -17,7 +17,9 @@
  *   |
  *   v
  *   |
- * [Tom]->-[Dick]->-[Harry]:C----< hsssssss
+ * [Tom]->-[Dick]->-[Harry]--:3----< hsssssss
+ *
+ * @todo: add option for a game round to be played between each draft.
  */
 
 const DraftAbstract = require('./../../factories/smashcrowd-draftfactory');
@@ -29,6 +31,7 @@ class snakeDraft extends DraftAbstract {
     super();
     this.machine_name = 'snake';
     this.label = 'Snake Draft';
+    this.isLimited = true;
   }
 
   startNew(board) {
@@ -49,6 +52,8 @@ class snakeDraft extends DraftAbstract {
   }
 
   addCharacter(board, player, character) {
+    // In some strange cases the ID is returning null, so we're going to make
+    // sure an error pops up to troubleshoot.
     const charId = character.getId();
 
     // First check to make sure the default Draft checks succeed.
@@ -127,6 +132,7 @@ class snakeDraft extends DraftAbstract {
         board.advanceDraftRound();
         board.reversePlayersPick();
         board.resetPick();
+        returned_functions.push({'regenerateBoardInfo': [board]});
       }
 
       const currentPlayer = board.getPlayerByPickOrder(board.getPick());
@@ -135,33 +141,13 @@ class snakeDraft extends DraftAbstract {
       if (prevPlayer !== currentPlayer) {
         // Make sure the characters stay disabled, since this player is no longer
         // active.
-        characterUpdateData.allDisabled = true;
 
         prevPlayer.setActive(false);
         currentPlayer.setActive(true);
-
-        updatedPlayers.push({
-          'playerId': currentPlayer.getId(),
-          'isActive': true,
-        });
       }
 
-      // If we're at a new round in snake draft we need to regenerate the player
-      // area entirely so that they reorder. Otherwise just update stuff!
-      if (newRound) {
-        returned_functions.push({'regenerateBoardInfo': [board]});
-        returned_functions.push({'regeneratePlayers': [board]});
-      }
-      else {
-        updatedPlayers.push({
-          'playerId': prevPlayer.getId(),
-          'isActive': prevPlayer.isActive,
-        });
-
-        returned_functions.push({'updatePlayersInfo': [board, updatedPlayers]});
-      }
-
-      returned_functions.push({'updateCharacters': [characterUpdateData]});
+      returned_functions.push({'regeneratePlayers': [board]});
+      returned_functions.push({'regenerateCharacters': [board]});
     }
 
     return returned_functions;
@@ -172,6 +158,10 @@ class snakeDraft extends DraftAbstract {
   }
 
   startGame(board) {
+
+  }
+
+  startGameComplete(board) {
 
   }
 }
