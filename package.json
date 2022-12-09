@@ -32,7 +32,7 @@
     "chalk": "^2.4.2",
     "config": "^3.0.1",
     "dbdiff": "^0.5.3",
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "express-session": "^1.16.1",
     "express-socket.io-session": "^1.3.5",
     "foundation-sites": "^6.5.3",
